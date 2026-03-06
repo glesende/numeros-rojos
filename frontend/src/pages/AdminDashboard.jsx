@@ -1,0 +1,31 @@
+import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+
+export default function AdminDashboard() {
+  const { user, logout } = useAuth();
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-extrabold">Panel de Administracion</h1>
+          <p className="text-gray-500 text-sm">Bienvenido, {user?.name}</p>
+        </div>
+        <button onClick={logout} className="btn-secondary text-sm">
+          Cerrar sesion
+        </button>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-6">
+        <Link to="/admin/economia" className="card hover:shadow-md transition-shadow">
+          <h2 className="text-lg font-bold mb-1">Economia</h2>
+          <p className="text-sm text-gray-500">Gestionar registros economicos</p>
+        </Link>
+        <Link to="/admin/contratos" className="card hover:shadow-md transition-shadow">
+          <h2 className="text-lg font-bold mb-1">Contratos</h2>
+          <p className="text-sm text-gray-500">Gestionar contratos de jugadores</p>
+        </Link>
+      </div>
+    </div>
+  );
+}
