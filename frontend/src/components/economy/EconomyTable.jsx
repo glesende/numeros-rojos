@@ -34,7 +34,9 @@ export default function EconomyTable({ records }) {
               <td className="py-3 pr-4 whitespace-nowrap">{r.fecha}</td>
               <td className="py-3 pr-4">
                 <Link to={`/economia/${r.id}`} className="text-rojo hover:underline font-medium">
-                  {r.descripcion.length > 60 ? r.descripcion.slice(0, 60) + '...' : r.descripcion}
+                  {r.descripcion
+                    ? (r.descripcion.length > 60 ? r.descripcion.slice(0, 60) + '...' : r.descripcion)
+                    : '-'}
                 </Link>
               </td>
               <td className="py-3 pr-4">
