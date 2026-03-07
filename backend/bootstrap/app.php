@@ -40,6 +40,11 @@ $app->register(App\Providers\AuthServiceProvider::class);
 $app->register(Illuminate\Redis\RedisServiceProvider::class);
 $app->register(Tymon\JWTAuth\Providers\LumenServiceProvider::class);
 
+$app->singleton(
+    Illuminate\Contracts\Debug\ExceptionHandler::class,
+    App\Exceptions\Handler::class
+);
+
 // Routes
 $app->router->group([
     'namespace' => 'App\Http\Controllers',
