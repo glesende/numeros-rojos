@@ -38,7 +38,7 @@ export default function EconomyTable({ records }) {
                 </Link>
               </td>
               <td className="py-3 pr-4">
-                <span className={`text-xs font-semibold uppercase ${r.tipo === 'cobro' ? 'text-green-700' : 'text-red-700'}`}>
+                <span className={r.tipo === 'cobro' ? 'badge-cobro' : 'badge-pago'}>
                   {r.tipo}
                 </span>
               </td>
