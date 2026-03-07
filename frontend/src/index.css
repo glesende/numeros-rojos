@@ -36,6 +36,14 @@
     @apply bg-red-100 text-red-800 text-xs font-medium px-2 py-0.5 rounded;
   }
 
+  .badge-cobro {
+    @apply bg-green-100 text-green-800 text-xs font-semibold uppercase px-2 py-0.5 rounded;
+  }
+
+  .badge-pago {
+    @apply bg-orange-100 text-orange-800 text-xs font-semibold uppercase px-2 py-0.5 rounded;
+  }
+
   .input-field {
     @apply w-full border border-gray-300 rounded-lg px-3 py-2 text-sm
            focus:outline-none focus:ring-2 focus:ring-rojo focus:border-transparent;
