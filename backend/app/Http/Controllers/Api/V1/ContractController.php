@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Contract;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -39,8 +40,8 @@ class ContractController extends Controller
             'promedio_porcentaje_pase'  => round((float) (clone $aggQuery)->avg('porcentaje_pase_club'), 2),
             'total_salarios_usd'       => (float) (clone $aggQuery)->where('moneda', 'USD')->sum('salario_estimado'),
             'total_salarios_ars'       => (float) (clone $aggQuery)->where('moneda', 'ARS')->sum('salario_estimado'),
-            'contratos_vigentes'       => (int) (clone $aggQuery)->where('fecha_caducidad', '>=', now())->count(),
-            'contratos_vencidos'       => (int) (clone $aggQuery)->where('fecha_caducidad', '<', now())->count(),
+            'contratos_vigentes'       => (int) (clone $aggQuery)->where('fecha_caducidad', '>=', Carbon::now())->count(),
+            'contratos_vencidos'       => (int) (clone $aggQuery)->where('fecha_caducidad', '<', Carbon::now())->count(),
         ];
 
         return response()->json([
