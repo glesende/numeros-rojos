@@ -57,4 +57,31 @@ class Contract extends Model
         }
         return $query->where('fecha_firma', '<=', $hasta);
     }
+
+    public function scopeBuscar($query, ?string $buscar): mixed
+    {
+        if ($buscar === null || $buscar === '') {
+            return $query;
+        }
+        return $query->where('nombre_completo', 'like', '%' . $buscar . '%');
+    }
+
+    public function scopeVigencia($query, ?string $vigencia): mixed
+    {
+        if ($vigencia === null || $vigencia === '') {
+            return $query;
+        }
+
+        $today = now()->startOfDay();
+
+        return match ($vigencia) {
+            '6m'  => $query->where('fecha_caducidad', '>=', $today)
+                           ->where('fecha_caducidad', '<=', $today->copy()->addMonths(6)),
+            '12m' => $query->where('fecha_caducidad', '>=', $today)
+                           ->where('fecha_caducidad', '<=', $today->copy()->addMonths(12)),
+            '18m' => $query->where('fecha_caducidad', '>=', $today)
+                           ->where('fecha_caducidad', '<=', $today->copy()->addMonths(18)),
+            default => $query,
+        };
+    }
 }

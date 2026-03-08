@@ -13,8 +13,10 @@ class ContractController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = Contract::query()
+            ->buscar($request->input('buscar'))
             ->fechaDesde($request->input('fecha_desde'))
-            ->fechaHasta($request->input('fecha_hasta'));
+            ->fechaHasta($request->input('fecha_hasta'))
+            ->vigencia($request->input('vigencia'));
 
         if ($request->has('oficial')) {
             $query->oficial(filter_var($request->input('oficial'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE));
@@ -28,8 +30,10 @@ class ContractController extends Controller
 
         // Aggregates
         $aggQuery = Contract::query()
+            ->buscar($request->input('buscar'))
             ->fechaDesde($request->input('fecha_desde'))
-            ->fechaHasta($request->input('fecha_hasta'));
+            ->fechaHasta($request->input('fecha_hasta'))
+            ->vigencia($request->input('vigencia'));
 
         if ($request->has('oficial')) {
             $aggQuery->oficial(filter_var($request->input('oficial'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE));
