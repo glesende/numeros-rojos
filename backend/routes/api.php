@@ -2,6 +2,9 @@
 
 /** @var \Laravel\Lumen\Routing\Router $router */
 
+// Sitemap (público, sin versión)
+$router->get('api/sitemap.xml', ['uses' => 'Api\V1\SitemapController@index']);
+
 $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use ($router) {
 
     // Auth
