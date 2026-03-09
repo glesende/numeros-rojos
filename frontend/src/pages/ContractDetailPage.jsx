@@ -11,8 +11,13 @@ export default function ContractDetailPage() {
 
   useEffect(() => {
     getContract(id)
-      .then((res) => setContract(res.data.data))
+      .then((res) => {
+        const c = res.data.data;
+        setContract(c);
+        if (c) document.title = `Contrato de ${c.nombre_completo} | Números Rojos`;
+      })
       .finally(() => setLoading(false));
+    return () => { document.title = 'Números Rojos'; };
   }, [id]);
 
   if (loading) return <Loader />;

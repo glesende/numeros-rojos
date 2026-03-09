@@ -10,6 +10,11 @@ export default function StatsPage() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    document.title = 'Rendimiento Deportivo | Números Rojos';
+    return () => { document.title = 'Números Rojos'; };
+  }, []);
+
+  useEffect(() => {
     Promise.allSettled([getStandings(), getLeagueStats()])
       .then(([standingsRes, leagueRes]) => {
         if (standingsRes.status === 'fulfilled') {

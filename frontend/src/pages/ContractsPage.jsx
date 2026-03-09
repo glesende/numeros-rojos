@@ -14,6 +14,11 @@ export default function ContractsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  useEffect(() => {
+    document.title = 'Transparencia Contractual | Números Rojos';
+    return () => { document.title = 'Números Rojos'; };
+  }, []);
+
   const fetchData = useCallback(() => {
     setLoading(true);
     setError(null);
