@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\EconomyRecord;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class EconomyRecordController extends Controller
 {
@@ -60,6 +62,66 @@ class EconomyRecordController extends Controller
                 'total'        => $records->total(),
             ],
         ]);
+    }
+
+    public function monthlySummary(): JsonResponse
+    {
+        $today = Carbon::today();
+        $from  = $today->copy()->subMonths(24)->startOfMonth();
+        $to    = $today->copy()->addMonths(24)->endOfMonth();
+
+        $rows = EconomyRecord::query()
+            ->select(
+                DB::raw("DATE_FORMAT(fecha, '%Y-%m') AS month_key"),
+                DB::raw("YEAR(fecha) AS year"),
+                DB::raw("MONTH(fecha) AS month_num"),
+                'moneda',
+                'tipo',
+                DB::raw('SUM(monto) AS total')
+            )
+            ->whereBetween('fecha', [$from->toDateString(), $to->toDateString()])
+            ->groupBy('month_key', 'year', 'month_num', 'moneda', 'tipo')
+            ->orderBy('month_key')
+            ->get();
+
+        // Build a map of all months in range (past 24 + next 24)
+        $months = [];
+        $cursor = $from->copy();
+        while ($cursor->lte($to)) {
+            $key = $cursor->format('Y-m');
+            $months[$key] = [
+                'month'         => $key,
+                'year'          => (int) $cursor->year,
+                'month_num'     => (int) $cursor->month,
+                'month_label'   => $cursor->locale('es')->isoFormat('MMM YY'),
+                'ingresos_ars'  => 0.0,
+                'egresos_ars'   => 0.0,
+                'ingresos_usd'  => 0.0,
+                'egresos_usd'   => 0.0,
+                'balance_ars'   => 0.0,
+                'balance_usd'   => 0.0,
+            ];
+            $cursor->addMonth();
+        }
+
+        foreach ($rows as $row) {
+            $key = $row->month_key;
+            if (!isset($months[$key])) {
+                continue;
+            }
+            $currency = strtolower($row->moneda);
+            $field    = $row->tipo === 'cobro' ? "ingresos_{$currency}" : "egresos_{$currency}";
+            $months[$key][$field] += (float) $row->total;
+        }
+
+        // Compute balances
+        foreach ($months as &$m) {
+            $m['balance_ars'] = $m['ingresos_ars'] - $m['egresos_ars'];
+            $m['balance_usd'] = $m['ingresos_usd'] - $m['egresos_usd'];
+        }
+        unset($m);
+
+        return response()->json(['data' => array_values($months)]);
     }
 
     public function show(int $id): JsonResponse

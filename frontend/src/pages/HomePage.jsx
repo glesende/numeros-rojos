@@ -3,6 +3,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { getContracts } from '../api/endpoints';
 import Loader from '../components/common/Loader';
 import ConfidenceBadge from '../components/common/ConfidenceBadge';
+import MonthlyBarChart from '../components/economy/MonthlyBarChart';
 
 const VIGENCIA_OPTIONS = [
   { value: '6m', label: 'Vence en 6 meses' },
@@ -151,6 +152,11 @@ export default function HomePage() {
             Transparencia economica, contractual y deportiva.
           </p>
         </div>
+      </section>
+
+      {/* Monthly income/expense chart */}
+      <section className="max-w-6xl mx-auto px-4 py-8">
+        <MonthlyBarChart />
       </section>
 
       {/* Contracts carousel */}

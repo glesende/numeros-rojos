@@ -12,6 +12,7 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
 
     // Public endpoints
     $router->get('economy', 'EconomyRecordController@index');
+    $router->get('economy/monthly-summary', 'EconomyRecordController@monthlySummary');
     $router->get('economy/{id}', 'EconomyRecordController@show');
     $router->get('contracts', 'ContractController@index');
     $router->get('contracts/{id}', 'ContractController@show');
