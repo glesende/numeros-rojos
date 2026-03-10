@@ -11,6 +11,15 @@ const VIGENCIA_OPTIONS = [
   { value: '18m', label: 'Vence en 18 meses' },
 ];
 
+function formatDate(dateStr) {
+  if (!dateStr) return '-';
+  const d = new Date(dateStr);
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const year = d.getUTCFullYear();
+  return `${day}-${month}-${year}`;
+}
+
 function getDaysUntil(dateStr) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -43,7 +52,7 @@ function ContractCard({ contract }) {
         <div className="flex justify-between items-center">
           <span className="text-gray-500 text-xs">Vence</span>
           <span className={`font-mono text-xs ${expired ? 'text-red-600' : soon ? 'text-yellow-600' : 'text-gray-700'}`}>
-            {contract.fecha_caducidad}
+            {formatDate(contract.fecha_caducidad)}
           </span>
         </div>
         <div className="flex justify-between items-center">
@@ -153,8 +162,7 @@ export default function HomePage() {
             Los datos que todo socio de<br />Independiente tiene que saber
           </h1>
           <p className="text-base md:text-lg text-white/80 max-w-2xl mx-auto">
-            Portal de datos abiertos del Club Atletico Independiente.
-            Transparencia economica, contractual y deportiva.
+            Centralizados, simples y concretos.
           </p>
         </div>
       </section>
@@ -230,57 +238,6 @@ export default function HomePage() {
             </div>
           </>
         )}
-      </section>
-
-      {/* Other sections */}
-      <section className="max-w-6xl mx-auto px-4 pb-12">
-        <div className="grid md:grid-cols-3 gap-4">
-          <Link to="/economia" className="card group hover:border-rojo/20 hover:shadow-md transition-all duration-200">
-            <div className="flex items-start gap-3">
-              <div className="text-rojo mt-1">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900 group-hover:text-rojo transition-colors">
-                  Transparencia Economica
-                </h3>
-                <p className="text-sm text-gray-500 mt-1">Ingresos, egresos y balance del club.</p>
-              </div>
-            </div>
-          </Link>
-          <Link to="/contratos" className="card group hover:border-rojo/20 hover:shadow-md transition-all duration-200">
-            <div className="flex items-start gap-3">
-              <div className="text-rojo mt-1">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900 group-hover:text-rojo transition-colors">
-                  Contratos completos
-                </h3>
-                <p className="text-sm text-gray-500 mt-1">Tabla completa con filtros avanzados.</p>
-              </div>
-            </div>
-          </Link>
-          <Link to="/rendimiento" className="card group hover:border-rojo/20 hover:shadow-md transition-all duration-200">
-            <div className="flex items-start gap-3">
-              <div className="text-rojo mt-1">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900 group-hover:text-rojo transition-colors">
-                  Rendimiento Deportivo
-                </h3>
-                <p className="text-sm text-gray-500 mt-1">Posiciones, estadisticas de jugadores y liga.</p>
-              </div>
-            </div>
-          </Link>
-        </div>
       </section>
     </div>
   );

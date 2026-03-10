@@ -74,6 +74,15 @@ function CustomTooltip({ active, payload, label, currency }) {
   );
 }
 
+function formatDate(dateStr) {
+  if (!dateStr) return '-';
+  const d = new Date(dateStr);
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const year = d.getUTCFullYear();
+  return `${day}-${month}-${year}`;
+}
+
 function formatMoney(amount, currency) {
   return new Intl.NumberFormat('es-AR', {
     style: 'currency',
@@ -271,7 +280,7 @@ export default function MonthlyBarChart() {
               <tbody>
                 {upcoming.map((r) => (
                   <tr key={r.id} className="border-b border-gray-50 hover:bg-gray-50">
-                    <td className="py-2 pr-4 whitespace-nowrap text-gray-500 text-xs">{r.fecha}</td>
+                    <td className="py-2 pr-4 whitespace-nowrap text-gray-500 text-xs">{formatDate(r.fecha)}</td>
                     <td className="py-2 pr-4">
                       <Link to={`/economia/${r.id}`} className="text-rojo hover:underline font-medium line-clamp-1">
                         {r.descripcion || '-'}

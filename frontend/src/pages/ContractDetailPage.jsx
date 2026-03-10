@@ -4,6 +4,15 @@ import { getContract } from '../api/endpoints';
 import ConfidenceBadge from '../components/common/ConfidenceBadge';
 import Loader from '../components/common/Loader';
 
+function formatDate(dateStr) {
+  if (!dateStr) return '-';
+  const d = new Date(dateStr);
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const year = d.getUTCFullYear();
+  return `${day}-${month}-${year}`;
+}
+
 export default function ContractDetailPage() {
   const { id } = useParams();
   const [contract, setContract] = useState(null);
@@ -43,11 +52,11 @@ export default function ContractDetailPage() {
         <div className="grid grid-cols-2 gap-4 text-sm mb-6">
           <div>
             <p className="text-gray-500">Fecha de firma</p>
-            <p className="font-medium">{contract.fecha_firma}</p>
+            <p className="font-medium">{formatDate(contract.fecha_firma)}</p>
           </div>
           <div>
             <p className="text-gray-500">Fecha de vencimiento</p>
-            <p className={`font-medium ${vencido ? 'text-red-600' : ''}`}>{contract.fecha_caducidad}</p>
+            <p className={`font-medium ${vencido ? 'text-red-600' : ''}`}>{formatDate(contract.fecha_caducidad)}</p>
           </div>
           <div>
             <p className="text-gray-500">Porcentaje del pase</p>
@@ -93,7 +102,7 @@ export default function ContractDetailPage() {
           </div>
         )}
 
-        <p className="text-xs text-gray-400 mt-6">Actualizado: {contract.updated_at}</p>
+        <p className="text-xs text-gray-400 mt-6">Actualizado: {formatDate(contract.updated_at)}</p>
       </div>
     </div>
   );

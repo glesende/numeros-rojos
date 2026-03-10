@@ -34,12 +34,8 @@ export default function ContractsPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-extrabold mb-1">Transparencia Contractual</h1>
-      <p className="text-gray-500 text-sm mb-6">
-        Contratos del plantel profesional del Club Atletico Independiente.
-      </p>
+      <h1 className="text-2xl font-extrabold mb-1">Contratos profesionales</h1>
 
-      <ContractTotals totals={data.totals} />
       <ContractFilters filters={filters} onFilter={updateFilter} onReset={resetFilters} />
 
       {loading ? (

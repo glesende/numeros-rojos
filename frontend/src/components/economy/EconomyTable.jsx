@@ -1,6 +1,15 @@
 import { Link } from 'react-router-dom';
 import ConfidenceBadge from '../common/ConfidenceBadge';
 
+function formatDate(dateStr) {
+  if (!dateStr) return '-';
+  const d = new Date(dateStr);
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const year = d.getUTCFullYear();
+  return `${day}-${month}-${year}`;
+}
+
 function formatMoney(amount, currency) {
   const fmt = new Intl.NumberFormat('es-AR', {
     style: 'currency',
@@ -31,7 +40,7 @@ export default function EconomyTable({ records }) {
         <tbody>
           {records.map((r) => (
             <tr key={r.id} className="border-b border-gray-100 hover:bg-gray-50">
-              <td className="py-3 pr-4 whitespace-nowrap">{r.fecha}</td>
+              <td className="py-3 pr-4 whitespace-nowrap">{formatDate(r.fecha)}</td>
               <td className="py-3 pr-4">
                 <Link to={`/economia/${r.id}`} className="text-rojo hover:underline font-medium">
                   {r.descripcion

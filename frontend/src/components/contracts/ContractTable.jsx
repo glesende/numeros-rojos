@@ -1,6 +1,15 @@
 import { Link } from 'react-router-dom';
 import ConfidenceBadge from '../common/ConfidenceBadge';
 
+function formatDate(dateStr) {
+  if (!dateStr) return '-';
+  const d = new Date(dateStr);
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const year = d.getUTCFullYear();
+  return `${day}-${month}-${year}`;
+}
+
 export default function ContractTable({ contracts }) {
   if (!contracts.length) {
     return <p className="text-gray-500 text-center py-8">No hay contratos.</p>;
@@ -30,9 +39,9 @@ export default function ContractTable({ contracts }) {
                     {c.nombre_completo}
                   </Link>
                 </td>
-                <td className="py-3 pr-4 whitespace-nowrap">{c.fecha_firma}</td>
+                <td className="py-3 pr-4 whitespace-nowrap">{formatDate(c.fecha_firma)}</td>
                 <td className="py-3 pr-4 whitespace-nowrap">
-                  <span className={vencido ? 'text-red-600' : ''}>{c.fecha_caducidad}</span>
+                  <span className={vencido ? 'text-red-600' : ''}>{formatDate(c.fecha_caducidad)}</span>
                   {vencido && <span className="ml-1 text-xs text-red-500">(vencido)</span>}
                 </td>
                 <td className="py-3 pr-4 text-right font-mono">{c.porcentaje_pase_club}%</td>

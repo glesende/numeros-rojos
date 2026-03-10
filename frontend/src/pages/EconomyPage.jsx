@@ -34,12 +34,8 @@ export default function EconomyPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-extrabold mb-1">Transparencia Economica</h1>
-      <p className="text-gray-500 text-sm mb-6">
-        Ingresos y egresos del Club Atletico Independiente.
-      </p>
+      <h1 className="text-2xl font-extrabold mb-1">Compromisos económicos</h1>
 
-      <EconomyTotals totals={data.totals} />
       <EconomyFilters filters={filters} onFilter={updateFilter} onReset={resetFilters} />
 
       {loading ? (
