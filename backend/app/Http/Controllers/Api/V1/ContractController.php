@@ -77,7 +77,6 @@ class ContractController extends Controller
             'salario_estimado'      => 'nullable|numeric|min:0',
             'moneda'                => 'nullable|in:ARS,USD',
             'oficial'               => 'required|boolean',
-            'confidence_level'      => 'required|in:high,medium,low',
             'clausulas'             => 'nullable|array',
             'links'                 => 'nullable|array',
             'links.*'               => 'url',
@@ -86,7 +85,7 @@ class ContractController extends Controller
         $contract = Contract::create($request->only([
             'nombre_completo', 'fecha_firma', 'fecha_caducidad',
             'porcentaje_pase_club', 'salario_estimado', 'moneda',
-            'oficial', 'confidence_level', 'clausulas', 'links',
+            'oficial', 'clausulas', 'links',
         ]));
 
         return response()->json(['data' => $contract], 201);
@@ -104,7 +103,6 @@ class ContractController extends Controller
             'salario_estimado'      => 'nullable|numeric|min:0',
             'moneda'                => 'nullable|in:ARS,USD',
             'oficial'               => 'sometimes|boolean',
-            'confidence_level'      => 'sometimes|in:high,medium,low',
             'clausulas'             => 'nullable|array',
             'links'                 => 'nullable|array',
             'links.*'               => 'url',
@@ -113,7 +111,7 @@ class ContractController extends Controller
         $contract->update($request->only([
             'nombre_completo', 'fecha_firma', 'fecha_caducidad',
             'porcentaje_pase_club', 'salario_estimado', 'moneda',
-            'oficial', 'confidence_level', 'clausulas', 'links',
+            'oficial', 'clausulas', 'links',
         ]));
 
         return response()->json(['data' => $contract]);

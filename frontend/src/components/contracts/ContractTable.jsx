@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import ConfidenceBadge from '../common/ConfidenceBadge';
 
 function formatDate(dateStr) {
   if (!dateStr) return '-';
@@ -25,7 +24,6 @@ export default function ContractTable({ contracts }) {
             <th className="pb-3 pr-4">Vencimiento</th>
             <th className="pb-3 pr-4 text-right">% Pase</th>
             <th className="pb-3 pr-4 text-right">Salario est.</th>
-            <th className="pb-3 pr-4">Confianza</th>
             <th className="pb-3">Oficial</th>
           </tr>
         </thead>
@@ -53,9 +51,6 @@ export default function ContractTable({ contracts }) {
                         maximumFractionDigits: 0,
                       }).format(c.salario_estimado)
                     : '-'}
-                </td>
-                <td className="py-3 pr-4">
-                  <ConfidenceBadge level={c.confidence_level} />
                 </td>
                 <td className="py-3">
                   {c.oficial ? (

@@ -30,7 +30,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $month(-24),
                 'oficial'          => true,
-                'confidence_level' => 'high',
                 'links'            => json_encode([]),
             ],
             [
@@ -40,7 +39,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(-24, 28),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
             [
@@ -50,7 +48,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'USD',
                 'fecha'            => $date(-23, 10),
                 'oficial'          => true,
-                'confidence_level' => 'high',
                 'links'            => json_encode([]),
             ],
             [
@@ -60,7 +57,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(-23, 28),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
 
@@ -72,7 +68,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $month(-21),
                 'oficial'          => true,
-                'confidence_level' => 'high',
                 'links'            => json_encode([]),
             ],
             [
@@ -82,7 +77,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'USD',
                 'fecha'            => $date(-21, 5),
                 'oficial'          => true,
-                'confidence_level' => 'high',
                 'links'            => json_encode([]),
             ],
             [
@@ -92,7 +86,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'USD',
                 'fecha'            => $date(-20, 5),
                 'oficial'          => false,
-                'confidence_level' => 'medium',
                 'links'            => json_encode([]),
             ],
             [
@@ -102,7 +95,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'USD',
                 'fecha'            => $date(-20, 15),
                 'oficial'          => false,
-                'confidence_level' => 'medium',
                 'links'            => json_encode([]),
             ],
             [
@@ -112,7 +104,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(-20, 28),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
 
@@ -124,7 +115,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $month(-18),
                 'oficial'          => true,
-                'confidence_level' => 'high',
                 'links'            => json_encode([]),
             ],
             [
@@ -134,7 +124,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(-17, 14),
                 'oficial'          => true,
-                'confidence_level' => 'high',
                 'links'            => json_encode([]),
             ],
             [
@@ -144,7 +133,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(-17, 20),
                 'oficial'          => true,
-                'confidence_level' => 'high',
                 'links'            => json_encode([]),
             ],
             [
@@ -154,7 +142,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(-17, 28),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
             [
@@ -164,7 +151,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(-16, 15),
                 'oficial'          => false,
-                'confidence_level' => 'medium',
                 'links'            => json_encode([]),
             ],
 
@@ -176,7 +162,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $month(-15),
                 'oficial'          => true,
-                'confidence_level' => 'high',
                 'links'            => json_encode([]),
             ],
             [
@@ -186,7 +171,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'USD',
                 'fecha'            => $date(-14, 15),
                 'oficial'          => true,
-                'confidence_level' => 'high',
                 'links'            => json_encode([]),
             ],
             [
@@ -196,7 +180,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'USD',
                 'fecha'            => $date(-13, 10),
                 'oficial'          => false,
-                'confidence_level' => 'medium',
                 'links'            => json_encode([]),
             ],
             [
@@ -206,7 +189,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'USD',
                 'fecha'            => $date(-13, 1),
                 'oficial'          => true,
-                'confidence_level' => 'high',
                 'links'            => json_encode([]),
             ],
             [
@@ -216,7 +198,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(-13, 28),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
 
@@ -228,7 +209,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $month(-12),
                 'oficial'          => true,
-                'confidence_level' => 'high',
                 'links'            => json_encode([]),
             ],
             [
@@ -238,7 +218,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(-11, 5),
                 'oficial'          => true,
-                'confidence_level' => 'high',
                 'links'            => json_encode([]),
             ],
             [
@@ -248,7 +227,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(-11, 28),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
             [
@@ -258,7 +236,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'USD',
                 'fecha'            => $date(-11, 1),
                 'oficial'          => true,
-                'confidence_level' => 'high',
                 'links'            => json_encode([]),
             ],
 
@@ -270,7 +247,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $month(-9),
                 'oficial'          => true,
-                'confidence_level' => 'high',
                 'links'            => json_encode([]),
             ],
             [
@@ -280,7 +256,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(-8, 20),
                 'oficial'          => true,
-                'confidence_level' => 'high',
                 'links'            => json_encode([]),
             ],
             [
@@ -290,7 +265,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(-8, 28),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
             [
@@ -300,7 +274,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'USD',
                 'fecha'            => $date(-8, 20),
                 'oficial'          => false,
-                'confidence_level' => 'medium',
                 'links'            => json_encode([]),
             ],
 
@@ -312,7 +285,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $month(-6),
                 'oficial'          => true,
-                'confidence_level' => 'high',
                 'links'            => json_encode([]),
             ],
             [
@@ -322,7 +294,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(-5, 8),
                 'oficial'          => true,
-                'confidence_level' => 'high',
                 'links'            => json_encode([]),
             ],
             [
@@ -332,7 +303,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(-5, 15),
                 'oficial'          => true,
-                'confidence_level' => 'high',
                 'links'            => json_encode([]),
             ],
             [
@@ -342,7 +312,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'USD',
                 'fecha'            => $date(-5, 28),
                 'oficial'          => false,
-                'confidence_level' => 'medium',
                 'links'            => json_encode([]),
             ],
             [
@@ -352,7 +321,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(-4, 28),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
             [
@@ -362,7 +330,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(-4, 10),
                 'oficial'          => true,
-                'confidence_level' => 'high',
                 'links'            => json_encode([]),
             ],
 
@@ -374,7 +341,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $month(-3),
                 'oficial'          => true,
-                'confidence_level' => 'high',
                 'links'            => json_encode([]),
             ],
             [
@@ -384,7 +350,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(-2, 12),
                 'oficial'          => true,
-                'confidence_level' => 'high',
                 'links'            => json_encode([]),
             ],
             [
@@ -394,7 +359,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(-2, 28),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
             [
@@ -404,7 +368,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(-2, 20),
                 'oficial'          => false,
-                'confidence_level' => 'medium',
                 'links'            => json_encode([]),
             ],
             [
@@ -414,7 +377,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'USD',
                 'fecha'            => $date(-1, 15),
                 'oficial'          => false,
-                'confidence_level' => 'medium',
                 'links'            => json_encode([]),
             ],
             [
@@ -424,7 +386,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(-1, 28),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
 
@@ -440,7 +401,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $month(1),
                 'oficial'          => false,
-                'confidence_level' => 'medium',
                 'links'            => json_encode([]),
             ],
             [
@@ -450,7 +410,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(1, 28),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
 
@@ -462,7 +421,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(2, 9),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
             [
@@ -472,7 +430,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(2, 28),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
 
@@ -484,7 +441,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $month(3),
                 'oficial'          => false,
-                'confidence_level' => 'medium',
                 'links'            => json_encode([]),
             ],
             [
@@ -494,7 +450,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(3, 10),
                 'oficial'          => true,
-                'confidence_level' => 'high',
                 'links'            => json_encode([]),
             ],
             [
@@ -504,7 +459,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(3, 28),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
 
@@ -516,7 +470,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'USD',
                 'fecha'            => $date(4, 1),
                 'oficial'          => false,
-                'confidence_level' => 'medium',
                 'links'            => json_encode([]),
             ],
             [
@@ -526,7 +479,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(4, 28),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
 
@@ -538,7 +490,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(5, 15),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
             [
@@ -548,7 +499,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(5, 28),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
 
@@ -560,7 +510,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $month(6),
                 'oficial'          => false,
-                'confidence_level' => 'medium',
                 'links'            => json_encode([]),
             ],
             [
@@ -570,7 +519,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'USD',
                 'fecha'            => $date(6, 20),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
             [
@@ -580,7 +528,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(6, 10),
                 'oficial'          => true,
-                'confidence_level' => 'high',
                 'links'            => json_encode([]),
             ],
             [
@@ -590,7 +537,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(6, 28),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
 
@@ -602,7 +548,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $month(9),
                 'oficial'          => false,
-                'confidence_level' => 'medium',
                 'links'            => json_encode([]),
             ],
             [
@@ -612,7 +557,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(9, 28),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
             [
@@ -622,7 +566,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(10, 5),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
             [
@@ -632,7 +575,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(9, 10),
                 'oficial'          => true,
-                'confidence_level' => 'high',
                 'links'            => json_encode([]),
             ],
 
@@ -644,7 +586,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $month(12),
                 'oficial'          => false,
-                'confidence_level' => 'medium',
                 'links'            => json_encode([]),
             ],
             [
@@ -654,7 +595,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'USD',
                 'fecha'            => $date(12, 1),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
             [
@@ -664,7 +604,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(12, 28),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
             [
@@ -674,7 +613,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'USD',
                 'fecha'            => $date(13, 20),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
 
@@ -686,7 +624,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $month(15),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
             [
@@ -696,7 +633,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(15, 28),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
 
@@ -708,7 +644,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $month(18),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
             [
@@ -718,7 +653,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'USD',
                 'fecha'            => $date(18, 1),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
             [
@@ -728,7 +662,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(18, 28),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
 
@@ -740,7 +673,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $month(21),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
             [
@@ -750,7 +682,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(21, 28),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
 
@@ -762,7 +693,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $month(24),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
             [
@@ -772,7 +702,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'USD',
                 'fecha'            => $date(24, 1),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
             [
@@ -782,7 +711,6 @@ class EconomyRecordSeeder extends Seeder
                 'moneda'           => 'ARS',
                 'fecha'            => $date(24, 28),
                 'oficial'          => false,
-                'confidence_level' => 'low',
                 'links'            => json_encode([]),
             ],
         ];

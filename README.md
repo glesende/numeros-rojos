@@ -194,7 +194,6 @@ Para activar las estadisticas en tiempo real:
 | moneda           | enum: ARS, USD             |
 | fecha            | date                       |
 | oficial          | boolean                    |
-| confidence_level | enum: high, medium, low    |
 | links            | json (nullable)            |
 | created_at       | timestamp                  |
 | updated_at       | timestamp                  |
@@ -211,7 +210,6 @@ Para activar las estadisticas en tiempo real:
 | salario_estimado     | decimal(15,2) nullable     |
 | moneda               | enum: ARS, USD (nullable)  |
 | oficial              | boolean                    |
-| confidence_level     | enum: high, medium, low    |
 | clausulas            | json (nullable)            |
 | links                | json (nullable)            |
 | created_at           | timestamp                  |

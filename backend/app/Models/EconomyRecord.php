@@ -18,7 +18,6 @@ class EconomyRecord extends Model
         'moneda',
         'fecha',
         'oficial',
-        'confidence_level',
         'links',
     ];
 

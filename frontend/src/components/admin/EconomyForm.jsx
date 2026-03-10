@@ -7,7 +7,6 @@ const emptyForm = {
   moneda: 'ARS',
   fecha: '',
   oficial: false,
-  confidence_level: 'medium',
   links: [],
 };
 
@@ -87,26 +86,16 @@ export default function EconomyForm({ initial, onSubmit, loading }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Confianza *</label>
-          <select value={form.confidence_level} onChange={(e) => set('confidence_level', e.target.value)} className="input-field">
-            <option value="high">Alta</option>
-            <option value="medium">Media</option>
-            <option value="low">Baja</option>
-          </select>
-        </div>
-        <div className="flex items-end">
-          <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={form.oficial}
-              onChange={(e) => set('oficial', e.target.checked)}
-              className="rounded border-gray-300 text-rojo focus:ring-rojo"
-            />
-            Dato oficial
-          </label>
-        </div>
+      <div>
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={form.oficial}
+            onChange={(e) => set('oficial', e.target.checked)}
+            className="rounded border-gray-300 text-rojo focus:ring-rojo"
+          />
+          Dato oficial
+        </label>
       </div>
 
       <div>
