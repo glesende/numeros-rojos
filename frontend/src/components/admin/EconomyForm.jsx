@@ -7,6 +7,7 @@ const emptyForm = {
   moneda: 'ARS',
   fecha: '',
   oficial: false,
+  efectuado: false,
   confidence_level: 'medium',
   links: [],
 };
@@ -30,7 +31,7 @@ export default function EconomyForm({ initial, onSubmit, loading }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit({ ...form, monto: parseFloat(form.monto), oficial: !!form.oficial });
+    onSubmit({ ...form, monto: parseFloat(form.monto), oficial: !!form.oficial, efectuado: !!form.efectuado });
   };
 
   return (
@@ -96,7 +97,7 @@ export default function EconomyForm({ initial, onSubmit, loading }) {
             <option value="low">Baja</option>
           </select>
         </div>
-        <div className="flex items-end">
+        <div className="flex flex-col gap-2 justify-end">
           <label className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"
@@ -105,6 +106,15 @@ export default function EconomyForm({ initial, onSubmit, loading }) {
               className="rounded border-gray-300 text-rojo focus:ring-rojo"
             />
             Dato oficial
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={form.efectuado}
+              onChange={(e) => set('efectuado', e.target.checked)}
+              className="rounded border-gray-300 text-rojo focus:ring-rojo"
+            />
+            Efectuado
           </label>
         </div>
       </div>
