@@ -118,6 +118,7 @@ export default function ContractForm({ initial, onSubmit, loading }) {
           <select value={form.moneda} onChange={(e) => set('moneda', e.target.value)} className="input-field">
             <option value="USD">USD</option>
             <option value="ARS">ARS</option>
+            <option value="EUR">EUR</option>
           </select>
         </div>
       </div>
