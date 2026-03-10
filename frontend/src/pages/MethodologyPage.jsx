@@ -1,4 +1,11 @@
+import { useEffect } from 'react';
+
 export default function MethodologyPage() {
+  useEffect(() => {
+    document.title = 'Metodología y Fuentes | Números Rojos';
+    return () => { document.title = 'Números Rojos'; };
+  }, []);
+
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-extrabold mb-1">Metodologia y Fuentes</h1>

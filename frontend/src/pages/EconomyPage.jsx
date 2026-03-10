@@ -14,6 +14,11 @@ export default function EconomyPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  useEffect(() => {
+    document.title = 'Transparencia Económica | Números Rojos';
+    return () => { document.title = 'Números Rojos'; };
+  }, []);
+
   const fetchData = useCallback(() => {
     setLoading(true);
     setError(null);

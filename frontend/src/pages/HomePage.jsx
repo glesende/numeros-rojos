@@ -100,6 +100,11 @@ export default function HomePage() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    document.title = 'Números Rojos | Portal de transparencia de Independiente';
+    return () => { document.title = 'Números Rojos'; };
+  }, []);
+
   const fetchContracts = useCallback(() => {
     setLoading(true);
     const params = { per_page: 100, sort_dir: 'asc' };

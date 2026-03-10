@@ -11,8 +11,13 @@ export default function EconomyDetailPage() {
 
   useEffect(() => {
     getEconomyRecord(id)
-      .then((res) => setRecord(res.data.data))
+      .then((res) => {
+        const r = res.data.data;
+        setRecord(r);
+        if (r) document.title = `${r.descripcion} | Números Rojos`;
+      })
       .finally(() => setLoading(false));
+    return () => { document.title = 'Números Rojos'; };
   }, [id]);
 
   if (loading) return <Loader />;
