@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import {
   BarChart,
   Bar,
@@ -10,7 +11,7 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
-import { getEconomyMonthlySummary } from '../../api/endpoints';
+import { getEconomyMonthlySummary, getEconomyRecords } from '../../api/endpoints';
 import Loader from '../common/Loader';
 
 const COLORS = {
@@ -73,12 +74,21 @@ function CustomTooltip({ active, payload, label, currency }) {
   );
 }
 
+function formatMoney(amount, currency) {
+  return new Intl.NumberFormat('es-AR', {
+    style: 'currency',
+    currency: currency || 'ARS',
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
 export default function MonthlyBarChart() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currency, setCurrency] = useState('ARS');
   const scrollRef = useRef(null);
+  const [upcoming, setUpcoming] = useState([]);
 
   useEffect(() => {
     setLoading(true);
@@ -86,6 +96,13 @@ export default function MonthlyBarChart() {
       .then((res) => setData(res.data.data || []))
       .catch(() => setError('No se pudieron cargar los datos del gráfico.'))
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    getEconomyRecords({ fecha_desde: today, sort_by: 'fecha', sort_dir: 'asc', per_page: 5 })
+      .then((res) => setUpcoming(res.data.data || []))
+      .catch(() => setUpcoming([]));
   }, []);
 
   // Scroll to the "today" area on mount (month index 24 out of 49)
@@ -112,7 +129,7 @@ export default function MonthlyBarChart() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Ingresos y Egresos</h2>
+          <h2 className="text-xl font-bold text-gray-900">Compromisos económicos</h2>
           <p className="text-sm text-gray-500 mt-0.5">
             Últimos 24 meses · Mes actual · Próximos 24 meses
           </p>
@@ -227,11 +244,53 @@ export default function MonthlyBarChart() {
               </ResponsiveContainer>
             </div>
           </div>
-
-          <p className="text-xs text-gray-400 mt-2">
-            * La línea azul indica el mes actual. Las barras hacia la derecha son proyecciones futuras basadas en datos ya cargados.
-          </p>
         </>
+      )}
+
+      {/* Upcoming commitments */}
+      {upcoming.length > 0 && (
+        <div className="mt-6 border-t border-gray-100 pt-5">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide">
+              Próximos compromisos
+            </h3>
+            <Link to="/economia" className="text-xs text-rojo hover:underline font-medium">
+              Ver todos →
+            </Link>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100 text-left text-xs text-gray-400 uppercase">
+                  <th className="pb-2 pr-4">Fecha</th>
+                  <th className="pb-2 pr-4">Descripción</th>
+                  <th className="pb-2 pr-4">Tipo</th>
+                  <th className="pb-2 text-right">Monto</th>
+                </tr>
+              </thead>
+              <tbody>
+                {upcoming.map((r) => (
+                  <tr key={r.id} className="border-b border-gray-50 hover:bg-gray-50">
+                    <td className="py-2 pr-4 whitespace-nowrap text-gray-500 text-xs">{r.fecha}</td>
+                    <td className="py-2 pr-4">
+                      <Link to={`/economia/${r.id}`} className="text-rojo hover:underline font-medium line-clamp-1">
+                        {r.descripcion || '-'}
+                      </Link>
+                    </td>
+                    <td className="py-2 pr-4">
+                      <span className={r.tipo === 'cobro' ? 'badge-cobro' : 'badge-pago'}>
+                        {r.tipo}
+                      </span>
+                    </td>
+                    <td className="py-2 text-right font-mono whitespace-nowrap text-xs">
+                      {formatMoney(r.monto, r.moneda)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
     </div>
   );
