@@ -1,6 +1,10 @@
 COMPOSE := docker-compose
 
-.PHONY: help up down build restart logs shell-api shell-frontend migrate seed fresh test lint
+.PHONY: help up down build restart logs shell-api shell-frontend migrate seed fresh test lint fresh-start
+
+# Colors for output
+GREEN=\033[0;32m
+NC=\033[0m # No Color
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -82,3 +86,92 @@ clean: ## Remove volumes and containers
 
 export-csv: ## Export economy_records to CSV (usage: make export-csv TABLE=economy_records)
 	$(COMPOSE) exec api php artisan export:csv $(TABLE)
+
+fresh-start: ## Fresh install: down, build, up, npm-install, migrate:fresh --seed
+	$(COMPOSE) down
+	$(COMPOSE) build
+	$(COMPOSE) up -d
+	$(COMPOSE) exec frontend npm install
+	$(COMPOSE) exec api php artisan migrate:fresh --seed
+	@echo ""
+	@echo "$(GREEN)=====================================$(NC)"
+	@echo "$(GREEN)   Números Rojos está listo!$(NC)"
+	@echo "$(GREEN)=====================================$(NC)"
+	@echo "$(GREEN)Frontend: http://localhost:$${FRONTEND_PORT:-5173}$(NC)"
+	@echo "$(GREEN)API:      http://localhost:$${NGINX_PORT:-8080}$(NC)"
+	@echo ""
+
+# ─── Production ─────────────────────────────────────────────────
+
+SERVER := ubuntu@148.113.207.54
+DEPLOY_PATH := /home/ubuntu/projects/numeros-rojos
+
+prod-build: ## Construir para producción
+	docker-compose -f docker-compose.prod.yml --env-file .env.prod build
+
+prod-up: ## Levantar en modo producción
+	docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d
+
+prod-down: ## Parar producción
+	docker-compose -f docker-compose.prod.yml --env-file .env.prod down
+
+prod-restart: ## Reiniciar producción
+	docker-compose -f docker-compose.prod.yml --env-file .env.prod restart
+
+prod-logs: ## Ver logs de producción
+	docker-compose -f docker-compose.prod.yml --env-file .env.prod logs -f
+
+prod-migrate: ## Ejecutar migraciones en producción
+	@echo "⏳ Esperando a que la base de datos esté disponible..."
+	@docker-compose -f docker-compose.prod.yml --env-file .env.prod exec mysql sh -c "\
+		until mysqladmin ping -h localhost -u root -p\$$MYSQL_ROOT_PASSWORD --silent; do \
+			echo 'Esperando base de datos...'; \
+			sleep 2; \
+		done"
+	@echo "✅ Base de datos lista"
+	@docker-compose -f docker-compose.prod.yml --env-file .env.prod exec api php artisan migrate --force
+	@echo "$(GREEN)Migraciones aplicadas$(NC)"
+
+prod-status: ## Ver estado de producción
+	docker-compose -f docker-compose.prod.yml --env-file .env.prod ps
+
+ssh-vps: ## Conectar al VPS
+	ssh $(SERVER)
+
+deploy: ## Deploy a producción (usage: make deploy TAG=x.x.x)
+	@if [ -z "$(TAG)" ]; then \
+		echo "Error: TAG is required. Use: make deploy TAG=x.x.x"; \
+		exit 1; \
+	fi
+	@echo "Checking current branch..."
+	@CURRENT_BRANCH=$$(git branch --show-current); \
+	if [ "$$CURRENT_BRANCH" != "main" ]; then \
+		echo "Current branch is $$CURRENT_BRANCH, merging with main..."; \
+		git checkout main && \
+		git pull origin main && \
+		git merge $$CURRENT_BRANCH && \
+		git push origin main; \
+	else \
+		echo "Already on main branch"; \
+	fi
+	@echo "Creating release $(TAG)..."
+	@git tag -a $(TAG) -m "Release version $(TAG)"
+	@git push origin $(TAG)
+	@echo "Release $(TAG) created and pushed successfully!"
+	@echo "🚀 Iniciando deploy del tag $(TAG) a $(SERVER)..."
+	@echo "🔧 Ejecutando deploy en el servidor..."
+	@ssh $(SERVER) "cd $(DEPLOY_PATH) && \
+		echo '📦 Descargando código del repositorio...' && \
+		git fetch --tags && \
+		git checkout $(TAG) && \
+		echo '🔄 Parando servicios...' && \
+		make prod-down 2>/dev/null || true && \
+		echo '🏗️  Construyendo imágenes...' && \
+		make prod-build && \
+		echo '⚡ Iniciando servicios...' && \
+		make prod-up && \
+		echo '🗄️  Ejecutando migraciones...' && \
+		make prod-migrate && \
+		echo '🧹 Limpiando imágenes antiguas...' && \
+		docker image prune -f"
+	@echo "✅ Deploy completado exitosamente!"
