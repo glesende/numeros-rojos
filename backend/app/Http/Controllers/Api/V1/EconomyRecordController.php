@@ -44,13 +44,17 @@ class EconomyRecordController extends Controller
             'total_pagos_ars'  => (float) (clone $aggregateQuery)->where('tipo', 'pago')->where('moneda', 'ARS')->sum('monto'),
             'total_cobros_usd' => (float) (clone $aggregateQuery)->where('tipo', 'cobro')->where('moneda', 'USD')->sum('monto'),
             'total_pagos_usd'  => (float) (clone $aggregateQuery)->where('tipo', 'pago')->where('moneda', 'USD')->sum('monto'),
+            'total_cobros_eur' => (float) (clone $aggregateQuery)->where('tipo', 'cobro')->where('moneda', 'EUR')->sum('monto'),
+            'total_pagos_eur'  => (float) (clone $aggregateQuery)->where('tipo', 'pago')->where('moneda', 'EUR')->sum('monto'),
             'balance_ars'      => 0,
             'balance_usd'      => 0,
+            'balance_eur'      => 0,
             'cantidad'         => (int) (clone $aggregateQuery)->count(),
         ];
 
         $totals['balance_ars'] = $totals['total_cobros_ars'] - $totals['total_pagos_ars'];
         $totals['balance_usd'] = $totals['total_cobros_usd'] - $totals['total_pagos_usd'];
+        $totals['balance_eur'] = $totals['total_cobros_eur'] - $totals['total_pagos_eur'];
 
         return response()->json([
             'data'    => $records->items(),
@@ -98,8 +102,11 @@ class EconomyRecordController extends Controller
                 'egresos_ars'   => 0.0,
                 'ingresos_usd'  => 0.0,
                 'egresos_usd'   => 0.0,
+                'ingresos_eur'  => 0.0,
+                'egresos_eur'   => 0.0,
                 'balance_ars'   => 0.0,
                 'balance_usd'   => 0.0,
+                'balance_eur'   => 0.0,
             ];
             $cursor->addMonth();
         }
@@ -118,6 +125,7 @@ class EconomyRecordController extends Controller
         foreach ($months as &$m) {
             $m['balance_ars'] = $m['ingresos_ars'] - $m['egresos_ars'];
             $m['balance_usd'] = $m['ingresos_usd'] - $m['egresos_usd'];
+            $m['balance_eur'] = $m['ingresos_eur'] - $m['egresos_eur'];
         }
         unset($m);
 
@@ -137,7 +145,7 @@ class EconomyRecordController extends Controller
             'descripcion'       => 'required|string',
             'tipo'              => 'required|in:cobro,pago',
             'monto'             => 'required|numeric|min:0',
-            'moneda'            => 'required|in:ARS,USD',
+            'moneda'            => 'required|in:ARS,USD,EUR',
             'fecha'             => 'required|date',
             'oficial'           => 'required|boolean',
             'confidence_level'  => 'required|in:high,medium,low',
@@ -161,7 +169,7 @@ class EconomyRecordController extends Controller
             'descripcion'       => 'sometimes|string',
             'tipo'              => 'sometimes|in:cobro,pago',
             'monto'             => 'sometimes|numeric|min:0',
-            'moneda'            => 'sometimes|in:ARS,USD',
+            'moneda'            => 'sometimes|in:ARS,USD,EUR',
             'fecha'             => 'sometimes|date',
             'oficial'           => 'sometimes|boolean',
             'confidence_level'  => 'sometimes|in:high,medium,low',

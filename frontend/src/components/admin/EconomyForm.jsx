@@ -59,6 +59,7 @@ export default function EconomyForm({ initial, onSubmit, loading }) {
           <select value={form.moneda} onChange={(e) => set('moneda', e.target.value)} className="input-field">
             <option value="ARS">ARS</option>
             <option value="USD">USD</option>
+            <option value="EUR">EUR</option>
           </select>
         </div>
       </div>

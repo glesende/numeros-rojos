@@ -21,7 +21,11 @@ const COLORS = {
 };
 
 function formatAmount(value, currency) {
-  if (value === 0) return currency === 'ARS' ? '$ 0' : 'USD 0';
+  if (value === 0) {
+    if (currency === 'ARS') return '$ 0';
+    if (currency === 'USD') return 'USD 0';
+    return 'EUR 0';
+  }
   const abs = Math.abs(value);
   let formatted;
   if (abs >= 1_000_000_000) {
@@ -33,7 +37,9 @@ function formatAmount(value, currency) {
   } else {
     formatted = value.toFixed(0);
   }
-  return currency === 'ARS' ? `$ ${formatted}` : `USD ${formatted}`;
+  if (currency === 'ARS') return `$ ${formatted}`;
+  if (currency === 'USD') return `USD ${formatted}`;
+  return `EUR ${formatted}`;
 }
 
 function CustomTooltip({ active, payload, label, currency }) {
@@ -145,7 +151,7 @@ export default function MonthlyBarChart() {
         </div>
         {/* Currency toggle */}
         <div className="flex gap-1 bg-gray-100 rounded-lg p-1 self-start sm:self-auto">
-          {['ARS', 'USD'].map((c) => (
+          {['ARS', 'USD', 'EUR'].map((c) => (
             <button
               key={c}
               onClick={() => setCurrency(c)}
