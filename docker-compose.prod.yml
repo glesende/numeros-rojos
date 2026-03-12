@@ -1,12 +1,8 @@
-version: '2.4'
-
 services:
   api:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
-    volumes:
-      - ./backend:/var/www/html
     ports:
       - "8085:8000"
     environment:
