@@ -49,6 +49,7 @@ export default function AdminEconomyPage() {
                 <th className="pb-3 pr-4">Descripcion</th>
                 <th className="pb-3 pr-4">Tipo</th>
                 <th className="pb-3 pr-4 text-right">Monto</th>
+                <th className="pb-3 pr-4">Efectuado</th>
                 <th className="pb-3">Acciones</th>
               </tr>
             </thead>
@@ -63,6 +64,13 @@ export default function AdminEconomyPage() {
                   <td className="py-2 pr-4 uppercase text-xs font-semibold">{r.tipo}</td>
                   <td className="py-2 pr-4 text-right font-mono">
                     {r.moneda} {Number(r.monto).toLocaleString('es-AR')}
+                  </td>
+                  <td className="py-2 pr-4">
+                    {r.efectuado ? (
+                      <span className="text-green-600 text-xs font-semibold">Si</span>
+                    ) : (
+                      <span className="text-gray-400 text-xs">No</span>
+                    )}
                   </td>
                   <td className="py-2 whitespace-nowrap">
                     <button

@@ -36,6 +36,7 @@ export default function EconomyDetailPage() {
           </span>
           <ConfidenceBadge level={record.confidence_level} />
           {record.oficial && <span className="text-xs font-semibold text-green-600">Oficial</span>}
+          {record.efectuado && <span className="text-xs font-semibold text-blue-600">Efectuado</span>}
         </div>
 
         <h1 className="text-xl font-bold mb-4">{record.descripcion}</h1>

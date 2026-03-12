@@ -18,15 +18,17 @@ class EconomyRecord extends Model
         'moneda',
         'fecha',
         'oficial',
+        'efectuado',
         'confidence_level',
         'links',
     ];
 
     protected $casts = [
-        'monto'   => 'decimal:2',
-        'oficial'  => 'boolean',
-        'links'    => 'array',
-        'fecha'    => 'date',
+        'monto'     => 'decimal:2',
+        'oficial'   => 'boolean',
+        'efectuado' => 'boolean',
+        'links'     => 'array',
+        'fecha'     => 'date',
     ];
 
     public function scopeOficial($query, ?bool $oficial): mixed
