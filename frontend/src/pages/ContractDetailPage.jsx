@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getContract } from '../api/endpoints';
-import ConfidenceBadge from '../components/common/ConfidenceBadge';
 import Loader from '../components/common/Loader';
 
 function formatDate(dateStr) {
@@ -42,7 +41,6 @@ export default function ContractDetailPage() {
 
       <div className="card">
         <div className="flex items-center gap-3 mb-2">
-          <ConfidenceBadge level={contract.confidence_level} />
           {contract.oficial && <span className="text-xs font-semibold text-green-600">Oficial</span>}
           {vencido && <span className="text-xs font-semibold text-red-600">Vencido</span>}
         </div>

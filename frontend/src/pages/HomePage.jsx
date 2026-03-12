@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { getContracts } from '../api/endpoints';
 import Loader from '../components/common/Loader';
-import ConfidenceBadge from '../components/common/ConfidenceBadge';
 import MonthlyBarChart from '../components/economy/MonthlyBarChart';
 
 const VIGENCIA_OPTIONS = [
@@ -89,12 +88,11 @@ function ContractCard({ contract }) {
         )}
       </div>
 
-      <div className="flex items-center justify-between pt-1 border-t border-gray-100">
-        <ConfidenceBadge level={contract.confidence_level} />
-        {contract.oficial && (
+      {contract.oficial && (
+        <div className="flex items-center pt-1 border-t border-gray-100">
           <span className="text-xs font-semibold text-green-600">Oficial</span>
-        )}
-      </div>
+        </div>
+      )}
     </Link>
   );
 }

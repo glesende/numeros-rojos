@@ -19,7 +19,6 @@ class EconomyRecord extends Model
         'fecha',
         'oficial',
         'efectuado',
-        'confidence_level',
         'links',
     ];
 

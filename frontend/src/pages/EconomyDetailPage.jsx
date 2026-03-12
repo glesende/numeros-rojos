@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getEconomyRecord } from '../api/endpoints';
-import ConfidenceBadge from '../components/common/ConfidenceBadge';
 import Loader from '../components/common/Loader';
 
 export default function EconomyDetailPage() {
@@ -34,7 +33,6 @@ export default function EconomyDetailPage() {
           <span className={`text-xs font-bold uppercase px-2 py-1 rounded ${record.tipo === 'cobro' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
             {record.tipo}
           </span>
-          <ConfidenceBadge level={record.confidence_level} />
           {record.oficial && <span className="text-xs font-semibold text-green-600">Oficial</span>}
           {record.efectuado && <span className="text-xs font-semibold text-blue-600">Efectuado</span>}
         </div>

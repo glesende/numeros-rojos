@@ -17,7 +17,6 @@ return new class extends Migration
             $table->decimal('salario_estimado', 15, 2)->nullable();
             $table->enum('moneda', ['ARS', 'USD'])->nullable();
             $table->boolean('oficial')->default(false);
-            $table->enum('confidence_level', ['high', 'medium', 'low'])->default('medium');
             $table->json('clausulas')->nullable();
             $table->json('links')->nullable();
             $table->timestamps();

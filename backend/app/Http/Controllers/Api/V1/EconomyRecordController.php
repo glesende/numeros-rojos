@@ -149,14 +149,13 @@ class EconomyRecordController extends Controller
             'fecha'             => 'required|date',
             'oficial'           => 'required|boolean',
             'efectuado'         => 'sometimes|boolean',
-            'confidence_level'  => 'required|in:high,medium,low',
             'links'             => 'nullable|array',
             'links.*'           => 'url',
         ]);
 
         $record = EconomyRecord::create($request->only([
             'descripcion', 'tipo', 'monto', 'moneda',
-            'fecha', 'oficial', 'efectuado', 'confidence_level', 'links',
+            'fecha', 'oficial', 'efectuado', 'links',
         ]));
 
         return response()->json(['data' => $record], 201);
@@ -174,14 +173,13 @@ class EconomyRecordController extends Controller
             'fecha'             => 'sometimes|date',
             'oficial'           => 'sometimes|boolean',
             'efectuado'         => 'sometimes|boolean',
-            'confidence_level'  => 'sometimes|in:high,medium,low',
             'links'             => 'nullable|array',
             'links.*'           => 'url',
         ]);
 
         $record->update($request->only([
             'descripcion', 'tipo', 'monto', 'moneda',
-            'fecha', 'oficial', 'efectuado', 'confidence_level', 'links',
+            'fecha', 'oficial', 'efectuado', 'links',
         ]));
 
         return response()->json(['data' => $record]);

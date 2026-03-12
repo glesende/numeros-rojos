@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import ConfidenceBadge from '../common/ConfidenceBadge';
 
 function formatDate(dateStr) {
   if (!dateStr) return '-';
@@ -33,7 +32,6 @@ export default function EconomyTable({ records }) {
             <th className="pb-3 pr-4">Descripcion</th>
             <th className="pb-3 pr-4">Tipo</th>
             <th className="pb-3 pr-4 text-right">Monto</th>
-            <th className="pb-3 pr-4">Confianza</th>
             <th className="pb-3 pr-4">Oficial</th>
             <th className="pb-3">Efectuado</th>
           </tr>
@@ -57,10 +55,7 @@ export default function EconomyTable({ records }) {
               <td className="py-3 pr-4 text-right font-mono whitespace-nowrap">
                 {formatMoney(r.monto, r.moneda)}
               </td>
-              <td className="py-3 pr-4">
-                <ConfidenceBadge level={r.confidence_level} />
-              </td>
-              <td className="py-3 pr-4">
+              <td className="py-3">
                 {r.oficial ? (
                   <span className="text-green-600 text-xs font-semibold">Si</span>
                 ) : (

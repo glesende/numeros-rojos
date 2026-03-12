@@ -19,7 +19,6 @@ class Contract extends Model
         'salario_estimado',
         'moneda',
         'oficial',
-        'confidence_level',
         'clausulas',
         'links',
     ];

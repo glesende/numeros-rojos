@@ -15,33 +15,6 @@ export default function MethodologyPage() {
 
       <div className="space-y-6">
         <section className="card">
-          <h2 className="text-lg font-bold mb-3">Niveles de confianza</h2>
-          <div className="space-y-3 text-sm">
-            <div className="flex items-start gap-3">
-              <span className="badge-high mt-0.5">Alta</span>
-              <p className="text-gray-600">
-                Dato confirmado por fuentes oficiales del club, documentos publicos,
-                o multiples medios de alta credibilidad.
-              </p>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="badge-medium mt-0.5">Media</span>
-              <p className="text-gray-600">
-                Dato reportado por medios especializados o fuentes cercanas al club,
-                sin confirmacion oficial directa.
-              </p>
-            </div>
-            <div className="flex items-start gap-3">
-              <span className="badge-low mt-0.5">Baja</span>
-              <p className="text-gray-600">
-                Dato basado en estimaciones, rumores periodisticos o fuentes no verificadas.
-                Se incluye por transparencia pero debe tomarse con precaucion.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <section className="card">
           <h2 className="text-lg font-bold mb-3">Fuentes de datos</h2>
           <ul className="text-sm text-gray-600 space-y-2">
             <li>

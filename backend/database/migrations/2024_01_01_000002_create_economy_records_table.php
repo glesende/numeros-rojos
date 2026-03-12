@@ -16,7 +16,6 @@ return new class extends Migration
             $table->enum('moneda', ['ARS', 'USD'])->default('ARS');
             $table->date('fecha');
             $table->boolean('oficial')->default(false);
-            $table->enum('confidence_level', ['high', 'medium', 'low'])->default('medium');
             $table->json('links')->nullable();
             $table->timestamps();
 
