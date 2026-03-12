@@ -4,6 +4,8 @@ RUN apk add --no-cache \
     libzip-dev \
     oniguruma-dev \
     icu-dev \
+    nginx \
+    supervisor \
     && docker-php-ext-install \
     pdo_mysql \
     mbstring \
@@ -26,8 +28,13 @@ RUN composer install --no-scripts --no-autoloader --prefer-dist
 COPY backend/ .
 RUN composer dump-autoload --optimize
 
-RUN chown -R www-data:www-data /var/www/html/storage
+COPY docker/php/default.conf /etc/nginx/http.d/default.conf
+COPY docker/php/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-EXPOSE 9000
+RUN mkdir -p /var/log/nginx /var/log/php-fpm /run/nginx \
+    && chown -R www-data:www-data /var/www/html/storage \
+    && chown -R www-data:www-data /var/lib/nginx
 
-CMD ["php-fpm"]
+EXPOSE 80
+
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

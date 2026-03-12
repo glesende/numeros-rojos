@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: docker/php/Dockerfile
     ports:
-      - "8085:8000"
+      - "8085:80"
     environment:
       - DB_CONNECTION=mysql
       - DB_HOST=mysql
