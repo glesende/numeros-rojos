@@ -14,7 +14,20 @@ const emptyForm = {
 };
 
 export default function EconomyForm({ initial, onSubmit, loading }) {
-  const [form, setForm] = useState(initial || emptyForm);
+  const normalizeDate = (date) => {
+    if (!date) return '';
+    if (date instanceof Date) return date.toISOString().split('T')[0];
+    if (typeof date === 'string') return date.split('T')[0];
+    return '';
+  };
+
+  const [form, setForm] = useState({
+    ...emptyForm,
+    ...initial,
+    record_date: normalizeDate(initial?.record_date),
+    amount: initial?.amount ?? '',
+    links: Array.isArray(initial?.links) ? initial.links : [],
+  });
   const [linkInput, setLinkInput] = useState('');
 
   const set = (key, value) => setForm((f) => ({ ...f, [key]: value }));
@@ -150,7 +163,7 @@ export default function EconomyForm({ initial, onSubmit, loading }) {
         </div>
         {form.links?.length > 0 && (
           <ul className="mt-2 space-y-1">
-            {form.links.map((l, i) => (
+            {form.links?.map((l, i) => (
               <li key={i} className="flex items-center gap-2 text-sm">
                 <span className="truncate flex-1 text-gray-600">{l}</span>
                 <button type="button" onClick={() => removeLink(i)} className="text-red-500 text-xs">

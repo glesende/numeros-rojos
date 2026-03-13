@@ -101,7 +101,7 @@ export default function MonthlyBarChart() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currency, setCurrency] = useState('ARS');
+  const [currency, setCurrency] = useState('USD');
   const scrollRef = useRef(null);
   const [upcoming, setUpcoming] = useState([]);
   const [pending, setPending] = useState([]);
@@ -122,7 +122,8 @@ export default function MonthlyBarChart() {
   }, []);
 
   useEffect(() => {
-    getEconomyRecords({ carried_out: false, sort_by: 'record_date', sort_dir: 'asc', per_page: 5 })
+    const today = new Date().toISOString().slice(0, 10);
+    getEconomyRecords({ carried_out: false, date_to: today, sort_by: 'record_date', sort_dir: 'desc' })
       .then((res) => setPending(res.data.data || []))
       .catch(() => setPending([]));
   }, []);
@@ -158,7 +159,7 @@ export default function MonthlyBarChart() {
         </div>
         {/* Currency toggle */}
         <div className="flex gap-1 bg-gray-100 rounded-lg p-1 self-start sm:self-auto">
-          {['ARS', 'USD', 'EUR'].map((c) => (
+          {['USD', 'EUR', 'ARS'].map((c) => (
             <button
               key={c}
               onClick={() => setCurrency(c)}
