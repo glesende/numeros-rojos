@@ -56,6 +56,20 @@ export default function EconomyDetailPage() {
           </div>
         </div>
 
+        {record.entity && (
+          <div className="mt-4">
+            <p className="text-gray-500 text-sm">Entidad</p>
+            <p className="font-medium">{record.entity}</p>
+          </div>
+        )}
+
+        {record.comments && (
+          <div className="mt-4">
+            <p className="text-gray-500 text-sm">Comentarios</p>
+            <p className="text-sm">{record.comments}</p>
+          </div>
+        )}
+
         {record.links && record.links.length > 0 && (
           <div className="mt-6">
             <p className="text-gray-500 text-sm mb-2">Fuentes</p>

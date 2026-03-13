@@ -30,6 +30,8 @@ class EconomyRecordSeeder extends Seeder
                 'currency'           => 'ARS',
                 'record_date'            => $month(-24),
                 'official'          => true,
+                'entity'            => 'Liga Profesional de Fútbol',
+                'comments'          => 'Cuota correspondiente al Q3 2024',
                 'links'            => json_encode([]),
             ],
             [
@@ -39,6 +41,8 @@ class EconomyRecordSeeder extends Seeder
                 'currency'           => 'ARS',
                 'record_date'            => $date(-24, 28),
                 'official'          => false,
+                'entity'            => 'Plantel profesional',
+                'comments'          => 'Salarios de enero 2024',
                 'links'            => json_encode([]),
             ],
             [
@@ -48,6 +52,8 @@ class EconomyRecordSeeder extends Seeder
                 'currency'           => 'USD',
                 'record_date'            => $date(-23, 10),
                 'official'          => true,
+                'entity'            => 'Udinese Calcio',
+                'comments'          => 'Cuota final del pase',
                 'links'            => json_encode([]),
             ],
             [
@@ -77,6 +83,8 @@ class EconomyRecordSeeder extends Seeder
                 'currency'           => 'USD',
                 'record_date'            => $date(-21, 5),
                 'official'          => true,
+                'entity'            => 'Quilmes',
+                'comments'          => 'Patrocinio principal de camiseta',
                 'links'            => json_encode([]),
             ],
             [
@@ -95,6 +103,7 @@ class EconomyRecordSeeder extends Seeder
                 'currency'           => 'USD',
                 'record_date'            => $date(-20, 15),
                 'official'          => false,
+                'entity'            => 'Unión de Santa Fe',
                 'links'            => json_encode([]),
             ],
             [
@@ -189,6 +198,8 @@ class EconomyRecordSeeder extends Seeder
                 'currency'           => 'USD',
                 'record_date'            => $date(-13, 1),
                 'official'          => true,
+                'entity'            => 'Puma',
+                'comments'          => 'Contrato de indumentaria y patrocinio',
                 'links'            => json_encode([]),
             ],
             [

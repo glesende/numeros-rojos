@@ -2,6 +2,8 @@ import { useState } from 'react';
 
 const emptyForm = {
   description: '',
+  comments: '',
+  entity: '',
   type: 'cobro',
   amount: '',
   currency: 'ARS',
@@ -44,6 +46,29 @@ export default function EconomyForm({ initial, onSubmit, loading }) {
           rows={3}
           required
         />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Entidad</label>
+          <input
+            type="text"
+            value={form.entity}
+            onChange={(e) => set('entity', e.target.value)}
+            className="input-field"
+            placeholder="Club, jugador,..."
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Comentarios</label>
+          <input
+            type="text"
+            value={form.comments}
+            onChange={(e) => set('comments', e.target.value)}
+            className="input-field"
+            placeholder="Info adicional"
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">

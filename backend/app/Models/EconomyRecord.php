@@ -13,6 +13,8 @@ class EconomyRecord extends Model
 
     protected $fillable = [
         'description',
+        'comments',
+        'entity',
         'type',
         'amount',
         'currency',

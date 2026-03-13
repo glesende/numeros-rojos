@@ -30,6 +30,7 @@ export default function EconomyTable({ records }) {
           <tr className="border-b border-gray-200 text-left text-xs text-gray-500 uppercase">
             <th className="pb-3 pr-4">Fecha</th>
             <th className="pb-3 pr-4">Descripcion</th>
+            <th className="pb-3 pr-4">Entidad</th>
             <th className="pb-3 pr-4">Tipo</th>
             <th className="pb-3 pr-4 text-right">Monto</th>
             <th className="pb-3 pr-4">Oficial</th>
@@ -46,6 +47,9 @@ export default function EconomyTable({ records }) {
                     ? (r.description.length > 60 ? r.description.slice(0, 60) + '...' : r.description)
                     : '-'}
                 </Link>
+              </td>
+              <td className="py-3 pr-4 text-gray-600 text-xs">
+                {r.entity || '-'}
               </td>
               <td className="py-3 pr-4">
                 <span className={r.type === 'cobro' ? 'badge-cobro' : 'badge-pago'}>
