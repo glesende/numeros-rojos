@@ -63,4 +63,12 @@ class EconomyRecord extends Model
         }
         return $query->where('record_date', '<=', $to);
     }
+
+    public function scopeCarriedOut($query, ?bool $carriedOut): mixed
+    {
+        if ($carriedOut === null) {
+            return $query;
+        }
+        return $query->where('carried_out', $carriedOut);
+    }
 }

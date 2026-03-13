@@ -17,10 +17,15 @@ class EconomyRecordController extends Controller
             ->official($request->boolean('official', null) !== false ? $request->input('official') : null)
             ->type($request->input('type'))
             ->dateFrom($request->input('date_from'))
-            ->dateTo($request->input('date_to'));
+            ->dateTo($request->input('date_to'))
+            ->carriedOut($request->boolean('carried_out', null) !== false ? $request->input('carried_out') : null);
 
         if ($request->has('official')) {
             $query->official(filter_var($request->input('official'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE));
+        }
+
+        if ($request->has('carried_out')) {
+            $query->carriedOut(filter_var($request->input('carried_out'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE));
         }
 
         $sortDir = $request->input('sort_dir', 'desc');

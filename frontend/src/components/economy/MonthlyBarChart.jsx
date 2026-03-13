@@ -104,6 +104,7 @@ export default function MonthlyBarChart() {
   const [currency, setCurrency] = useState('ARS');
   const scrollRef = useRef(null);
   const [upcoming, setUpcoming] = useState([]);
+  const [pending, setPending] = useState([]);
 
   useEffect(() => {
     setLoading(true);
@@ -118,6 +119,12 @@ export default function MonthlyBarChart() {
     getEconomyRecords({ date_from: today, sort_by: 'record_date', sort_dir: 'asc', per_page: 5 })
       .then((res) => setUpcoming(res.data.data || []))
       .catch(() => setUpcoming([]));
+  }, []);
+
+  useEffect(() => {
+    getEconomyRecords({ carried_out: false, sort_by: 'record_date', sort_dir: 'asc', per_page: 5 })
+      .then((res) => setPending(res.data.data || []))
+      .catch(() => setPending([]));
   }, []);
 
   // Scroll to the "today" area on mount (month index 24 out of 49)
@@ -285,6 +292,52 @@ export default function MonthlyBarChart() {
               </thead>
               <tbody>
                 {upcoming.map((r) => (
+                  <tr key={r.id} className="border-b border-gray-50 hover:bg-gray-50">
+                    <td className="py-2 pr-4 whitespace-nowrap text-gray-500 text-xs">{formatDate(r.record_date)}</td>
+                    <td className="py-2 pr-4">
+                      <Link to={`/economia/${r.id}`} className="text-rojo hover:underline font-medium line-clamp-1">
+                        {r.description || '-'}
+                      </Link>
+                    </td>
+                    <td className="py-2 pr-4">
+                      <span className={r.type === 'cobro' ? 'badge-cobro' : 'badge-pago'}>
+                        {r.type}
+                      </span>
+                    </td>
+                    <td className="py-2 text-right font-mono whitespace-nowrap text-xs">
+                      {formatMoney(r.amount, r.currency)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Pending confirmation */}
+      {pending.length > 0 && (
+        <div className="mt-6 border-t border-gray-100 pt-5">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide">
+              Pendientes de confirmación
+            </h3>
+            <Link to="/economia" className="text-xs text-rojo hover:underline font-medium">
+              Ver todos →
+            </Link>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100 text-left text-xs text-gray-400 uppercase">
+                  <th className="pb-2 pr-4">Fecha</th>
+                  <th className="pb-2 pr-4">Descripción</th>
+                  <th className="pb-2 pr-4">Tipo</th>
+                  <th className="pb-2 text-right">Monto</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pending.map((r) => (
                   <tr key={r.id} className="border-b border-gray-50 hover:bg-gray-50">
                     <td className="py-2 pr-4 whitespace-nowrap text-gray-500 text-xs">{formatDate(r.record_date)}</td>
                     <td className="py-2 pr-4">
