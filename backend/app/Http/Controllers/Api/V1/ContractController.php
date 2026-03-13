@@ -23,7 +23,7 @@ class ContractController extends Controller
         }
 
         $sortDir = $request->input('sort_dir', 'desc');
-        $query->orderBy('signing_date', $sortDir);
+        $query->orderBy('expiration_date', $sortDir);
 
         $perPage = min((int) $request->input('per_page', 15), 100);
         $contracts = $query->paginate($perPage);
@@ -71,9 +71,9 @@ class ContractController extends Controller
     public function store(Request $request): JsonResponse
     {
         $this->validate($request, [
+            'external_id'          => 'nullable|string|max:255',
             'full_name'             => 'required|string|max:255',
-            'signing_date'          => 'required|date',
-            'expiration_date'      => 'required|date|after:signing_date',
+            'expiration_date'      => 'required|date',
             'club_pass_percentage'  => 'required|numeric|min:0|max:100',
             'estimated_salary'      => 'nullable|numeric|min:0',
             'currency'              => 'nullable|in:ARS,USD,EUR',
@@ -84,7 +84,7 @@ class ContractController extends Controller
         ]);
 
         $contract = Contract::create($request->only([
-            'full_name', 'signing_date', 'expiration_date',
+            'external_id', 'full_name', 'expiration_date',
             'club_pass_percentage', 'estimated_salary', 'currency',
             'official', 'clauses', 'links',
         ]));
@@ -97,8 +97,8 @@ class ContractController extends Controller
         $contract = Contract::findOrFail($id);
 
         $this->validate($request, [
+            'external_id'          => 'nullable|string|max:255',
             'full_name'             => 'sometimes|string|max:255',
-            'signing_date'          => 'sometimes|date',
             'expiration_date'      => 'sometimes|date',
             'club_pass_percentage'  => 'sometimes|numeric|min:0|max:100',
             'estimated_salary'      => 'nullable|numeric|min:0',
@@ -110,7 +110,7 @@ class ContractController extends Controller
         ]);
 
         $contract->update($request->only([
-            'full_name', 'signing_date', 'expiration_date',
+            'external_id', 'full_name', 'expiration_date',
             'club_pass_percentage', 'estimated_salary', 'currency',
             'official', 'clauses', 'links',
         ]));

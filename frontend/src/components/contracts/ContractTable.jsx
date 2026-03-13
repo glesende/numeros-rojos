@@ -20,7 +20,6 @@ export default function ContractTable({ contracts }) {
         <thead>
           <tr className="border-b border-gray-200 text-left text-xs text-gray-500 uppercase">
             <th className="pb-3 pr-4">Jugador</th>
-            <th className="pb-3 pr-4">Firma</th>
             <th className="pb-3 pr-4">Vencimiento</th>
             <th className="pb-3 pr-4 text-right">% Pase</th>
             <th className="pb-3 pr-4 text-right">Salario est.</th>
@@ -37,7 +36,6 @@ export default function ContractTable({ contracts }) {
                     {c.full_name}
                   </Link>
                 </td>
-                <td className="py-3 pr-4 whitespace-nowrap">{formatDate(c.signing_date)}</td>
                 <td className="py-3 pr-4 whitespace-nowrap">
                   <span className={vencido ? 'text-red-600' : ''}>{formatDate(c.expiration_date)}</span>
                   {vencido && <span className="ml-1 text-xs text-red-500">(vencido)</span>}

@@ -49,10 +49,6 @@ export default function ContractDetailPage() {
 
         <div className="grid grid-cols-2 gap-4 text-sm mb-6">
           <div>
-            <p className="text-gray-500">Fecha de firma</p>
-            <p className="font-medium">{formatDate(contract.signing_date)}</p>
-          </div>
-          <div>
             <p className="text-gray-500">Fecha de vencimiento</p>
             <p className={`font-medium ${vencido ? 'text-red-600' : ''}`}>{formatDate(contract.expiration_date)}</p>
           </div>

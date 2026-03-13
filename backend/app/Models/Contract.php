@@ -12,8 +12,8 @@ class Contract extends Model
     protected $table = 'contracts';
 
     protected $fillable = [
+        'external_id',
         'full_name',
-        'signing_date',
         'expiration_date',
         'club_pass_percentage',
         'estimated_salary',
@@ -29,7 +29,6 @@ class Contract extends Model
         'official'             => 'boolean',
         'clauses'             => 'array',
         'links'               => 'array',
-        'signing_date'        => 'date',
         'expiration_date'     => 'date',
     ];
 
@@ -46,7 +45,7 @@ class Contract extends Model
         if ($from === null) {
             return $query;
         }
-        return $query->where('signing_date', '>=', $from);
+        return $query->where('expiration_date', '>=', $from);
     }
 
     public function scopeDateTo($query, ?string $to): mixed
@@ -54,7 +53,7 @@ class Contract extends Model
         if ($to === null) {
             return $query;
         }
-        return $query->where('signing_date', '<=', $to);
+        return $query->where('expiration_date', '<=', $to);
     }
 
     public function scopeSearch($query, ?string $search): mixed

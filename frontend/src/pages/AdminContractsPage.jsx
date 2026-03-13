@@ -46,7 +46,6 @@ export default function AdminContractsPage() {
               <tr className="border-b text-left text-xs text-gray-500 uppercase">
                 <th className="pb-3 pr-4">ID</th>
                 <th className="pb-3 pr-4">Jugador</th>
-                <th className="pb-3 pr-4">Firma</th>
                 <th className="pb-3 pr-4">Vencimiento</th>
                 <th className="pb-3 pr-4 text-right">% Pase</th>
                 <th className="pb-3">Acciones</th>
@@ -56,10 +55,9 @@ export default function AdminContractsPage() {
               {data.data.map((c) => (
                 <tr key={c.id} className="border-b border-gray-100">
                   <td className="py-2 pr-4 text-gray-400">{c.id}</td>
-                  <td className="py-2 pr-4 font-medium">{c.nombre_completo}</td>
-                  <td className="py-2 pr-4 whitespace-nowrap">{c.fecha_firma}</td>
-                  <td className="py-2 pr-4 whitespace-nowrap">{c.fecha_caducidad}</td>
-                  <td className="py-2 pr-4 text-right font-mono">{c.porcentaje_pase_club}%</td>
+                  <td className="py-2 pr-4 font-medium">{c.full_name}</td>
+                  <td className="py-2 pr-4 whitespace-nowrap">{c.expiration_date}</td>
+                  <td className="py-2 pr-4 text-right font-mono">{c.club_pass_percentage}%</td>
                   <td className="py-2 whitespace-nowrap">
                     <button
                       onClick={() => navigate(`/admin/contratos/${c.id}/editar`)}

@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const emptyForm = {
+  external_id: '',
   full_name: '',
-  signing_date: '',
   expiration_date: '',
   club_pass_percentage: '',
   estimated_salary: '',
@@ -13,9 +13,25 @@ const emptyForm = {
 };
 
 export default function ContractForm({ initial, onSubmit, loading }) {
-  const [form, setForm] = useState(initial || emptyForm);
+  const [form, setForm] = useState(emptyForm);
   const [clausulaInput, setClausulaInput] = useState('');
   const [linkInput, setLinkInput] = useState('');
+
+  useEffect(() => {
+    if (initial) {
+      setForm({
+        external_id: initial.external_id || '',
+        full_name: initial.full_name || '',
+        expiration_date: initial.expiration_date || '',
+        club_pass_percentage: initial.club_pass_percentage?.toString() || '',
+        estimated_salary: initial.estimated_salary?.toString() || '',
+        currency: initial.currency || 'USD',
+        official: initial.official ?? false,
+        clauses: initial.clauses || [],
+        links: initial.links || [],
+      });
+    }
+  }, [initial]);
 
   const set = (key, value) => setForm((f) => ({ ...f, [key]: value }));
 
@@ -55,6 +71,16 @@ export default function ContractForm({ initial, onSubmit, loading }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
+        <label className="block text-xs font-medium text-gray-500 mb-1">ID Externo</label>
+        <input
+          type="text"
+          value={form.external_id}
+          onChange={(e) => set('external_id', e.target.value)}
+          className="input-field"
+        />
+      </div>
+
+      <div>
         <label className="block text-xs font-medium text-gray-500 mb-1">Nombre completo *</label>
         <input
           type="text"
@@ -66,16 +92,6 @@ export default function ContractForm({ initial, onSubmit, loading }) {
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Fecha firma *</label>
-          <input
-            type="date"
-            value={form.signing_date}
-            onChange={(e) => set('signing_date', e.target.value)}
-            className="input-field"
-            required
-          />
-        </div>
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1">Fecha vencimiento *</label>
           <input

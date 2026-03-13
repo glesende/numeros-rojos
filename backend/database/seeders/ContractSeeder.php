@@ -13,7 +13,6 @@ class ContractSeeder extends Seeder
             // Arqueros
             [
                 'full_name'      => 'Rodrigo Rey',
-                'signing_date'          => '2023-07-01',
                 'expiration_date'      => '2025-12-31',
                 'club_pass_percentage' => 100.00,
                 'estimated_salary'     => 35000.00,
@@ -24,7 +23,6 @@ class ContractSeeder extends Seeder
             ],
             [
                 'full_name'      => 'Lucas Rodríguez',
-                'signing_date'          => '2024-01-01',
                 'expiration_date'      => '2025-06-30',
                 'club_pass_percentage' => 100.00,
                 'estimated_salary'     => 8000.00,
@@ -37,7 +35,6 @@ class ContractSeeder extends Seeder
             // Defensores
             [
                 'full_name'      => 'Sergio Barreto',
-                'signing_date'          => '2024-01-15',
                 'expiration_date'      => '2026-06-30',
                 'club_pass_percentage' => 80.00,
                 'estimated_salary'     => 25000.00,
@@ -48,7 +45,6 @@ class ContractSeeder extends Seeder
             ],
             [
                 'full_name'      => 'Emanuel Mammana',
-                'signing_date'          => '2024-06-15',
                 'expiration_date'      => '2026-12-31',
                 'club_pass_percentage' => 100.00,
                 'estimated_salary'     => 30000.00,
@@ -59,7 +55,6 @@ class ContractSeeder extends Seeder
             ],
             [
                 'full_name'      => 'Alexander Barboza',
-                'signing_date'          => '2023-01-01',
                 'expiration_date'      => '2025-06-30',
                 'club_pass_percentage' => 70.00,
                 'estimated_salary'     => 18000.00,
@@ -70,7 +65,6 @@ class ContractSeeder extends Seeder
             ],
             [
                 'full_name'      => 'Lucas González',
-                'signing_date'          => '2022-07-01',
                 'expiration_date'      => '2024-06-30',
                 'club_pass_percentage' => 60.00,
                 'estimated_salary'     => null,
@@ -81,7 +75,6 @@ class ContractSeeder extends Seeder
             ],
             [
                 'full_name'      => 'Gastón Togni',
-                'signing_date'          => '2023-02-01',
                 'expiration_date'      => '2025-06-30',
                 'club_pass_percentage' => 100.00,
                 'estimated_salary'     => 12000.00,
@@ -92,7 +85,6 @@ class ContractSeeder extends Seeder
             ],
             [
                 'full_name'      => 'Fabricio Bustos',
-                'signing_date'          => '2024-07-01',
                 'expiration_date'      => '2026-06-30',
                 'club_pass_percentage' => 100.00,
                 'estimated_salary'     => 22000.00,
@@ -105,7 +97,6 @@ class ContractSeeder extends Seeder
             // Mediocampistas
             [
                 'full_name'      => 'Iván Marcone',
-                'signing_date'          => '2023-08-01',
                 'expiration_date'      => '2025-06-30',
                 'club_pass_percentage' => 50.00,
                 'estimated_salary'     => null,
@@ -116,7 +107,6 @@ class ContractSeeder extends Seeder
             ],
             [
                 'full_name'      => 'Alan Soñora',
-                'signing_date'          => '2023-07-15',
                 'expiration_date'      => '2026-12-31',
                 'club_pass_percentage' => 90.00,
                 'estimated_salary'     => 20000.00,
@@ -127,7 +117,6 @@ class ContractSeeder extends Seeder
             ],
             [
                 'full_name'      => 'Javier Altamirano',
-                'signing_date'          => '2022-01-01',
                 'expiration_date'      => '2024-12-31',
                 'club_pass_percentage' => 80.00,
                 'estimated_salary'     => 15000.00,
@@ -138,7 +127,6 @@ class ContractSeeder extends Seeder
             ],
             [
                 'full_name'      => 'Carlos Briasco',
-                'signing_date'          => '2024-02-01',
                 'expiration_date'      => '2026-06-30',
                 'club_pass_percentage' => 100.00,
                 'estimated_salary'     => 16000.00,
@@ -149,7 +137,6 @@ class ContractSeeder extends Seeder
             ],
             [
                 'full_name'      => 'Lucas Romero',
-                'signing_date'          => '2023-06-01',
                 'expiration_date'      => '2025-12-31',
                 'club_pass_percentage' => 100.00,
                 'estimated_salary'     => 14000.00,
@@ -160,7 +147,6 @@ class ContractSeeder extends Seeder
             ],
             [
                 'full_name'      => 'Kevin Lomónaco',
-                'signing_date'          => '2024-02-10',
                 'expiration_date'      => '2027-06-30',
                 'club_pass_percentage' => 70.00,
                 'estimated_salary'     => 18000.00,
@@ -173,7 +159,6 @@ class ContractSeeder extends Seeder
             // Delanteros
             [
                 'full_name'      => 'Silvio Romero',
-                'signing_date'          => '2022-08-01',
                 'expiration_date'      => '2025-06-30',
                 'club_pass_percentage' => 100.00,
                 'estimated_salary'     => 40000.00,
@@ -184,7 +169,6 @@ class ContractSeeder extends Seeder
             ],
             [
                 'full_name'      => 'Leandro Fernández',
-                'signing_date'          => '2021-06-01',
                 'expiration_date'      => '2024-06-30',
                 'club_pass_percentage' => 100.00,
                 'estimated_salary'     => 28000.00,
@@ -195,7 +179,6 @@ class ContractSeeder extends Seeder
             ],
             [
                 'full_name'      => 'Jonatan Báez',
-                'signing_date'          => '2022-01-01',
                 'expiration_date'      => '2024-06-30',
                 'club_pass_percentage' => 90.00,
                 'estimated_salary'     => 22000.00,
@@ -206,7 +189,6 @@ class ContractSeeder extends Seeder
             ],
             [
                 'full_name'      => 'Joaquín Laso',
-                'signing_date'          => '2023-01-01',
                 'expiration_date'      => '2025-12-31',
                 'club_pass_percentage' => 100.00,
                 'estimated_salary'     => 10000.00,
@@ -217,7 +199,6 @@ class ContractSeeder extends Seeder
             ],
             [
                 'full_name'      => 'Alexis Canelo',
-                'signing_date'          => '2024-07-01',
                 'expiration_date'      => '2027-06-30',
                 'club_pass_percentage' => 60.00,
                 'estimated_salary'     => 12000.00,
@@ -228,7 +209,6 @@ class ContractSeeder extends Seeder
             ],
             [
                 'full_name'      => 'Facundo Pumpido',
-                'signing_date'          => '2025-01-15',
                 'expiration_date'      => '2026-12-31',
                 'club_pass_percentage' => 100.00,
                 'estimated_salary'     => 9000.00,

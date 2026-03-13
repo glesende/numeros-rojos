@@ -204,8 +204,8 @@ Para activar las estadisticas en tiempo real:
 | Campo                | Tipo                       |
 |----------------------|----------------------------|
 | id                   | bigint (PK)                |
+| external_id          | varchar(255) nullable       |
 | full_name            | varchar(255)               |
-| signing_date         | date                       |
 | expiration_date      | date                       |
 | club_pass_percentage | decimal(5,2)               |
 | estimated_salary     | decimal(15,2) nullable     |

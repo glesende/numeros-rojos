@@ -93,6 +93,20 @@ function ContractCard({ contract }) {
           <span className="text-xs font-semibold text-green-600">Oficial</span>
         </div>
       )}
+
+      {Array.isArray(contract.clauses) && contract.clauses.length > 0 && (
+        <div className="pt-1 border-t border-gray-100">
+          <p className="text-xs text-gray-400 mb-1">Cláusulas</p>
+          <ul className="text-xs text-gray-600 space-y-0.5">
+            {contract.clauses.slice(0, 2).map((clause, i) => (
+              <li key={i} className="truncate">• {clause}</li>
+            ))}
+            {contract.clauses.length > 2 && (
+              <li className="text-gray-400">+{contract.clauses.length - 2} más</li>
+            )}
+          </ul>
+        </div>
+      )}
     </Link>
   );
 }
