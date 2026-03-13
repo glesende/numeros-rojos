@@ -12,74 +12,74 @@ class Contract extends Model
     protected $table = 'contracts';
 
     protected $fillable = [
-        'nombre_completo',
-        'fecha_firma',
-        'fecha_caducidad',
-        'porcentaje_pase_club',
-        'salario_estimado',
-        'moneda',
-        'oficial',
-        'clausulas',
+        'full_name',
+        'signing_date',
+        'expiration_date',
+        'club_pass_percentage',
+        'estimated_salary',
+        'currency',
+        'official',
+        'clauses',
         'links',
     ];
 
     protected $casts = [
-        'porcentaje_pase_club' => 'decimal:2',
-        'salario_estimado'     => 'decimal:2',
-        'oficial'              => 'boolean',
-        'clausulas'            => 'array',
-        'links'                => 'array',
-        'fecha_firma'          => 'date',
-        'fecha_caducidad'      => 'date',
+        'club_pass_percentage' => 'decimal:2',
+        'estimated_salary'     => 'decimal:2',
+        'official'             => 'boolean',
+        'clauses'             => 'array',
+        'links'               => 'array',
+        'signing_date'        => 'date',
+        'expiration_date'     => 'date',
     ];
 
-    public function scopeOficial($query, ?bool $oficial): mixed
+    public function scopeOfficial($query, ?bool $official): mixed
     {
-        if ($oficial === null) {
+        if ($official === null) {
             return $query;
         }
-        return $query->where('oficial', $oficial);
+        return $query->where('official', $official);
     }
 
-    public function scopeFechaDesde($query, ?string $desde): mixed
+    public function scopeDateFrom($query, ?string $from): mixed
     {
-        if ($desde === null) {
+        if ($from === null) {
             return $query;
         }
-        return $query->where('fecha_firma', '>=', $desde);
+        return $query->where('signing_date', '>=', $from);
     }
 
-    public function scopeFechaHasta($query, ?string $hasta): mixed
+    public function scopeDateTo($query, ?string $to): mixed
     {
-        if ($hasta === null) {
+        if ($to === null) {
             return $query;
         }
-        return $query->where('fecha_firma', '<=', $hasta);
+        return $query->where('signing_date', '<=', $to);
     }
 
-    public function scopeBuscar($query, ?string $buscar): mixed
+    public function scopeSearch($query, ?string $search): mixed
     {
-        if ($buscar === null || $buscar === '') {
+        if ($search === null || $search === '') {
             return $query;
         }
-        return $query->where('nombre_completo', 'like', '%' . $buscar . '%');
+        return $query->where('full_name', 'like', '%' . $search . '%');
     }
 
-    public function scopeVigencia($query, ?string $vigencia): mixed
+    public function scopeValidity($query, ?string $validity): mixed
     {
-        if ($vigencia === null || $vigencia === '') {
+        if ($validity === null || $validity === '') {
             return $query;
         }
 
         $today = now()->startOfDay();
 
-        return match ($vigencia) {
-            '6m'  => $query->where('fecha_caducidad', '>=', $today)
-                           ->where('fecha_caducidad', '<=', $today->copy()->addMonths(6)),
-            '12m' => $query->where('fecha_caducidad', '>=', $today)
-                           ->where('fecha_caducidad', '<=', $today->copy()->addMonths(12)),
-            '18m' => $query->where('fecha_caducidad', '>=', $today)
-                           ->where('fecha_caducidad', '<=', $today->copy()->addMonths(18)),
+        return match ($validity) {
+            '6m'  => $query->where('expiration_date', '>=', $today)
+                           ->where('expiration_date', '<=', $today->copy()->addMonths(6)),
+            '12m' => $query->where('expiration_date', '>=', $today)
+                           ->where('expiration_date', '<=', $today->copy()->addMonths(12)),
+            '18m' => $query->where('expiration_date', '>=', $today)
+                           ->where('expiration_date', '<=', $today->copy()->addMonths(18)),
             default => $query,
         };
     }

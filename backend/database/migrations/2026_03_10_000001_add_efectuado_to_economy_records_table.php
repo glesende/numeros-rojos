@@ -9,14 +9,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('economy_records', function (Blueprint $table) {
-            $table->boolean('efectuado')->default(false)->after('oficial');
+            $table->boolean('carried_out')->default(false)->after('official');
         });
     }
 
     public function down(): void
     {
         Schema::table('economy_records', function (Blueprint $table) {
-            $table->dropColumn('efectuado');
+            $table->dropColumn('carried_out');
         });
     }
 };

@@ -14,38 +14,38 @@ class EconomyRecordController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = EconomyRecord::query()
-            ->oficial($request->boolean('oficial', null) !== false ? $request->input('oficial') : null)
-            ->tipo($request->input('tipo'))
-            ->fechaDesde($request->input('fecha_desde'))
-            ->fechaHasta($request->input('fecha_hasta'));
+            ->official($request->boolean('official', null) !== false ? $request->input('official') : null)
+            ->type($request->input('type'))
+            ->dateFrom($request->input('date_from'))
+            ->dateTo($request->input('date_to'));
 
-        if ($request->has('oficial')) {
-            $query->oficial(filter_var($request->input('oficial'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE));
+        if ($request->has('official')) {
+            $query->official(filter_var($request->input('official'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE));
         }
 
         $sortDir = $request->input('sort_dir', 'desc');
-        $query->orderBy('fecha', $sortDir);
+        $query->orderBy('record_date', $sortDir);
 
         $perPage = min((int) $request->input('per_page', 15), 100);
         $records = $query->paginate($perPage);
 
         // Aggregates
         $aggregateQuery = EconomyRecord::query()
-            ->tipo($request->input('tipo'))
-            ->fechaDesde($request->input('fecha_desde'))
-            ->fechaHasta($request->input('fecha_hasta'));
+            ->type($request->input('type'))
+            ->dateFrom($request->input('date_from'))
+            ->dateTo($request->input('date_to'));
 
-        if ($request->has('oficial')) {
-            $aggregateQuery->oficial(filter_var($request->input('oficial'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE));
+        if ($request->has('official')) {
+            $aggregateQuery->official(filter_var($request->input('official'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE));
         }
 
         $totals = [
-            'total_cobros_ars' => (float) (clone $aggregateQuery)->where('tipo', 'cobro')->where('moneda', 'ARS')->sum('monto'),
-            'total_pagos_ars'  => (float) (clone $aggregateQuery)->where('tipo', 'pago')->where('moneda', 'ARS')->sum('monto'),
-            'total_cobros_usd' => (float) (clone $aggregateQuery)->where('tipo', 'cobro')->where('moneda', 'USD')->sum('monto'),
-            'total_pagos_usd'  => (float) (clone $aggregateQuery)->where('tipo', 'pago')->where('moneda', 'USD')->sum('monto'),
-            'total_cobros_eur' => (float) (clone $aggregateQuery)->where('tipo', 'cobro')->where('moneda', 'EUR')->sum('monto'),
-            'total_pagos_eur'  => (float) (clone $aggregateQuery)->where('tipo', 'pago')->where('moneda', 'EUR')->sum('monto'),
+            'total_cobros_ars' => (float) (clone $aggregateQuery)->where('type', 'cobro')->where('currency', 'ARS')->sum('amount'),
+            'total_pagos_ars'  => (float) (clone $aggregateQuery)->where('type', 'pago')->where('currency', 'ARS')->sum('amount'),
+            'total_cobros_usd' => (float) (clone $aggregateQuery)->where('type', 'cobro')->where('currency', 'USD')->sum('amount'),
+            'total_pagos_usd'  => (float) (clone $aggregateQuery)->where('type', 'pago')->where('currency', 'USD')->sum('amount'),
+            'total_cobros_eur' => (float) (clone $aggregateQuery)->where('type', 'cobro')->where('currency', 'EUR')->sum('amount'),
+            'total_pagos_eur'  => (float) (clone $aggregateQuery)->where('type', 'pago')->where('currency', 'EUR')->sum('amount'),
             'balance_ars'      => 0,
             'balance_usd'      => 0,
             'balance_eur'      => 0,
@@ -76,15 +76,15 @@ class EconomyRecordController extends Controller
 
         $rows = EconomyRecord::query()
             ->select(
-                DB::raw("DATE_FORMAT(fecha, '%Y-%m') AS month_key"),
-                DB::raw("YEAR(fecha) AS year"),
-                DB::raw("MONTH(fecha) AS month_num"),
-                'moneda',
-                'tipo',
-                DB::raw('SUM(monto) AS total')
+                DB::raw("DATE_FORMAT(record_date, '%Y-%m') AS month_key"),
+                DB::raw("YEAR(record_date) AS year"),
+                DB::raw("MONTH(record_date) AS month_num"),
+                'currency',
+                'type',
+                DB::raw('SUM(amount) AS total')
             )
-            ->whereBetween('fecha', [$from->toDateString(), $to->toDateString()])
-            ->groupBy('month_key', 'year', 'month_num', 'moneda', 'tipo')
+            ->whereBetween('record_date', [$from->toDateString(), $to->toDateString()])
+            ->groupBy('month_key', 'year', 'month_num', 'currency', 'type')
             ->orderBy('month_key')
             ->get();
 
@@ -116,8 +116,8 @@ class EconomyRecordController extends Controller
             if (!isset($months[$key])) {
                 continue;
             }
-            $currency = strtolower($row->moneda);
-            $field    = $row->tipo === 'cobro' ? "ingresos_{$currency}" : "egresos_{$currency}";
+            $currency = strtolower($row->currency);
+            $field    = $row->type === 'cobro' ? "ingresos_{$currency}" : "egresos_{$currency}";
             $months[$key][$field] += (float) $row->total;
         }
 
@@ -142,20 +142,20 @@ class EconomyRecordController extends Controller
     public function store(Request $request): JsonResponse
     {
         $this->validate($request, [
-            'descripcion'       => 'required|string',
-            'tipo'              => 'required|in:cobro,pago',
-            'monto'             => 'required|numeric|min:0',
-            'moneda'            => 'required|in:ARS,USD,EUR',
-            'fecha'             => 'required|date',
-            'oficial'           => 'required|boolean',
-            'efectuado'         => 'sometimes|boolean',
-            'links'             => 'nullable|array',
-            'links.*'           => 'url',
+            'description'    => 'required|string',
+            'type'           => 'required|in:cobro,pago',
+            'amount'         => 'required|numeric|min:0',
+            'currency'       => 'required|in:ARS,USD,EUR',
+            'record_date'    => 'required|date',
+            'official'       => 'required|boolean',
+            'carried_out'    => 'sometimes|boolean',
+            'links'          => 'nullable|array',
+            'links.*'        => 'url',
         ]);
 
         $record = EconomyRecord::create($request->only([
-            'descripcion', 'tipo', 'monto', 'moneda',
-            'fecha', 'oficial', 'efectuado', 'links',
+            'description', 'type', 'amount', 'currency',
+            'record_date', 'official', 'carried_out', 'links',
         ]));
 
         return response()->json(['data' => $record], 201);
@@ -166,20 +166,20 @@ class EconomyRecordController extends Controller
         $record = EconomyRecord::findOrFail($id);
 
         $this->validate($request, [
-            'descripcion'       => 'sometimes|string',
-            'tipo'              => 'sometimes|in:cobro,pago',
-            'monto'             => 'sometimes|numeric|min:0',
-            'moneda'            => 'sometimes|in:ARS,USD,EUR',
-            'fecha'             => 'sometimes|date',
-            'oficial'           => 'sometimes|boolean',
-            'efectuado'         => 'sometimes|boolean',
-            'links'             => 'nullable|array',
-            'links.*'           => 'url',
+            'description'    => 'sometimes|string',
+            'type'          => 'sometimes|in:cobro,pago',
+            'amount'        => 'sometimes|numeric|min:0',
+            'currency'      => 'sometimes|in:ARS,USD,EUR',
+            'record_date'   => 'sometimes|date',
+            'official'      => 'sometimes|boolean',
+            'carried_out'   => 'sometimes|boolean',
+            'links'         => 'nullable|array',
+            'links.*'       => 'url',
         ]);
 
         $record->update($request->only([
-            'descripcion', 'tipo', 'monto', 'moneda',
-            'fecha', 'oficial', 'efectuado', 'links',
+            'description', 'type', 'amount', 'currency',
+            'record_date', 'official', 'carried_out', 'links',
         ]));
 
         return response()->json(['data' => $record]);

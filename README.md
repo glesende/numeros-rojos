@@ -138,10 +138,10 @@ make clean             # Eliminar volumenes
 
 ### Filtros disponibles (economy)
 
-- `tipo` - cobro | pago
-- `oficial` - 1 | 0
-- `fecha_desde` - YYYY-MM-DD
-- `fecha_hasta` - YYYY-MM-DD
+- `type` - cobro | pago
+- `official` - 1 | 0
+- `date_from` - YYYY-MM-DD
+- `date_to` - YYYY-MM-DD
 - `sort_dir` - asc | desc
 - `page` - numero de pagina
 - `per_page` - registros por pagina (max 100)
@@ -188,12 +188,13 @@ Para activar las estadisticas en tiempo real:
 | Campo            | Tipo                       |
 |------------------|----------------------------|
 | id               | bigint (PK)                |
-| descripcion      | text                       |
-| tipo             | enum: cobro, pago          |
-| monto            | decimal(15,2)              |
-| moneda           | enum: ARS, USD             |
-| fecha            | date                       |
-| oficial          | boolean                    |
+| description      | text                       |
+| type             | enum: cobro, pago          |
+| amount           | decimal(15,2)              |
+| currency         | enum: ARS, USD, EUR       |
+| record_date      | date                       |
+| official         | boolean                    |
+| carried_out      | boolean                    |
 | links            | json (nullable)            |
 | created_at       | timestamp                  |
 | updated_at       | timestamp                  |
@@ -203,14 +204,14 @@ Para activar las estadisticas en tiempo real:
 | Campo                | Tipo                       |
 |----------------------|----------------------------|
 | id                   | bigint (PK)                |
-| nombre_completo      | varchar(255)               |
-| fecha_firma          | date                       |
-| fecha_caducidad      | date                       |
-| porcentaje_pase_club | decimal(5,2)               |
-| salario_estimado     | decimal(15,2) nullable     |
-| moneda               | enum: ARS, USD (nullable)  |
-| oficial              | boolean                    |
-| clausulas            | json (nullable)            |
+| full_name            | varchar(255)               |
+| signing_date         | date                       |
+| expiration_date      | date                       |
+| club_pass_percentage | decimal(5,2)               |
+| estimated_salary     | decimal(15,2) nullable     |
+| currency             | enum: ARS, USD, EUR (nullable)  |
+| official             | boolean                    |
+| clauses              | json (nullable)            |
 | links                | json (nullable)            |
 | created_at           | timestamp                  |
 | updated_at           | timestamp                  |

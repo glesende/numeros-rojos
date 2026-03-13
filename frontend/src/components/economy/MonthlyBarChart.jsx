@@ -115,7 +115,7 @@ export default function MonthlyBarChart() {
 
   useEffect(() => {
     const today = new Date().toISOString().slice(0, 10);
-    getEconomyRecords({ fecha_desde: today, sort_by: 'fecha', sort_dir: 'asc', per_page: 5 })
+    getEconomyRecords({ date_from: today, sort_by: 'record_date', sort_dir: 'asc', per_page: 5 })
       .then((res) => setUpcoming(res.data.data || []))
       .catch(() => setUpcoming([]));
   }, []);
@@ -286,19 +286,19 @@ export default function MonthlyBarChart() {
               <tbody>
                 {upcoming.map((r) => (
                   <tr key={r.id} className="border-b border-gray-50 hover:bg-gray-50">
-                    <td className="py-2 pr-4 whitespace-nowrap text-gray-500 text-xs">{formatDate(r.fecha)}</td>
+                    <td className="py-2 pr-4 whitespace-nowrap text-gray-500 text-xs">{formatDate(r.record_date)}</td>
                     <td className="py-2 pr-4">
                       <Link to={`/economia/${r.id}`} className="text-rojo hover:underline font-medium line-clamp-1">
-                        {r.descripcion || '-'}
+                        {r.description || '-'}
                       </Link>
                     </td>
                     <td className="py-2 pr-4">
-                      <span className={r.tipo === 'cobro' ? 'badge-cobro' : 'badge-pago'}>
-                        {r.tipo}
+                      <span className={r.type === 'cobro' ? 'badge-cobro' : 'badge-pago'}>
+                        {r.type}
                       </span>
                     </td>
                     <td className="py-2 text-right font-mono whitespace-nowrap text-xs">
-                      {formatMoney(r.monto, r.moneda)}
+                      {formatMoney(r.amount, r.currency)}
                     </td>
                   </tr>
                 ))}

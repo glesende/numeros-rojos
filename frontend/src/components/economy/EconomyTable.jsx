@@ -39,31 +39,31 @@ export default function EconomyTable({ records }) {
         <tbody>
           {records.map((r) => (
             <tr key={r.id} className="border-b border-gray-100 hover:bg-gray-50">
-              <td className="py-3 pr-4 whitespace-nowrap">{formatDate(r.fecha)}</td>
+              <td className="py-3 pr-4 whitespace-nowrap">{formatDate(r.record_date)}</td>
               <td className="py-3 pr-4">
                 <Link to={`/economia/${r.id}`} className="text-rojo hover:underline font-medium">
-                  {r.descripcion
-                    ? (r.descripcion.length > 60 ? r.descripcion.slice(0, 60) + '...' : r.descripcion)
+                  {r.description
+                    ? (r.description.length > 60 ? r.description.slice(0, 60) + '...' : r.description)
                     : '-'}
                 </Link>
               </td>
               <td className="py-3 pr-4">
-                <span className={r.tipo === 'cobro' ? 'badge-cobro' : 'badge-pago'}>
-                  {r.tipo}
+                <span className={r.type === 'cobro' ? 'badge-cobro' : 'badge-pago'}>
+                  {r.type}
                 </span>
               </td>
               <td className="py-3 pr-4 text-right font-mono whitespace-nowrap">
-                {formatMoney(r.monto, r.moneda)}
+                {formatMoney(r.amount, r.currency)}
               </td>
               <td className="py-3">
-                {r.oficial ? (
+                {r.official ? (
                   <span className="text-green-600 text-xs font-semibold">Si</span>
                 ) : (
                   <span className="text-gray-400 text-xs">No</span>
                 )}
               </td>
               <td className="py-3">
-                {r.efectuado ? (
+                {r.carried_out ? (
                   <span className="text-green-600 text-xs font-semibold">Si</span>
                 ) : (
                   <span className="text-gray-400 text-xs">No</span>

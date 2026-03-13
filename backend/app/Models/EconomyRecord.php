@@ -12,53 +12,53 @@ class EconomyRecord extends Model
     protected $table = 'economy_records';
 
     protected $fillable = [
-        'descripcion',
-        'tipo',
-        'monto',
-        'moneda',
-        'fecha',
-        'oficial',
-        'efectuado',
+        'description',
+        'type',
+        'amount',
+        'currency',
+        'record_date',
+        'official',
+        'carried_out',
         'links',
     ];
 
     protected $casts = [
-        'monto'     => 'decimal:2',
-        'oficial'   => 'boolean',
-        'efectuado' => 'boolean',
-        'links'     => 'array',
-        'fecha'     => 'date',
+        'amount'      => 'decimal:2',
+        'official'    => 'boolean',
+        'carried_out' => 'boolean',
+        'links'       => 'array',
+        'record_date' => 'date',
     ];
 
-    public function scopeOficial($query, ?bool $oficial): mixed
+    public function scopeOfficial($query, ?bool $official): mixed
     {
-        if ($oficial === null) {
+        if ($official === null) {
             return $query;
         }
-        return $query->where('oficial', $oficial);
+        return $query->where('official', $official);
     }
 
-    public function scopeTipo($query, ?string $tipo): mixed
+    public function scopeType($query, ?string $type): mixed
     {
-        if ($tipo === null) {
+        if ($type === null) {
             return $query;
         }
-        return $query->where('tipo', $tipo);
+        return $query->where('type', $type);
     }
 
-    public function scopeFechaDesde($query, ?string $desde): mixed
+    public function scopeDateFrom($query, ?string $from): mixed
     {
-        if ($desde === null) {
+        if ($from === null) {
             return $query;
         }
-        return $query->where('fecha', '>=', $desde);
+        return $query->where('record_date', '>=', $from);
     }
 
-    public function scopeFechaHasta($query, ?string $hasta): mixed
+    public function scopeDateTo($query, ?string $to): mixed
     {
-        if ($hasta === null) {
+        if ($to === null) {
             return $query;
         }
-        return $query->where('fecha', '<=', $hasta);
+        return $query->where('record_date', '<=', $to);
     }
 }

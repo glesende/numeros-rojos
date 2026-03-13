@@ -22,7 +22,7 @@ export default function ContractDetailPage() {
       .then((res) => {
         const c = res.data.data;
         setContract(c);
-        if (c) document.title = `Contrato de ${c.nombre_completo} | Números Rojos`;
+        if (c) document.title = `Contrato de ${c.full_name} | Números Rojos`;
       })
       .finally(() => setLoading(false));
     return () => { document.title = 'Números Rojos'; };
@@ -31,7 +31,7 @@ export default function ContractDetailPage() {
   if (loading) return <Loader />;
   if (!contract) return <p className="text-center py-12 text-gray-500">No encontrado.</p>;
 
-  const vencido = new Date(contract.fecha_caducidad) < new Date();
+  const vencido = new Date(contract.expiration_date) < new Date();
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
@@ -41,44 +41,44 @@ export default function ContractDetailPage() {
 
       <div className="card">
         <div className="flex items-center gap-3 mb-2">
-          {contract.oficial && <span className="text-xs font-semibold text-green-600">Oficial</span>}
+          {contract.official && <span className="text-xs font-semibold text-green-600">Oficial</span>}
           {vencido && <span className="text-xs font-semibold text-red-600">Vencido</span>}
         </div>
 
-        <h1 className="text-xl font-bold mb-6">{contract.nombre_completo}</h1>
+        <h1 className="text-xl font-bold mb-6">{contract.full_name}</h1>
 
         <div className="grid grid-cols-2 gap-4 text-sm mb-6">
           <div>
             <p className="text-gray-500">Fecha de firma</p>
-            <p className="font-medium">{formatDate(contract.fecha_firma)}</p>
+            <p className="font-medium">{formatDate(contract.signing_date)}</p>
           </div>
           <div>
             <p className="text-gray-500">Fecha de vencimiento</p>
-            <p className={`font-medium ${vencido ? 'text-red-600' : ''}`}>{formatDate(contract.fecha_caducidad)}</p>
+            <p className={`font-medium ${vencido ? 'text-red-600' : ''}`}>{formatDate(contract.expiration_date)}</p>
           </div>
           <div>
             <p className="text-gray-500">Porcentaje del pase</p>
-            <p className="font-mono font-bold text-lg">{contract.porcentaje_pase_club}%</p>
+            <p className="font-mono font-bold text-lg">{contract.club_pass_percentage}%</p>
           </div>
           <div>
             <p className="text-gray-500">Salario estimado</p>
             <p className="font-mono font-bold text-lg">
-              {contract.salario_estimado
+              {contract.estimated_salary
                 ? new Intl.NumberFormat('es-AR', {
                     style: 'currency',
-                    currency: contract.moneda || 'USD',
+                    currency: contract.currency || 'USD',
                     maximumFractionDigits: 0,
-                  }).format(contract.salario_estimado)
+                  }).format(contract.estimated_salary)
                 : 'No disponible'}
             </p>
           </div>
         </div>
 
-        {contract.clausulas && contract.clausulas.length > 0 && (
+        {contract.clauses && contract.clauses.length > 0 && (
           <div className="mb-6">
             <p className="text-gray-500 text-sm mb-2">Clausulas</p>
             <ul className="space-y-1">
-              {contract.clausulas.map((c, i) => (
+              {contract.clauses.map((c, i) => (
                 <li key={i} className="text-sm bg-gray-50 px-3 py-2 rounded">{c}</li>
               ))}
             </ul>

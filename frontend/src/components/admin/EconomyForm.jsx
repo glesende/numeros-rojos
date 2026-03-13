@@ -1,13 +1,13 @@
 import { useState } from 'react';
 
 const emptyForm = {
-  descripcion: '',
-  tipo: 'cobro',
-  monto: '',
-  moneda: 'ARS',
-  fecha: '',
-  oficial: false,
-  efectuado: false,
+  description: '',
+  type: 'cobro',
+  amount: '',
+  currency: 'ARS',
+  record_date: '',
+  official: false,
+  carried_out: false,
   links: [],
 };
 
@@ -30,16 +30,16 @@ export default function EconomyForm({ initial, onSubmit, loading }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit({ ...form, monto: parseFloat(form.monto), oficial: !!form.oficial, efectuado: !!form.efectuado });
+    onSubmit({ ...form, amount: parseFloat(form.amount), official: !!form.official, carried_out: !!form.carried_out });
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label className="block text-xs font-medium text-gray-500 mb-1">Descripcion *</label>
-        <textarea
-          value={form.descripcion}
-          onChange={(e) => set('descripcion', e.target.value)}
+          <textarea
+          value={form.description}
+          onChange={(e) => set('description', e.target.value)}
           className="input-field"
           rows={3}
           required
@@ -49,14 +49,14 @@ export default function EconomyForm({ initial, onSubmit, loading }) {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1">Tipo *</label>
-          <select value={form.tipo} onChange={(e) => set('tipo', e.target.value)} className="input-field">
+          <select value={form.type} onChange={(e) => set('type', e.target.value)} className="input-field">
             <option value="cobro">Cobro</option>
             <option value="pago">Pago</option>
           </select>
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1">Moneda *</label>
-          <select value={form.moneda} onChange={(e) => set('moneda', e.target.value)} className="input-field">
+          <select value={form.currency} onChange={(e) => set('currency', e.target.value)} className="input-field">
             <option value="ARS">ARS</option>
             <option value="USD">USD</option>
             <option value="EUR">EUR</option>
@@ -70,8 +70,8 @@ export default function EconomyForm({ initial, onSubmit, loading }) {
           <input
             type="number"
             step="0.01"
-            value={form.monto}
-            onChange={(e) => set('monto', e.target.value)}
+            value={form.amount}
+            onChange={(e) => set('amount', e.target.value)}
             className="input-field"
             required
           />
@@ -80,8 +80,8 @@ export default function EconomyForm({ initial, onSubmit, loading }) {
           <label className="block text-xs font-medium text-gray-500 mb-1">Fecha *</label>
           <input
             type="date"
-            value={form.fecha}
-            onChange={(e) => set('fecha', e.target.value)}
+            value={form.record_date}
+            onChange={(e) => set('record_date', e.target.value)}
             className="input-field"
             required
           />
@@ -92,8 +92,8 @@ export default function EconomyForm({ initial, onSubmit, loading }) {
         <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"
-            checked={form.oficial}
-            onChange={(e) => set('oficial', e.target.checked)}
+            checked={form.official}
+            onChange={(e) => set('official', e.target.checked)}
             className="rounded border-gray-300 text-rojo focus:ring-rojo"
           />
           Dato oficial
@@ -101,8 +101,8 @@ export default function EconomyForm({ initial, onSubmit, loading }) {
         <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"
-            checked={form.efectuado}
-            onChange={(e) => set('efectuado', e.target.checked)}
+            checked={form.carried_out}
+            onChange={(e) => set('carried_out', e.target.checked)}
             className="rounded border-gray-300 text-rojo focus:ring-rojo"
           />
           Efectuado

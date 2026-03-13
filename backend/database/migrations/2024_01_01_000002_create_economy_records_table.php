@@ -10,18 +10,18 @@ return new class extends Migration
     {
         Schema::create('economy_records', function (Blueprint $table) {
             $table->id();
-            $table->text('descripcion');
-            $table->enum('tipo', ['cobro', 'pago']);
-            $table->decimal('monto', 15, 2);
-            $table->enum('moneda', ['ARS', 'USD'])->default('ARS');
-            $table->date('fecha');
-            $table->boolean('oficial')->default(false);
+            $table->text('description');
+            $table->enum('type', ['cobro', 'pago']);
+            $table->decimal('amount', 15, 2);
+            $table->enum('currency', ['ARS', 'USD', 'EUR'])->default('ARS');
+            $table->date('record_date');
+            $table->boolean('official')->default(false);
             $table->json('links')->nullable();
             $table->timestamps();
 
-            $table->index('tipo');
-            $table->index('fecha');
-            $table->index('oficial');
+            $table->index('type');
+            $table->index('record_date');
+            $table->index('official');
         });
     }
 

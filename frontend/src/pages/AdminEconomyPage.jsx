@@ -57,16 +57,16 @@ export default function AdminEconomyPage() {
               {data.data.map((r) => (
                 <tr key={r.id} className="border-b border-gray-100">
                   <td className="py-2 pr-4 text-gray-400">{r.id}</td>
-                  <td className="py-2 pr-4 whitespace-nowrap">{r.fecha}</td>
+                  <td className="py-2 pr-4 whitespace-nowrap">{r.record_date}</td>
                   <td className="py-2 pr-4">
-                    {r.descripcion.length > 50 ? r.descripcion.slice(0, 50) + '...' : r.descripcion}
+                    {r.description.length > 50 ? r.description.slice(0, 50) + '...' : r.description}
                   </td>
-                  <td className="py-2 pr-4 uppercase text-xs font-semibold">{r.tipo}</td>
+                  <td className="py-2 pr-4 uppercase text-xs font-semibold">{r.type}</td>
                   <td className="py-2 pr-4 text-right font-mono">
-                    {r.moneda} {Number(r.monto).toLocaleString('es-AR')}
+                    {r.currency} {Number(r.amount).toLocaleString('es-AR')}
                   </td>
                   <td className="py-2 pr-4">
-                    {r.efectuado ? (
+                    {r.carried_out ? (
                       <span className="text-green-600 text-xs font-semibold">Si</span>
                     ) : (
                       <span className="text-gray-400 text-xs">No</span>

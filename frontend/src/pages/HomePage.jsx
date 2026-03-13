@@ -27,7 +27,7 @@ function getDaysUntil(dateStr) {
 }
 
 function ContractCard({ contract }) {
-  const days = getDaysUntil(contract.fecha_caducidad);
+  const days = getDaysUntil(contract.expiration_date);
   const expired = days < 0;
   const soon = days >= 0 && days <= 60;
 
@@ -38,11 +38,11 @@ function ContractCard({ contract }) {
     >
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-full bg-rojo text-white flex items-center justify-center font-bold text-lg flex-shrink-0">
-          {contract.nombre_completo.charAt(0).toUpperCase()}
+          {contract.full_name.charAt(0).toUpperCase()}
         </div>
         <div className="overflow-hidden flex-1">
           <p className="font-bold text-gray-900 text-sm leading-tight line-clamp-2">
-            {contract.nombre_completo}
+            {contract.full_name}
           </p>
         </div>
       </div>
@@ -51,7 +51,7 @@ function ContractCard({ contract }) {
         <div className="flex justify-between items-center">
           <span className="text-gray-500 text-xs">Vence</span>
           <span className={`font-mono text-xs ${expired ? 'text-red-600' : soon ? 'text-yellow-600' : 'text-gray-700'}`}>
-            {formatDate(contract.fecha_caducidad)}
+            {formatDate(contract.expiration_date)}
           </span>
         </div>
         <div className="flex justify-between items-center">
@@ -68,27 +68,27 @@ function ContractCard({ contract }) {
             {expired ? 'Vencido' : `${days}d restantes`}
           </span>
         </div>
-        {contract.porcentaje_pase_club !== null && (
+        {contract.club_pass_percentage !== null && (
           <div className="flex justify-between items-center">
             <span className="text-gray-500 text-xs">% Pase</span>
-            <span className="font-mono text-xs">{contract.porcentaje_pase_club}%</span>
+            <span className="font-mono text-xs">{contract.club_pass_percentage}%</span>
           </div>
         )}
-        {contract.salario_estimado && (
+        {contract.estimated_salary && (
           <div className="flex justify-between items-center">
             <span className="text-gray-500 text-xs">Salario est.</span>
             <span className="font-mono text-xs">
               {new Intl.NumberFormat('es-AR', {
                 style: 'currency',
-                currency: contract.moneda || 'USD',
+                currency: contract.currency || 'USD',
                 maximumFractionDigits: 0,
-              }).format(contract.salario_estimado)}
+              }).format(contract.estimated_salary)}
             </span>
           </div>
         )}
       </div>
 
-      {contract.oficial && (
+      {contract.official && (
         <div className="flex items-center pt-1 border-t border-gray-100">
           <span className="text-xs font-semibold text-green-600">Oficial</span>
         </div>
@@ -115,8 +115,8 @@ export default function HomePage() {
   const fetchContracts = useCallback(() => {
     setLoading(true);
     const params = { per_page: 100, sort_dir: 'asc' };
-    if (vigencia) params.vigencia = vigencia;
-    if (buscar) params.buscar = buscar;
+    if (vigencia) params.validity = vigencia;
+    if (buscar) params.search = buscar;
 
     getContracts(params)
       .then((res) => {
@@ -133,16 +133,16 @@ export default function HomePage() {
 
   const setVigencia = (value) => {
     const params = {};
-    if (value && value !== vigencia) params.vigencia = value;
-    if (buscar) params.buscar = buscar;
+    if (value && value !== vigencia) params.validity = value;
+    if (buscar) params.search = buscar;
     setSearchParams(params);
   };
 
   const handleSearch = (e) => {
     e.preventDefault();
     const params = {};
-    if (vigencia) params.vigencia = vigencia;
-    if (searchInput.trim()) params.buscar = searchInput.trim();
+    if (vigencia) params.validity = vigencia;
+    if (searchInput.trim()) params.search = searchInput.trim();
     setSearchParams(params);
   };
 

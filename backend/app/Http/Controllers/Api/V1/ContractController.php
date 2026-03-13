@@ -13,40 +13,40 @@ class ContractController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = Contract::query()
-            ->buscar($request->input('buscar'))
-            ->fechaDesde($request->input('fecha_desde'))
-            ->fechaHasta($request->input('fecha_hasta'))
-            ->vigencia($request->input('vigencia'));
+            ->search($request->input('search'))
+            ->dateFrom($request->input('date_from'))
+            ->dateTo($request->input('date_to'))
+            ->validity($request->input('validity'));
 
-        if ($request->has('oficial')) {
-            $query->oficial(filter_var($request->input('oficial'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE));
+        if ($request->has('official')) {
+            $query->official(filter_var($request->input('official'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE));
         }
 
         $sortDir = $request->input('sort_dir', 'desc');
-        $query->orderBy('fecha_firma', $sortDir);
+        $query->orderBy('signing_date', $sortDir);
 
         $perPage = min((int) $request->input('per_page', 15), 100);
         $contracts = $query->paginate($perPage);
 
         // Aggregates
         $aggQuery = Contract::query()
-            ->buscar($request->input('buscar'))
-            ->fechaDesde($request->input('fecha_desde'))
-            ->fechaHasta($request->input('fecha_hasta'))
-            ->vigencia($request->input('vigencia'));
+            ->search($request->input('search'))
+            ->dateFrom($request->input('date_from'))
+            ->dateTo($request->input('date_to'))
+            ->validity($request->input('validity'));
 
-        if ($request->has('oficial')) {
-            $aggQuery->oficial(filter_var($request->input('oficial'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE));
+        if ($request->has('official')) {
+            $aggQuery->official(filter_var($request->input('official'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE));
         }
 
         $totals = [
             'total_contratos'          => (int) (clone $aggQuery)->count(),
-            'promedio_porcentaje_pase'  => round((float) (clone $aggQuery)->avg('porcentaje_pase_club'), 2),
-            'total_salarios_usd'       => (float) (clone $aggQuery)->where('moneda', 'USD')->sum('salario_estimado'),
-            'total_salarios_ars'       => (float) (clone $aggQuery)->where('moneda', 'ARS')->sum('salario_estimado'),
-            'total_salarios_eur'       => (float) (clone $aggQuery)->where('moneda', 'EUR')->sum('salario_estimado'),
-            'contratos_vigentes'       => (int) (clone $aggQuery)->where('fecha_caducidad', '>=', Carbon::now())->count(),
-            'contratos_vencidos'       => (int) (clone $aggQuery)->where('fecha_caducidad', '<', Carbon::now())->count(),
+            'promedio_porcentaje_pase'  => round((float) (clone $aggQuery)->avg('club_pass_percentage'), 2),
+            'total_salarios_usd'       => (float) (clone $aggQuery)->where('currency', 'USD')->sum('estimated_salary'),
+            'total_salarios_ars'       => (float) (clone $aggQuery)->where('currency', 'ARS')->sum('estimated_salary'),
+            'total_salarios_eur'       => (float) (clone $aggQuery)->where('currency', 'EUR')->sum('estimated_salary'),
+            'contratos_vigentes'       => (int) (clone $aggQuery)->where('expiration_date', '>=', Carbon::now())->count(),
+            'contratos_vencidos'       => (int) (clone $aggQuery)->where('expiration_date', '<', Carbon::now())->count(),
         ];
 
         return response()->json([
@@ -71,22 +71,22 @@ class ContractController extends Controller
     public function store(Request $request): JsonResponse
     {
         $this->validate($request, [
-            'nombre_completo'       => 'required|string|max:255',
-            'fecha_firma'           => 'required|date',
-            'fecha_caducidad'       => 'required|date|after:fecha_firma',
-            'porcentaje_pase_club'  => 'required|numeric|min:0|max:100',
-            'salario_estimado'      => 'nullable|numeric|min:0',
-            'moneda'                => 'nullable|in:ARS,USD,EUR',
-            'oficial'               => 'required|boolean',
-            'clausulas'             => 'nullable|array',
+            'full_name'             => 'required|string|max:255',
+            'signing_date'          => 'required|date',
+            'expiration_date'      => 'required|date|after:signing_date',
+            'club_pass_percentage'  => 'required|numeric|min:0|max:100',
+            'estimated_salary'      => 'nullable|numeric|min:0',
+            'currency'              => 'nullable|in:ARS,USD,EUR',
+            'official'              => 'required|boolean',
+            'clauses'              => 'nullable|array',
             'links'                 => 'nullable|array',
             'links.*'               => 'url',
         ]);
 
         $contract = Contract::create($request->only([
-            'nombre_completo', 'fecha_firma', 'fecha_caducidad',
-            'porcentaje_pase_club', 'salario_estimado', 'moneda',
-            'oficial', 'clausulas', 'links',
+            'full_name', 'signing_date', 'expiration_date',
+            'club_pass_percentage', 'estimated_salary', 'currency',
+            'official', 'clauses', 'links',
         ]));
 
         return response()->json(['data' => $contract], 201);
@@ -97,22 +97,22 @@ class ContractController extends Controller
         $contract = Contract::findOrFail($id);
 
         $this->validate($request, [
-            'nombre_completo'       => 'sometimes|string|max:255',
-            'fecha_firma'           => 'sometimes|date',
-            'fecha_caducidad'       => 'sometimes|date',
-            'porcentaje_pase_club'  => 'sometimes|numeric|min:0|max:100',
-            'salario_estimado'      => 'nullable|numeric|min:0',
-            'moneda'                => 'nullable|in:ARS,USD,EUR',
-            'oficial'               => 'sometimes|boolean',
-            'clausulas'             => 'nullable|array',
+            'full_name'             => 'sometimes|string|max:255',
+            'signing_date'          => 'sometimes|date',
+            'expiration_date'      => 'sometimes|date',
+            'club_pass_percentage'  => 'sometimes|numeric|min:0|max:100',
+            'estimated_salary'      => 'nullable|numeric|min:0',
+            'currency'              => 'nullable|in:ARS,USD,EUR',
+            'official'              => 'sometimes|boolean',
+            'clauses'              => 'nullable|array',
             'links'                 => 'nullable|array',
             'links.*'               => 'url',
         ]);
 
         $contract->update($request->only([
-            'nombre_completo', 'fecha_firma', 'fecha_caducidad',
-            'porcentaje_pase_club', 'salario_estimado', 'moneda',
-            'oficial', 'clausulas', 'links',
+            'full_name', 'signing_date', 'expiration_date',
+            'club_pass_percentage', 'estimated_salary', 'currency',
+            'official', 'clauses', 'links',
         ]));
 
         return response()->json(['data' => $contract]);

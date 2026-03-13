@@ -10,20 +10,20 @@ return new class extends Migration
     {
         Schema::create('contracts', function (Blueprint $table) {
             $table->id();
-            $table->string('nombre_completo');
-            $table->date('fecha_firma');
-            $table->date('fecha_caducidad');
-            $table->decimal('porcentaje_pase_club', 5, 2);
-            $table->decimal('salario_estimado', 15, 2)->nullable();
-            $table->enum('moneda', ['ARS', 'USD'])->nullable();
-            $table->boolean('oficial')->default(false);
-            $table->json('clausulas')->nullable();
+            $table->string('full_name');
+            $table->date('signing_date');
+            $table->date('expiration_date');
+            $table->decimal('club_pass_percentage', 5, 2);
+            $table->decimal('estimated_salary', 15, 2)->nullable();
+            $table->enum('currency', ['ARS', 'USD', 'EUR'])->nullable();
+            $table->boolean('official')->default(false);
+            $table->json('clauses')->nullable();
             $table->json('links')->nullable();
             $table->timestamps();
 
-            $table->index('nombre_completo');
-            $table->index('fecha_firma');
-            $table->index('oficial');
+            $table->index('full_name');
+            $table->index('signing_date');
+            $table->index('official');
         });
     }
 

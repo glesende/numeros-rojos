@@ -1,14 +1,14 @@
 import { useState } from 'react';
 
 const emptyForm = {
-  nombre_completo: '',
-  fecha_firma: '',
-  fecha_caducidad: '',
-  porcentaje_pase_club: '',
-  salario_estimado: '',
-  moneda: 'USD',
-  oficial: false,
-  clausulas: [],
+  full_name: '',
+  signing_date: '',
+  expiration_date: '',
+  club_pass_percentage: '',
+  estimated_salary: '',
+  currency: 'USD',
+  official: false,
+  clauses: [],
   links: [],
 };
 
@@ -21,13 +21,13 @@ export default function ContractForm({ initial, onSubmit, loading }) {
 
   const addClausula = () => {
     if (clausulaInput.trim()) {
-      set('clausulas', [...(form.clausulas || []), clausulaInput.trim()]);
+      set('clauses', [...(form.clauses || []), clausulaInput.trim()]);
       setClausulaInput('');
     }
   };
 
   const removeClausula = (i) => {
-    set('clausulas', form.clausulas.filter((_, idx) => idx !== i));
+    set('clauses', form.clauses.filter((_, idx) => idx !== i));
   };
 
   const addLink = () => {
@@ -45,10 +45,10 @@ export default function ContractForm({ initial, onSubmit, loading }) {
     e.preventDefault();
     onSubmit({
       ...form,
-      porcentaje_pase_club: parseFloat(form.porcentaje_pase_club),
-      salario_estimado: form.salario_estimado ? parseFloat(form.salario_estimado) : null,
-      moneda: form.salario_estimado ? form.moneda : null,
-      oficial: !!form.oficial,
+      club_pass_percentage: parseFloat(form.club_pass_percentage),
+      estimated_salary: form.estimated_salary ? parseFloat(form.estimated_salary) : null,
+      currency: form.estimated_salary ? form.currency : null,
+      official: !!form.official,
     });
   };
 
@@ -58,8 +58,8 @@ export default function ContractForm({ initial, onSubmit, loading }) {
         <label className="block text-xs font-medium text-gray-500 mb-1">Nombre completo *</label>
         <input
           type="text"
-          value={form.nombre_completo}
-          onChange={(e) => set('nombre_completo', e.target.value)}
+          value={form.full_name}
+          onChange={(e) => set('full_name', e.target.value)}
           className="input-field"
           required
         />
@@ -70,8 +70,8 @@ export default function ContractForm({ initial, onSubmit, loading }) {
           <label className="block text-xs font-medium text-gray-500 mb-1">Fecha firma *</label>
           <input
             type="date"
-            value={form.fecha_firma}
-            onChange={(e) => set('fecha_firma', e.target.value)}
+            value={form.signing_date}
+            onChange={(e) => set('signing_date', e.target.value)}
             className="input-field"
             required
           />
@@ -80,8 +80,8 @@ export default function ContractForm({ initial, onSubmit, loading }) {
           <label className="block text-xs font-medium text-gray-500 mb-1">Fecha vencimiento *</label>
           <input
             type="date"
-            value={form.fecha_caducidad}
-            onChange={(e) => set('fecha_caducidad', e.target.value)}
+            value={form.expiration_date}
+            onChange={(e) => set('expiration_date', e.target.value)}
             className="input-field"
             required
           />
@@ -96,8 +96,8 @@ export default function ContractForm({ initial, onSubmit, loading }) {
             step="0.01"
             min="0"
             max="100"
-            value={form.porcentaje_pase_club}
-            onChange={(e) => set('porcentaje_pase_club', e.target.value)}
+            value={form.club_pass_percentage}
+            onChange={(e) => set('club_pass_percentage', e.target.value)}
             className="input-field"
             required
           />
@@ -107,14 +107,14 @@ export default function ContractForm({ initial, onSubmit, loading }) {
           <input
             type="number"
             step="0.01"
-            value={form.salario_estimado}
-            onChange={(e) => set('salario_estimado', e.target.value)}
+            value={form.estimated_salary}
+            onChange={(e) => set('estimated_salary', e.target.value)}
             className="input-field"
           />
         </div>
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1">Moneda</label>
-          <select value={form.moneda} onChange={(e) => set('moneda', e.target.value)} className="input-field">
+          <select value={form.currency} onChange={(e) => set('currency', e.target.value)} className="input-field">
             <option value="USD">USD</option>
             <option value="ARS">ARS</option>
             <option value="EUR">EUR</option>
@@ -126,8 +126,8 @@ export default function ContractForm({ initial, onSubmit, loading }) {
         <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"
-            checked={form.oficial}
-            onChange={(e) => set('oficial', e.target.checked)}
+            checked={form.official}
+            onChange={(e) => set('official', e.target.checked)}
             className="rounded border-gray-300 text-rojo focus:ring-rojo"
           />
           Dato oficial
@@ -148,9 +148,9 @@ export default function ContractForm({ initial, onSubmit, loading }) {
             Agregar
           </button>
         </div>
-        {form.clausulas?.length > 0 && (
+        {form.clauses?.length > 0 && (
           <ul className="mt-2 space-y-1">
-            {form.clausulas.map((c, i) => (
+            {form.clauses.map((c, i) => (
               <li key={i} className="flex items-center gap-2 text-sm bg-gray-50 rounded px-2 py-1">
                 <span className="flex-1">{c}</span>
                 <button type="button" onClick={() => removeClausula(i)} className="text-red-500 text-xs">

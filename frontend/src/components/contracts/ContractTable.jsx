@@ -29,31 +29,31 @@ export default function ContractTable({ contracts }) {
         </thead>
         <tbody>
           {contracts.map((c) => {
-            const vencido = new Date(c.fecha_caducidad) < new Date();
+            const vencido = new Date(c.expiration_date) < new Date();
             return (
               <tr key={c.id} className="border-b border-gray-100 hover:bg-gray-50">
                 <td className="py-3 pr-4 font-medium">
                   <Link to={`/contratos/${c.id}`} className="text-rojo hover:underline">
-                    {c.nombre_completo}
+                    {c.full_name}
                   </Link>
                 </td>
-                <td className="py-3 pr-4 whitespace-nowrap">{formatDate(c.fecha_firma)}</td>
+                <td className="py-3 pr-4 whitespace-nowrap">{formatDate(c.signing_date)}</td>
                 <td className="py-3 pr-4 whitespace-nowrap">
-                  <span className={vencido ? 'text-red-600' : ''}>{formatDate(c.fecha_caducidad)}</span>
+                  <span className={vencido ? 'text-red-600' : ''}>{formatDate(c.expiration_date)}</span>
                   {vencido && <span className="ml-1 text-xs text-red-500">(vencido)</span>}
                 </td>
-                <td className="py-3 pr-4 text-right font-mono">{c.porcentaje_pase_club}%</td>
+                <td className="py-3 pr-4 text-right font-mono">{c.club_pass_percentage}%</td>
                 <td className="py-3 pr-4 text-right font-mono whitespace-nowrap">
-                  {c.salario_estimado
+                  {c.estimated_salary
                     ? new Intl.NumberFormat('es-AR', {
                         style: 'currency',
-                        currency: c.moneda || 'USD',
+                        currency: c.currency || 'USD',
                         maximumFractionDigits: 0,
-                      }).format(c.salario_estimado)
+                      }).format(c.estimated_salary)
                     : '-'}
                 </td>
                 <td className="py-3">
-                  {c.oficial ? (
+                  {c.official ? (
                     <span className="text-green-600 text-xs font-semibold">Si</span>
                   ) : (
                     <span className="text-gray-400 text-xs">No</span>

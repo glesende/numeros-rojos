@@ -13,7 +13,7 @@ export default function EconomyDetailPage() {
       .then((res) => {
         const r = res.data.data;
         setRecord(r);
-        if (r) document.title = `${r.descripcion} | Números Rojos`;
+        if (r) document.title = `${r.description} | Números Rojos`;
       })
       .finally(() => setLoading(false));
     return () => { document.title = 'Números Rojos'; };
@@ -30,14 +30,14 @@ export default function EconomyDetailPage() {
 
       <div className="card">
         <div className="flex items-center gap-3 mb-4">
-          <span className={`text-xs font-bold uppercase px-2 py-1 rounded ${record.tipo === 'cobro' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-            {record.tipo}
+          <span className={`text-xs font-bold uppercase px-2 py-1 rounded ${record.type === 'cobro' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+            {record.type}
           </span>
-          {record.oficial && <span className="text-xs font-semibold text-green-600">Oficial</span>}
-          {record.efectuado && <span className="text-xs font-semibold text-blue-600">Efectuado</span>}
+          {record.official && <span className="text-xs font-semibold text-green-600">Oficial</span>}
+          {record.carried_out && <span className="text-xs font-semibold text-blue-600">Efectuado</span>}
         </div>
 
-        <h1 className="text-xl font-bold mb-4">{record.descripcion}</h1>
+        <h1 className="text-xl font-bold mb-4">{record.description}</h1>
 
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
@@ -45,14 +45,14 @@ export default function EconomyDetailPage() {
             <p className="font-mono font-bold text-lg">
               {new Intl.NumberFormat('es-AR', {
                 style: 'currency',
-                currency: record.moneda,
+                currency: record.currency,
                 maximumFractionDigits: 0,
-              }).format(record.monto)}
+              }).format(record.amount)}
             </p>
           </div>
           <div>
             <p className="text-gray-500">Fecha</p>
-            <p className="font-medium">{record.fecha}</p>
+            <p className="font-medium">{record.record_date}</p>
           </div>
         </div>
 
