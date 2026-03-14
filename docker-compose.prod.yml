@@ -16,10 +16,11 @@ services:
       - REDIS_PORT=6379
       - JWT_SECRET=${JWT_SECRET:-changeme-in-production}
       - BESOCCER_API_KEY=${BESOCCER_API_KEY:-}
-      - BESOCCER_BASE_URL=${BESOCCER_BASE_URL:-https://apiv3.besoccer.com}
+      - BESOCCER_BASE_URL=${BESOCCER_BASE_URL:-https://apiclient.besoccerapps.com/scripts/api}
       - CACHE_TTL_STANDINGS=${CACHE_TTL_STANDINGS:-3600}
       - CACHE_TTL_PLAYER_STATS=${CACHE_TTL_PLAYER_STATS:-1800}
       - CACHE_TTL_LEAGUE_STATS=${CACHE_TTL_LEAGUE_STATS:-3600}
+      - CACHE_TTL_PLAYER_DATA=${CACHE_TTL_PLAYER_DATA:-86400}
       - APP_ENV=production
       - APP_DEBUG=false
     depends_on:

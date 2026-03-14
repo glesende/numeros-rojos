@@ -37,9 +37,17 @@ function ContractCard({ contract }) {
       className="flex-shrink-0 w-60 snap-start card p-4 hover:shadow-md hover:border-rojo/20 transition-all duration-200 flex flex-col gap-3"
     >
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-rojo text-white flex items-center justify-center font-bold text-lg flex-shrink-0">
-          {contract.full_name.charAt(0).toUpperCase()}
-        </div>
+        {contract.player_avatar ? (
+          <img
+            src={contract.player_avatar}
+            alt={contract.full_name}
+            className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+          />
+        ) : (
+          <div className="w-10 h-10 rounded-full bg-rojo text-white flex items-center justify-center font-bold text-lg flex-shrink-0">
+            {contract.full_name.charAt(0).toUpperCase()}
+          </div>
+        )}
         <div className="overflow-hidden flex-1">
           <p className="font-bold text-gray-900 text-sm leading-tight line-clamp-2">
             {contract.full_name}

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Carbon\Carbon;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Support\Facades\Cache;
@@ -12,12 +13,13 @@ class BeSoccerService
     private Client $client;
     private string $apiKey;
     private array $cacheTtl;
+    private string $baseUrl;
 
     public function __construct()
     {
+        $this->baseUrl = config('besoccer.base_url');
         $this->client = new Client([
-            'base_uri' => config('besoccer.base_url'),
-            'timeout'  => 15,
+            'timeout' => 15,
         ]);
         $this->apiKey = config('besoccer.api_key');
         $this->cacheTtl = config('besoccer.cache_ttl');
@@ -69,7 +71,9 @@ class BeSoccerService
         try {
             $params['key'] = $this->apiKey;
 
-            $response = $this->client->get($endpoint, [
+            $url = rtrim($this->baseUrl, '/') . $endpoint;
+
+            $response = $this->client->get($url, [
                 'query' => $params,
             ]);
 
@@ -104,7 +108,7 @@ class BeSoccerService
             'data'       => $data['result'] ?? $data['data'] ?? $data,
             'source'     => 'besoccer',
             'cached'     => false,
-            'fetched_at' => now()->toIso8601String(),
+            'fetched_at' => Carbon::now()->toIso8601String(),
         ];
     }
 }

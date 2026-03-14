@@ -4,12 +4,31 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Contract;
+use App\Services\BeSoccerService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ContractController extends Controller
 {
+    private BeSoccerService $besoccerService;
+
+    public function __construct(BeSoccerService $besoccerService)
+    {
+        $this->besoccerService = $besoccerService;
+    }
+
+    private function enrichWithPlayerAvatar(array $contract): array
+    {
+        if (!empty($contract['external_id'])) {
+            $playerData = $this->besoccerService->getPlayerByExternalId($contract['external_id']);
+            if ($playerData['success'] ?? false) {
+                $contract['player_avatar'] = $playerData['data']['player_avatar'] ?? null;
+            }
+        }
+        return $contract;
+    }
+
     public function index(Request $request): JsonResponse
     {
         $query = Contract::query()
@@ -27,6 +46,11 @@ class ContractController extends Controller
 
         $perPage = min((int) $request->input('per_page', 15), 100);
         $contracts = $query->paginate($perPage);
+
+        // Enrich contracts with player avatars
+        $contractsData = array_map(function ($contract) {
+            return $this->enrichWithPlayerAvatar($contract->toArray());
+        }, $contracts->items());
 
         // Aggregates
         $aggQuery = Contract::query()
@@ -50,7 +74,7 @@ class ContractController extends Controller
         ];
 
         return response()->json([
-            'data'    => $contracts->items(),
+            'data'    => $contractsData,
             'totals'  => $totals,
             'meta'    => [
                 'current_page' => $contracts->currentPage(),
@@ -64,8 +88,9 @@ class ContractController extends Controller
     public function show(int $id): JsonResponse
     {
         $contract = Contract::findOrFail($id);
+        $contractData = $this->enrichWithPlayerAvatar($contract->toArray());
 
-        return response()->json(['data' => $contract]);
+        return response()->json(['data' => $contractData]);
     }
 
     public function store(Request $request): JsonResponse
