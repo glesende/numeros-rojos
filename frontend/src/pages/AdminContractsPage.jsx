@@ -4,6 +4,15 @@ import { getContracts, deleteContract } from '../api/endpoints';
 import Loader from '../components/common/Loader';
 import Pagination from '../components/common/Pagination';
 
+function formatDate(dateStr) {
+  if (!dateStr) return '-';
+  const d = new Date(dateStr);
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const year = d.getUTCFullYear();
+  return `${day}-${month}-${year}`;
+}
+
 export default function AdminContractsPage() {
   const [data, setData] = useState({ data: [], meta: null });
   const [loading, setLoading] = useState(true);
@@ -56,7 +65,7 @@ export default function AdminContractsPage() {
                 <tr key={c.id} className="border-b border-gray-100">
                   <td className="py-2 pr-4 text-gray-400">{c.id}</td>
                   <td className="py-2 pr-4 font-medium">{c.full_name}</td>
-                  <td className="py-2 pr-4 whitespace-nowrap">{c.expiration_date}</td>
+                  <td className="py-2 pr-4 whitespace-nowrap">{formatDate(c.expiration_date)}</td>
                   <td className="py-2 pr-4 text-right font-mono">{c.club_pass_percentage}%</td>
                   <td className="py-2 whitespace-nowrap">
                     <button

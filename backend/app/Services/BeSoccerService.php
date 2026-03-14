@@ -50,6 +50,20 @@ class BeSoccerService
         });
     }
 
+    public function getPlayerByExternalId(string $externalId): array
+    {
+        $cacheKey = "besoccer:player:{$externalId}:data";
+        $ttl = rand(172800, 432000);
+
+        return Cache::remember($cacheKey, $ttl, function () use ($externalId) {
+            return $this->request('/api.php', [
+                'format' => 'json',
+                'req'    => 'player',
+                'id'     => $externalId,
+            ]);
+        });
+    }
+
     private function request(string $endpoint, array $params = []): array
     {
         try {

@@ -19,10 +19,12 @@ export default function ContractForm({ initial, onSubmit, loading }) {
 
   useEffect(() => {
     if (initial) {
+      const expDate = initial.expiration_date;
+      const formattedDate = expDate ? expDate.split('T')[0] : '';
       setForm({
         external_id: initial.external_id || '',
         full_name: initial.full_name || '',
-        expiration_date: initial.expiration_date || '',
+        expiration_date: formattedDate,
         club_pass_percentage: initial.club_pass_percentage?.toString() || '',
         estimated_salary: initial.estimated_salary?.toString() || '',
         currency: initial.currency || 'USD',

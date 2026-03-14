@@ -18,8 +18,8 @@ class ContractSeeder extends Seeder
                 'estimated_salary'     => 35000.00,
                 'currency'              => 'USD',
                 'official'             => true,
-                'clauses'           => json_encode(['Cláusula de rescisión: USD 5M']),
-                'links'               => json_encode([]),
+                'clauses'           => ['Cláusula de rescisión: USD 5M'],
+                'links'               => [],
             ],
             [
                 'full_name'      => 'Lucas Rodríguez',
@@ -28,8 +28,8 @@ class ContractSeeder extends Seeder
                 'estimated_salary'     => 8000.00,
                 'currency'              => 'USD',
                 'official'             => false,
-                'clauses'           => json_encode([]),
-                'links'               => json_encode([]),
+                'clauses'           => [],
+                'links'               => [],
             ],
 
             // Defensores
@@ -40,8 +40,8 @@ class ContractSeeder extends Seeder
                 'estimated_salary'     => 25000.00,
                 'currency'              => 'USD',
                 'official'             => false,
-                'clauses'           => json_encode([]),
-                'links'               => json_encode([]),
+                'clauses'           => [],
+                'links'               => [],
             ],
             [
                 'full_name'      => 'Emanuel Mammana',
@@ -50,8 +50,8 @@ class ContractSeeder extends Seeder
                 'estimated_salary'     => 30000.00,
                 'currency'              => 'USD',
                 'official'             => false,
-                'clauses'           => json_encode(['Opción de compra definitiva']),
-                'links'               => json_encode([]),
+                'clauses'           => ['Opción de compra definitiva'],
+                'links'               => [],
             ],
             [
                 'full_name'      => 'Alexander Barboza',
@@ -60,8 +60,8 @@ class ContractSeeder extends Seeder
                 'estimated_salary'     => 18000.00,
                 'currency'              => 'USD',
                 'official'             => false,
-                'clauses'           => json_encode([]),
-                'links'               => json_encode([]),
+                'clauses'           => [],
+                'links'               => [],
             ],
             [
                 'full_name'      => 'Lucas González',
@@ -70,8 +70,8 @@ class ContractSeeder extends Seeder
                 'estimated_salary'     => null,
                 'currency'              => null,
                 'official'             => false,
-                'clauses'           => json_encode(['Préstamo con opción de compra: USD 5M']),
-                'links'               => json_encode([]),
+                'clauses'           => ['Préstamo con opción de compra: USD 5M'],
+                'links'               => [],
             ],
             [
                 'full_name'      => 'Gastón Togni',
@@ -80,8 +80,8 @@ class ContractSeeder extends Seeder
                 'estimated_salary'     => 12000.00,
                 'currency'              => 'USD',
                 'official'             => false,
-                'clauses'           => json_encode([]),
-                'links'               => json_encode([]),
+                'clauses'           => [],
+                'links'               => [],
             ],
             [
                 'full_name'      => 'Fabricio Bustos',
@@ -90,8 +90,8 @@ class ContractSeeder extends Seeder
                 'estimated_salary'     => 22000.00,
                 'currency'              => 'USD',
                 'official'             => true,
-                'clauses'           => json_encode(['Cláusula de rescisión: USD 3M']),
-                'links'               => json_encode([]),
+                'clauses'           => ['Cláusula de rescisión: USD 3M'],
+                'links'               => [],
             ],
 
             // Mediocampistas
@@ -102,8 +102,8 @@ class ContractSeeder extends Seeder
                 'estimated_salary'     => null,
                 'currency'              => null,
                 'official'             => false,
-                'clauses'           => json_encode(['Opción de compra: USD 2M']),
-                'links'               => json_encode([]),
+                'clauses'           => ['Opción de compra: USD 2M'],
+                'links'               => [],
             ],
             [
                 'full_name'      => 'Alan Soñora',
@@ -112,8 +112,8 @@ class ContractSeeder extends Seeder
                 'estimated_salary'     => 20000.00,
                 'currency'              => 'USD',
                 'official'             => false,
-                'clauses'           => json_encode([]),
-                'links'               => json_encode([]),
+                'clauses'           => [],
+                'links'               => [],
             ],
             [
                 'full_name'      => 'Javier Altamirano',
@@ -122,8 +122,8 @@ class ContractSeeder extends Seeder
                 'estimated_salary'     => 15000.00,
                 'currency'              => 'USD',
                 'official'             => false,
-                'clauses'           => json_encode([]),
-                'links'               => json_encode([]),
+                'clauses'           => [],
+                'links'               => [],
             ],
             [
                 'full_name'      => 'Carlos Briasco',
@@ -132,8 +132,8 @@ class ContractSeeder extends Seeder
                 'estimated_salary'     => 16000.00,
                 'currency'              => 'USD',
                 'official'             => false,
-                'clauses'           => json_encode([]),
-                'links'               => json_encode([]),
+                'clauses'           => [],
+                'links'               => [],
             ],
             [
                 'full_name'      => 'Lucas Romero',
@@ -142,8 +142,8 @@ class ContractSeeder extends Seeder
                 'estimated_salary'     => 14000.00,
                 'currency'              => 'USD',
                 'official'             => false,
-                'clauses'           => json_encode([]),
-                'links'               => json_encode([]),
+                'clauses'           => [],
+                'links'               => [],
             ],
             [
                 'full_name'      => 'Kevin Lomónaco',
@@ -152,8 +152,8 @@ class ContractSeeder extends Seeder
                 'estimated_salary'     => 18000.00,
                 'currency'              => 'USD',
                 'official'             => false,
-                'clauses'           => json_encode([]),
-                'links'               => json_encode([]),
+                'clauses'           => [],
+                'links'               => [],
             ],
 
             // Delanteros
@@ -164,8 +164,8 @@ class ContractSeeder extends Seeder
                 'estimated_salary'     => 40000.00,
                 'currency'              => 'USD',
                 'official'             => true,
-                'clauses'           => json_encode(['Cláusula de rescisión: USD 8M']),
-                'links'               => json_encode([]),
+                'clauses'           => ['Cláusula de rescisión: USD 8M'],
+                'links'               => [],
             ],
             [
                 'full_name'      => 'Leandro Fernández',
@@ -174,8 +174,8 @@ class ContractSeeder extends Seeder
                 'estimated_salary'     => 28000.00,
                 'currency'              => 'USD',
                 'official'             => true,
-                'clauses'           => json_encode([]),
-                'links'               => json_encode([]),
+                'clauses'           => [],
+                'links'               => [],
             ],
             [
                 'full_name'      => 'Jonatan Báez',
@@ -184,8 +184,8 @@ class ContractSeeder extends Seeder
                 'estimated_salary'     => 22000.00,
                 'currency'              => 'USD',
                 'official'             => false,
-                'clauses'           => json_encode([]),
-                'links'               => json_encode([]),
+                'clauses'           => [],
+                'links'               => [],
             ],
             [
                 'full_name'      => 'Joaquín Laso',
@@ -194,8 +194,8 @@ class ContractSeeder extends Seeder
                 'estimated_salary'     => 10000.00,
                 'currency'              => 'USD',
                 'official'             => false,
-                'clauses'           => json_encode([]),
-                'links'               => json_encode([]),
+                'clauses'           => [],
+                'links'               => [],
             ],
             [
                 'full_name'      => 'Alexis Canelo',
@@ -204,8 +204,8 @@ class ContractSeeder extends Seeder
                 'estimated_salary'     => 12000.00,
                 'currency'              => 'USD',
                 'official'             => false,
-                'clauses'           => json_encode(['Cláusula de compra por terceros: USD 4M']),
-                'links'               => json_encode([]),
+                'clauses'           => ['Cláusula de compra por terceros: USD 4M'],
+                'links'               => [],
             ],
             [
                 'full_name'      => 'Facundo Pumpido',
@@ -214,8 +214,8 @@ class ContractSeeder extends Seeder
                 'estimated_salary'     => 9000.00,
                 'currency'              => 'USD',
                 'official'             => false,
-                'clauses'           => json_encode([]),
-                'links'               => json_encode([]),
+                'clauses'           => [],
+                'links'               => [],
             ],
         ];
 
