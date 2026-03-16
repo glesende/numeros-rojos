@@ -13,10 +13,11 @@ import {
 } from 'recharts';
 import { getEconomyMonthlySummary, getEconomyRecords } from '../../api/endpoints';
 import Loader from '../common/Loader';
+import { financialColors } from '../../../tailwind.config.js';
 
 const COLORS = {
-  ingresos: '#16a34a',
-  egresos: '#b91c1c',
+  ingresos: financialColors.ingreso,
+  egresos: financialColors.egreso,
   today: '#1d4ed8',
 };
 
@@ -54,16 +55,16 @@ function CustomTooltip({ active, payload, label, currency }) {
       <p className="font-bold text-gray-800 mb-2 border-b border-gray-100 pb-1">{label}</p>
       {ingresos && (
         <div className="flex justify-between gap-4">
-          <span className="text-green-700">Ingresos</span>
-          <span className="font-mono font-semibold text-green-700">
+          <span className="text-ingreso">Ingresos</span>
+          <span className="font-mono font-semibold text-ingreso">
             {formatAmount(ingresos.value, currency)}
           </span>
         </div>
       )}
       {egresos && (
         <div className="flex justify-between gap-4">
-          <span className="text-red-700">Egresos</span>
-          <span className="font-mono font-semibold text-red-700">
+          <span className="text-egreso">Egresos</span>
+          <span className="font-mono font-semibold text-egreso">
             {formatAmount(egresos.value, currency)}
           </span>
         </div>
@@ -71,7 +72,7 @@ function CustomTooltip({ active, payload, label, currency }) {
       <div className="flex justify-between gap-4 mt-1 pt-1 border-t border-gray-100">
         <span className="text-gray-600">Balance</span>
         <span
-          className={`font-mono font-semibold ${balance >= 0 ? 'text-green-700' : 'text-red-700'}`}
+          className={`font-mono font-semibold ${balance >= 0 ? 'text-ingreso' : 'text-egreso'}`}
         >
           {formatAmount(balance, currency)}
         </span>
@@ -190,11 +191,11 @@ export default function MonthlyBarChart() {
           {/* Legend */}
           <div className="flex flex-wrap gap-4 mb-3 text-sm">
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-sm bg-green-600 inline-block" />
+              <span className="w-3 h-3 rounded-sm bg-ingreso inline-block" />
               <span className="text-gray-600">Ingresos</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-sm bg-red-700 inline-block" />
+              <span className="w-3 h-3 rounded-sm bg-egreso inline-block" />
               <span className="text-gray-600">Egresos</span>
             </div>
             <div className="flex items-center gap-2">
