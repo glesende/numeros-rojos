@@ -11,9 +11,9 @@ export default function ContractFilters({ filters, onFilter, onReset }) {
           className="input-field"
         >
           <option value="">Todos</option>
-          <option value="6m">Vence en 6 meses</option>
-          <option value="12m">Vence en 12 meses</option>
-          <option value="18m">Vence en 18 meses</option>
+          <option value="6m">Vencen en 6 meses</option>
+          <option value="12m">Vencen en 12 meses</option>
+          <option value="18m">Vencen en 18 meses</option>
         </select>
       </div>
       <div>
