@@ -20,6 +20,10 @@ export const getStandings = (params = {}) => client.get('/standings', { params }
 export const getPlayerStats = (id) => client.get(`/player/${id}/stats`);
 export const getLeagueStats = (params = {}) => client.get('/league/stats', { params });
 
+// Settings
+export const getSettings = () => client.get('/admin/settings');
+export const updateSettings = (data) => client.put('/admin/settings', data);
+
 // Auth
 export const login = (credentials) => client.post('/auth/login', credentials);
 export const getMe = () => client.get('/admin/me');
