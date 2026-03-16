@@ -59,19 +59,7 @@ for VAR in "${CRITICAL_VARS[@]}"; do
     fi
 done
 
-echo ""
-echo "🔑 Verificando configuración de APIs externas..."
-
 WARNINGS=0
-
-if [ -z "${BESOCCER_API_KEY}" ]; then
-    echo -e "${YELLOW}⚠️  BESOCCER_API_KEY está vacía${NC}"
-    WARNINGS=$((WARNINGS + 1))
-fi
-
-if [ ${WARNINGS} -eq 0 ]; then
-    echo -e "${GREEN}✓ API keys configuradas${NC}"
-fi
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

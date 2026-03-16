@@ -1,7 +1,6 @@
 <?php
 
 return [
-    'api_key'  => env('BESOCCER_API_KEY', ''),
     'base_url' => env('BESOCCER_BASE_URL', 'https://apiclient.besoccerapps.com/scripts/api'),
 
     'cache_ttl' => [

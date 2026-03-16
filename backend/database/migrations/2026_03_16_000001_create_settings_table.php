@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -17,8 +18,8 @@ class CreateSettingsTable extends Migration
         });
 
         DB::table('settings')->insert([
-            ['key' => 'data_service', 'value' => 'disabled', 'created_at' => now(), 'updated_at' => now()],
-            ['key' => 'besoccer_api_key', 'value' => null, 'created_at' => now(), 'updated_at' => now()],
+            ['key' => 'data_service', 'value' => 'disabled', 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()],
+            ['key' => 'besoccer_api_key', 'value' => null, 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()],
         ]);
     }
 

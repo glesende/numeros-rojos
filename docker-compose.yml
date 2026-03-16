@@ -29,7 +29,6 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - JWT_SECRET=${JWT_SECRET:-changeme-in-production}
-      - BESOCCER_API_KEY=${BESOCCER_API_KEY:-}
       - BESOCCER_BASE_URL=${BESOCCER_BASE_URL:-https://apiclient.besoccerapps.com/scripts/api}
       - CACHE_TTL_STANDINGS=${CACHE_TTL_STANDINGS:-3600}
       - CACHE_TTL_PLAYER_STATS=${CACHE_TTL_PLAYER_STATS:-1800}
