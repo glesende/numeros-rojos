@@ -4,6 +4,28 @@
 
 Portal de datos abiertos del Club Atletico Independiente (Argentina). Transparencia economica, contractual y deportiva.
 
+![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
+![Backend](https://img.shields.io/badge/Backend-Lumen%20PHP%208.2-orange)
+![Frontend](https://img.shields.io/badge/Frontend-React%2018%20+%20Vite-blue)
+![Docker](https://img.shields.io/badge/Infra-Docker-2496ED)
+
+---
+
+## ¿Sos de otro club y querés replicarlo?
+
+Números Rojos está diseñado para ser replicable. Si representás a una institución deportiva y querés tener tu propio portal de transparencia, podés clonar este repositorio y adaptarlo.
+
+**¿Qué necesitás cambiar?**
+
+| Qué | Dónde |
+|-----|-------|
+| Nombre e identidad del club | `frontend/src/pages/HomePage.jsx`, `frontend/src/components/layout/Footer.jsx` |
+| Datos iniciales | `backend/database/seeders/` |
+| Variables de entorno | `.env` y `backend/.env` |
+| Integración de estadísticas | `backend/app/Services/BeSoccerService.php` (opcional) |
+
+Si tenés dudas durante la adaptación, [abrí un Issue](https://github.com/glesende/numeros-rojos/issues) con la etiqueta `adaptacion-club`.
+
 ---
 
 ## Stack
@@ -62,7 +84,7 @@ numeros-rojos/
 ### 1. Clonar y configurar
 
 ```bash
-git clone <repo-url> numeros-rojos
+git clone https://github.com/glesende/numeros-rojos numeros-rojos
 cd numeros-rojos
 make setup
 ```
@@ -248,6 +270,14 @@ npm run dev
 
 ---
 
+## Contribuir
+
+Las contribuciones son bienvenidas. Leé [CONTRIBUTING.md](CONTRIBUTING.md) para saber cómo empezar.
+
+Para reportar errores o sugerir mejoras, usá los [Issues de GitHub](https://github.com/glesende/numeros-rojos/issues).
+
+---
+
 ## Licencia
 
-Proyecto de datos abiertos. Uso educativo y comunitario.
+MIT License. Ver [LICENSE](LICENSE) para más detalles.
