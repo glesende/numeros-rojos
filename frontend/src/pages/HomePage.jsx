@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { getContracts } from '../api/endpoints';
 import Loader from '../components/common/Loader';
 import MonthlyBarChart from '../components/economy/MonthlyBarChart';
+import BalanceLineChart from '../components/balances/BalanceLineChart';
 
 const VIGENCIA_OPTIONS = [
   { value: '6m', label: 'Vence en 6 meses', days: 180 },
@@ -254,6 +256,17 @@ export default function HomePage() {
           </>
           )}
         </section>
+
+      {/* Balances */}
+      <section id="balances" className="max-w-6xl mx-auto px-4 py-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold">Balances oficiales</h2>
+          <Link to="/balances" className="text-sm text-rojo hover:underline font-medium">
+            Ver todos los balances →
+          </Link>
+        </div>
+        <BalanceLineChart compact={true} showLink={true} />
+      </section>
 
       {/* Methodology */}
       <section id="metodologia" className="max-w-3xl mx-auto px-4 py-12">
