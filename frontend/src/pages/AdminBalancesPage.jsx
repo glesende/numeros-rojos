@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getBalances, deleteBalance } from '../api/endpoints';
 import Loader from '../components/common/Loader';
+import SectionEnableToggle from '../components/admin/SectionEnableToggle';
 
 export default function AdminBalancesPage() {
   const [balances, setBalances] = useState([]);
@@ -27,6 +28,8 @@ export default function AdminBalancesPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
+      <SectionEnableToggle settingKey="section_balances_enabled" />
+
       <div className="flex items-center justify-between mb-6">
         <div>
           <Link to="/admin" className="text-rojo text-sm hover:underline">&larr; Admin</Link>

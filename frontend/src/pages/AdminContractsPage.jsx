@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { getContracts, deleteContract } from '../api/endpoints';
 import Loader from '../components/common/Loader';
 import Pagination from '../components/common/Pagination';
+import SectionEnableToggle from '../components/admin/SectionEnableToggle';
 
 function formatDate(dateStr) {
   if (!dateStr) return '-';
@@ -36,6 +37,8 @@ export default function AdminContractsPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
+      <SectionEnableToggle settingKey="section_contratos_enabled" />
+
       <div className="flex items-center justify-between mb-6">
         <div>
           <Link to="/admin" className="text-rojo text-sm hover:underline">&larr; Admin</Link>

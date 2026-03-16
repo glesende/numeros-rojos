@@ -23,6 +23,7 @@ export const getLeagueStats = (params = {}) => client.get('/league/stats', { par
 // Settings
 export const getSettings = () => client.get('/admin/settings');
 export const updateSettings = (data) => client.put('/admin/settings', data);
+export const getSectionSettings = () => client.get('/settings/sections');
 
 // Balances (public)
 export const getBalances = () => client.get('/balances');

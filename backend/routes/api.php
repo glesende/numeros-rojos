@@ -26,6 +26,9 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
     // Balance items (public catalog)
     $router->get('balance-items', 'BalanceItemController@index');
 
+    // Section visibility (public)
+    $router->get('settings/sections', 'SettingsController@sections');
+
     // Stats (BeSoccer proxy)
     $router->get('standings', 'StatsController@standings');
     $router->get('player/{id}/stats', 'StatsController@playerStats');
