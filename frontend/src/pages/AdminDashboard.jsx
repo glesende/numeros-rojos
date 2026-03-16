@@ -25,6 +25,10 @@ export default function AdminDashboard() {
           <h2 className="text-lg font-bold mb-1">Contratos</h2>
           <p className="text-sm text-gray-500">Gestionar contratos de jugadores</p>
         </Link>
+        <Link to="/admin/configuracion" className="card hover:shadow-md transition-shadow">
+          <h2 className="text-lg font-bold mb-1">Configuracion</h2>
+          <p className="text-sm text-gray-500">Cambiar contrasena</p>
+        </Link>
       </div>
     </div>
   );

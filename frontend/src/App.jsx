@@ -14,6 +14,7 @@ import AdminEconomyPage from './pages/AdminEconomyPage';
 import AdminEconomyFormPage from './pages/AdminEconomyFormPage';
 import AdminContractsPage from './pages/AdminContractsPage';
 import AdminContractFormPage from './pages/AdminContractFormPage';
+import AdminSettings from './pages/AdminSettings';
 import Loader from './components/common/Loader';
 
 function ProtectedRoute({ children }) {
@@ -47,6 +48,7 @@ export default function App() {
         <Route path="/admin/contratos" element={<ProtectedRoute><AdminContractsPage /></ProtectedRoute>} />
         <Route path="/admin/contratos/nuevo" element={<ProtectedRoute><AdminContractFormPage /></ProtectedRoute>} />
         <Route path="/admin/contratos/:id/editar" element={<ProtectedRoute><AdminContractFormPage /></ProtectedRoute>} />
+        <Route path="/admin/configuracion" element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

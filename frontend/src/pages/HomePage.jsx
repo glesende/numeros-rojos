@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { getContracts } from '../api/endpoints';
 import Loader from '../components/common/Loader';
 import MonthlyBarChart from '../components/economy/MonthlyBarChart';
@@ -32,8 +32,7 @@ function ContractCard({ contract }) {
   const soon = days >= 0 && days <= 60;
 
   return (
-    <Link
-      to={`/contratos/${contract.id}`}
+    <div
       className="flex-shrink-0 w-60 snap-start card p-4 hover:shadow-md hover:border-rojo/20 transition-all duration-200 flex flex-col gap-3"
     >
       <div className="flex items-center gap-3">
@@ -60,20 +59,6 @@ function ContractCard({ contract }) {
           <span className="text-gray-500 text-xs">Vence</span>
           <span className={`font-mono text-xs ${expired ? 'text-red-600' : soon ? 'text-yellow-600' : 'text-gray-700'}`}>
             {formatDate(contract.expiration_date)}
-          </span>
-        </div>
-        <div className="flex justify-between items-center">
-          <span className="text-gray-500 text-xs">Estado</span>
-          <span
-            className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-              expired
-                ? 'bg-red-100 text-red-700'
-                : soon
-                ? 'bg-yellow-100 text-yellow-700'
-                : 'bg-green-100 text-green-700'
-            }`}
-          >
-            {expired ? 'Vencido' : `${days}d restantes`}
           </span>
         </div>
         {contract.club_pass_percentage !== null && (
@@ -115,7 +100,32 @@ function ContractCard({ contract }) {
           </ul>
         </div>
       )}
-    </Link>
+
+      {Array.isArray(contract.links) && contract.links.length > 0 && (
+        <div className="pt-1 border-t border-gray-100">
+          <p className="text-xs text-gray-400 mb-1">Fuentes</p>
+          <ul className="text-xs text-gray-600 space-y-0.5">
+            {contract.links.slice(0, 2).map((link, i) => {
+              let label = link;
+              try {
+                const url = new URL(link);
+                label = url.hostname.replace('www.', '');
+              } catch {}
+              return (
+                <li key={i}>
+                  <a href={link} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline truncate block">
+                    {label}
+                  </a>
+                </li>
+              );
+            })}
+            {contract.links.length > 2 && (
+              <li className="text-gray-400">+{contract.links.length - 2} más</li>
+            )}
+          </ul>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -196,9 +206,6 @@ export default function HomePage() {
       <section className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold">Contratos del plantel</h2>
-          <Link to="/contratos" className="text-sm text-rojo hover:underline font-medium">
-            Ver tabla completa →
-          </Link>
         </div>
 
         {/* Search bar */}

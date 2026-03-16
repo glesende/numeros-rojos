@@ -4,7 +4,6 @@ import { useAuth } from '../../context/AuthContext';
 
 const navLinks = [
   { to: '/economia', label: 'Economia' },
-  { to: '/contratos', label: 'Contratos' },
   { to: '/rendimiento', label: 'Rendimiento' },
   { to: '/metodologia', label: 'Metodologia' },
 ];

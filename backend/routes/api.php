@@ -28,6 +28,7 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
         $router->get('me', 'AuthController@me');
         $router->post('auth/refresh', 'AuthController@refresh');
         $router->post('auth/logout', 'AuthController@logout');
+        $router->post('auth/change-password', 'AuthController@changePassword');
 
         // Economy CRUD
         $router->post('economy', 'EconomyRecordController@store');
