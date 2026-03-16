@@ -1,13 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { getContracts } from '../api/endpoints';
 import Loader from '../components/common/Loader';
 import MonthlyBarChart from '../components/economy/MonthlyBarChart';
 
 const VIGENCIA_OPTIONS = [
-  { value: '6m', label: 'Vence en 6 meses' },
-  { value: '12m', label: 'Vence en 12 meses' },
-  { value: '18m', label: 'Vence en 18 meses' },
+  { value: '6m', label: 'Vence en 6 meses', days: 180 },
+  { value: '12m', label: 'Vence en 12 meses', days: 365 },
+  { value: '18m', label: 'Vence en 18 meses', days: 540 },
 ];
 
 function formatDate(dateStr) {
@@ -112,57 +111,62 @@ function ContractCard({ contract }) {
 }
 
 export default function HomePage() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const vigencia = searchParams.get('vigencia') || '';
-  const buscar = searchParams.get('buscar') || '';
-
-  const [searchInput, setSearchInput] = useState(buscar);
+  const [vigencia, setVigencia] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const [contracts, setContracts] = useState([]);
-  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
+
+  const fetchContracts = useCallback(() => {
+    setLoading(true);
+    getContracts({ per_page: 100, sort_dir: 'asc' })
+      .then((res) => {
+        setContracts(res.data.data || []);
+      })
+      .catch(() => setContracts([]))
+      .finally(() => setLoading(false));
+  }, []);
 
   useEffect(() => {
     document.title = 'Números Rojos | Portal de transparencia de Independiente';
     return () => { document.title = 'Números Rojos'; };
   }, []);
 
-  const fetchContracts = useCallback(() => {
-    setLoading(true);
-    const params = { per_page: 100, sort_dir: 'asc' };
-    if (vigencia) params.validity = vigencia;
-    if (buscar) params.search = buscar;
-
-    getContracts(params)
-      .then((res) => {
-        setContracts(res.data.data || []);
-        setTotal(res.data.meta?.total || 0);
-      })
-      .catch(() => setContracts([]))
-      .finally(() => setLoading(false));
-  }, [vigencia, buscar]);
-
   useEffect(() => {
     fetchContracts();
   }, [fetchContracts]);
 
-  const setVigencia = (value) => {
-    const params = {};
-    if (value && value !== vigencia) params.validity = value;
-    if (buscar) params.search = buscar;
-    setSearchParams(params);
-  };
+  const filteredContracts = useMemo(() => {
+    let result = contracts;
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    const params = {};
-    if (vigencia) params.validity = vigencia;
-    if (searchInput.trim()) params.search = searchInput.trim();
-    setSearchParams(params);
+    if (searchInput.trim()) {
+      const query = searchInput.toLowerCase();
+      result = result.filter(
+        (c) =>
+          c.full_name?.toLowerCase().includes(query) ||
+          c.club_name?.toLowerCase().includes(query)
+      );
+    }
+
+    if (vigencia) {
+      const option = VIGENCIA_OPTIONS.find((o) => o.value === vigencia);
+      if (option) {
+        result = result.filter((c) => {
+          const days = getDaysUntil(c.expiration_date);
+          return days >= 0 && days <= option.days;
+        });
+      }
+    }
+
+    return result;
+  }, [contracts, searchInput, vigencia]);
+
+  const handleVigenciaClick = (value) => {
+    setVigencia(vigencia === value ? '' : value);
   };
 
   const handleClear = () => {
     setSearchInput('');
-    setSearchParams({});
+    setVigencia('');
   };
 
   return (
@@ -191,7 +195,7 @@ export default function HomePage() {
         </div>
 
         {/* Search bar */}
-        <form onSubmit={handleSearch} className="flex gap-2 mb-4">
+        <form onSubmit={(e) => e.preventDefault()} className="flex gap-2 mb-4">
           <input
             type="text"
             value={searchInput}
@@ -199,9 +203,6 @@ export default function HomePage() {
             placeholder="Buscar jugador..."
             className="input-field flex-1"
           />
-          <button type="submit" className="btn-primary whitespace-nowrap">
-            Buscar
-          </button>
         </form>
 
         {/* Vigencia buttons */}
@@ -209,7 +210,7 @@ export default function HomePage() {
           {VIGENCIA_OPTIONS.map((opt) => (
             <button
               key={opt.value}
-              onClick={() => setVigencia(opt.value)}
+              onClick={() => handleVigenciaClick(opt.value)}
               className={`px-4 py-2 rounded-full text-sm font-semibold transition-all border ${
                 vigencia === opt.value
                   ? 'bg-rojo text-white border-rojo'
@@ -219,7 +220,7 @@ export default function HomePage() {
               {opt.label}
             </button>
           ))}
-          {(vigencia || buscar) && (
+          {(vigencia || searchInput) && (
             <button
               onClick={handleClear}
               className="px-4 py-2 rounded-full text-sm font-semibold bg-gray-100 text-gray-500 hover:bg-gray-200 border border-transparent transition-all"
@@ -233,15 +234,15 @@ export default function HomePage() {
           <div className="py-12">
             <Loader />
           </div>
-        ) : contracts.length === 0 ? (
+        ) : filteredContracts.length === 0 ? (
           <div className="card text-center py-12 text-gray-500">
             No se encontraron contratos con los filtros seleccionados.
           </div>
         ) : (
           <>
-            <p className="text-sm text-gray-500 mb-3">{total} contratos encontrados</p>
+            <p className="text-sm text-gray-500 mb-3">{filteredContracts.length} contratos encontrados</p>
             <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
-              {contracts.map((c) => (
+              {filteredContracts.map((c) => (
                 <ContractCard key={c.id} contract={c} />
               ))}
             </div>
