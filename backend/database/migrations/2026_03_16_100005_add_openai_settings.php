@@ -1,13 +1,14 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        $now = now();
+        $now = Carbon::now();
 
         $existing = DB::table('settings')->whereIn('key', ['openai_api_key', 'openai_model'])->pluck('key')->toArray();
 
