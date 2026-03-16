@@ -30,6 +30,7 @@ RUN composer dump-autoload --optimize
 
 COPY docker/php/default.conf /etc/nginx/http.d/default.conf
 COPY docker/php/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY docker/php/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
 
 RUN mkdir -p /var/log/nginx /var/log/php-fpm /run/nginx \
     && chown -R www-data:www-data /var/www/html/storage \
