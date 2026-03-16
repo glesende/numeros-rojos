@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 const navLinks = [
   { to: '#compromisos-economicos', label: 'Economia', scrollTo: 'compromisos-economicos', isAnchor: true },
   { to: '#contratos', label: 'Contratos', scrollTo: 'contratos', isAnchor: true },
+  { to: '#balances', label: 'Balances', scrollTo: 'balances', isAnchor: true },
   { to: '#metodologia', label: 'Metodologia', scrollTo: 'metodologia', isAnchor: true },
 ];
 

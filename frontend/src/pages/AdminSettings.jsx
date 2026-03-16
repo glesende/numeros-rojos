@@ -4,6 +4,14 @@ import { changePassword, getSettings, updateSettings } from '../api/endpoints';
 import { useAuth } from '../context/AuthContext';
 import ErrorMessage from '../components/common/ErrorMessage';
 
+const OPENAI_MODELS = [
+  'gpt-4o',
+  'gpt-4o-mini',
+  'gpt-4-turbo',
+  'gpt-4',
+  'gpt-3.5-turbo',
+];
+
 export default function AdminSettings() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -19,6 +27,12 @@ export default function AdminSettings() {
   const [serviceLoading, setServiceLoading] = useState(false);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
 
+  const [openaiApiKey, setOpenaiApiKey] = useState('');
+  const [openaiModel, setOpenaiModel] = useState('gpt-4o');
+  const [openaiError, setOpenaiError] = useState('');
+  const [openaiSuccess, setOpenaiSuccess] = useState('');
+  const [openaiLoading, setOpenaiLoading] = useState(false);
+
   const { logout } = useAuth();
   const navigate = useNavigate();
 
@@ -28,6 +42,8 @@ export default function AdminSettings() {
         const data = res.data?.data || {};
         setDataService(data.data_service || 'disabled');
         setBesoccerApiKey(data.besoccer_api_key || '');
+        setOpenaiApiKey(data.openai_api_key || '');
+        setOpenaiModel(data.openai_model || 'gpt-4o');
         setSettingsLoaded(true);
       })
       .catch(() => setSettingsLoaded(true));
@@ -86,6 +102,21 @@ export default function AdminSettings() {
     }
   };
 
+  const handleOpenaiSubmit = async (e) => {
+    e.preventDefault();
+    setOpenaiError('');
+    setOpenaiSuccess('');
+    setOpenaiLoading(true);
+    try {
+      await updateSettings({ openai_api_key: openaiApiKey, openai_model: openaiModel });
+      setOpenaiSuccess('Configuración de OpenAI guardada correctamente');
+    } catch (err) {
+      setOpenaiError(err.response?.data?.error || 'Error al guardar la configuración de OpenAI');
+    } finally {
+      setOpenaiLoading(false);
+    }
+  };
+
   return (
     <div className="max-w-md mx-auto px-4 py-8">
       <div className="mb-6">
@@ -93,6 +124,7 @@ export default function AdminSettings() {
         <h1 className="text-2xl font-extrabold">Configuracion</h1>
       </div>
 
+      {/* Data service */}
       <div className="card mb-6">
         <h2 className="text-lg font-bold mb-4">Servicio de datos</h2>
 
@@ -143,6 +175,63 @@ export default function AdminSettings() {
         )}
       </div>
 
+      {/* OpenAI configuration */}
+      <div className="card mb-6">
+        <h2 className="text-lg font-bold mb-1">Inteligencia Artificial (OpenAI)</h2>
+        <p className="text-sm text-gray-500 mb-4">
+          Necesario para el análisis automático de balances. Configurá tu API Key de OpenAI.
+        </p>
+
+        {!settingsLoaded ? (
+          <p className="text-sm text-gray-500">Cargando...</p>
+        ) : (
+          <form onSubmit={handleOpenaiSubmit} className="space-y-4">
+            {openaiError && <ErrorMessage message={openaiError} />}
+            {openaiSuccess && (
+              <div className="p-3 bg-green-50 text-green-700 rounded-lg text-sm">
+                {openaiSuccess}
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium mb-1">API Key de OpenAI</label>
+              <input
+                type="password"
+                value={openaiApiKey}
+                onChange={(e) => setOpenaiApiKey(e.target.value)}
+                className="input-field w-full"
+                placeholder="sk-..."
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Modelo</label>
+              <select
+                value={openaiModel}
+                onChange={(e) => setOpenaiModel(e.target.value)}
+                className="input-field w-full"
+              >
+                {OPENAI_MODELS.map((m) => (
+                  <option key={m} value={m}>{m}</option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-400 mt-1">
+                Se recomienda gpt-4o para mejor análisis de documentos.
+              </p>
+            </div>
+
+            <button
+              type="submit"
+              disabled={openaiLoading}
+              className="btn-primary w-full"
+            >
+              {openaiLoading ? 'Guardando...' : 'Guardar configuración OpenAI'}
+            </button>
+          </form>
+        )}
+      </div>
+
+      {/* Change password */}
       <div className="card">
         <h2 className="text-lg font-bold mb-4">Cambiar contrasena</h2>
 

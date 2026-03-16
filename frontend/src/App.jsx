@@ -6,12 +6,17 @@ import EconomyPage from './pages/EconomyPage';
 import EconomyDetailPage from './pages/EconomyDetailPage';
 import ContractsPage from './pages/ContractsPage';
 import ContractDetailPage from './pages/ContractDetailPage';
+import BalancesPage from './pages/BalancesPage';
+import BalanceDetailPage from './pages/BalanceDetailPage';
 import LoginPage from './pages/LoginPage';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminEconomyPage from './pages/AdminEconomyPage';
 import AdminEconomyFormPage from './pages/AdminEconomyFormPage';
 import AdminContractsPage from './pages/AdminContractsPage';
 import AdminContractFormPage from './pages/AdminContractFormPage';
+import AdminBalancesPage from './pages/AdminBalancesPage';
+import AdminBalanceFormPage from './pages/AdminBalanceFormPage';
+import AdminBalanceItemsPage from './pages/AdminBalanceItemsPage';
 import AdminSettings from './pages/AdminSettings';
 import Loader from './components/common/Loader';
 
@@ -32,6 +37,8 @@ export default function App() {
         <Route path="/economia/:id" element={<EconomyDetailPage />} />
         <Route path="/contratos" element={<ContractsPage />} />
         <Route path="/contratos/:id" element={<ContractDetailPage />} />
+        <Route path="/balances" element={<BalancesPage />} />
+        <Route path="/balances/:id" element={<BalanceDetailPage />} />
 
         {/* Auth */}
         <Route path="/admin/login" element={<LoginPage />} />
@@ -44,6 +51,10 @@ export default function App() {
         <Route path="/admin/contratos" element={<ProtectedRoute><AdminContractsPage /></ProtectedRoute>} />
         <Route path="/admin/contratos/nuevo" element={<ProtectedRoute><AdminContractFormPage /></ProtectedRoute>} />
         <Route path="/admin/contratos/:id/editar" element={<ProtectedRoute><AdminContractFormPage /></ProtectedRoute>} />
+        <Route path="/admin/balances" element={<ProtectedRoute><AdminBalancesPage /></ProtectedRoute>} />
+        <Route path="/admin/balances/nuevo" element={<ProtectedRoute><AdminBalanceFormPage /></ProtectedRoute>} />
+        <Route path="/admin/balances/items" element={<ProtectedRoute><AdminBalanceItemsPage /></ProtectedRoute>} />
+        <Route path="/admin/balances/:id/editar" element={<ProtectedRoute><AdminBalanceFormPage /></ProtectedRoute>} />
         <Route path="/admin/configuracion" element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
 
         {/* Fallback */}
