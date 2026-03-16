@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Setting;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
@@ -21,12 +22,22 @@ class BeSoccerService
         $this->client = new Client([
             'timeout' => 15,
         ]);
-        $this->apiKey = config('besoccer.api_key');
+        $settingKey = Setting::get('besoccer_api_key');
+        $this->apiKey = $settingKey ?: config('besoccer.api_key');
         $this->cacheTtl = config('besoccer.cache_ttl');
+    }
+
+    public function isEnabled(): bool
+    {
+        return Setting::get('data_service', 'disabled') === 'besoccer';
     }
 
     public function getStandings(array $params = []): array
     {
+        if (!$this->isEnabled()) {
+            return ['success' => false, 'error' => 'Servicio de datos desactivado'];
+        }
+
         $cacheKey = 'besoccer:standings:' . md5(json_encode($params));
 
         return Cache::remember($cacheKey, $this->cacheTtl['standings'], function () use ($params) {
@@ -36,6 +47,10 @@ class BeSoccerService
 
     public function getPlayerStats(string $playerId): array
     {
+        if (!$this->isEnabled()) {
+            return ['success' => false, 'error' => 'Servicio de datos desactivado'];
+        }
+
         $cacheKey = "besoccer:player:{$playerId}:stats";
 
         return Cache::remember($cacheKey, $this->cacheTtl['player_stats'], function () use ($playerId) {
@@ -45,6 +60,10 @@ class BeSoccerService
 
     public function getLeagueStats(array $params = []): array
     {
+        if (!$this->isEnabled()) {
+            return ['success' => false, 'error' => 'Servicio de datos desactivado'];
+        }
+
         $cacheKey = 'besoccer:league:stats:' . md5(json_encode($params));
 
         return Cache::remember($cacheKey, $this->cacheTtl['league_stats'], function () use ($params) {
@@ -54,6 +73,10 @@ class BeSoccerService
 
     public function getPlayerByExternalId(string $externalId): array
     {
+        if (!$this->isEnabled()) {
+            return ['success' => false, 'error' => 'Servicio de datos desactivado'];
+        }
+
         $cacheKey = "besoccer:player:{$externalId}:data";
         $ttl = rand(172800, 432000);
 

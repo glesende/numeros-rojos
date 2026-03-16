@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { changePassword } from '../api/endpoints';
+import { changePassword, getSettings, updateSettings } from '../api/endpoints';
 import { useAuth } from '../context/AuthContext';
 import ErrorMessage from '../components/common/ErrorMessage';
 
@@ -11,8 +11,27 @@ export default function AdminSettings() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const [dataService, setDataService] = useState('disabled');
+  const [besoccerApiKey, setBesoccerApiKey] = useState('');
+  const [serviceError, setServiceError] = useState('');
+  const [serviceSuccess, setServiceSuccess] = useState('');
+  const [serviceLoading, setServiceLoading] = useState(false);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
+
   const { logout } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    getSettings()
+      .then((res) => {
+        const data = res.data?.data || {};
+        setDataService(data.data_service || 'disabled');
+        setBesoccerApiKey(data.besoccer_api_key || '');
+        setSettingsLoaded(true);
+      })
+      .catch(() => setSettingsLoaded(true));
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -48,11 +67,80 @@ export default function AdminSettings() {
     }
   };
 
+  const handleServiceSubmit = async (e) => {
+    e.preventDefault();
+    setServiceError('');
+    setServiceSuccess('');
+    setServiceLoading(true);
+    try {
+      const payload = { data_service: dataService };
+      if (dataService === 'besoccer') {
+        payload.besoccer_api_key = besoccerApiKey;
+      }
+      await updateSettings(payload);
+      setServiceSuccess('Configuración guardada correctamente');
+    } catch (err) {
+      setServiceError(err.response?.data?.error || 'Error al guardar la configuración');
+    } finally {
+      setServiceLoading(false);
+    }
+  };
+
   return (
     <div className="max-w-md mx-auto px-4 py-8">
       <div className="mb-6">
         <Link to="/admin" className="text-rojo text-sm hover:underline">&larr; Admin</Link>
         <h1 className="text-2xl font-extrabold">Configuracion</h1>
+      </div>
+
+      <div className="card mb-6">
+        <h2 className="text-lg font-bold mb-4">Servicio de datos</h2>
+
+        {!settingsLoaded ? (
+          <p className="text-sm text-gray-500">Cargando...</p>
+        ) : (
+          <form onSubmit={handleServiceSubmit} className="space-y-4">
+            {serviceError && <ErrorMessage message={serviceError} />}
+            {serviceSuccess && (
+              <div className="p-3 bg-green-50 text-green-700 rounded-lg text-sm">
+                {serviceSuccess}
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Servicio</label>
+              <select
+                value={dataService}
+                onChange={(e) => setDataService(e.target.value)}
+                className="input-field w-full"
+              >
+                <option value="disabled">Desactivado</option>
+                <option value="besoccer">BeSoccer</option>
+              </select>
+            </div>
+
+            {dataService === 'besoccer' && (
+              <div>
+                <label className="block text-sm font-medium mb-1">API Key de BeSoccer</label>
+                <input
+                  type="text"
+                  value={besoccerApiKey}
+                  onChange={(e) => setBesoccerApiKey(e.target.value)}
+                  className="input-field w-full"
+                  placeholder="Introduce la API Key"
+                />
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={serviceLoading}
+              className="btn-primary w-full"
+            >
+              {serviceLoading ? 'Guardando...' : 'Guardar configuracion'}
+            </button>
+          </form>
+        )}
       </div>
 
       <div className="card">

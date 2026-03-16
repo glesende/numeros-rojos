@@ -30,6 +30,10 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
         $router->post('auth/logout', 'AuthController@logout');
         $router->post('auth/change-password', 'AuthController@changePassword');
 
+        // Settings
+        $router->get('settings', 'SettingsController@index');
+        $router->put('settings', 'SettingsController@update');
+
         // Economy CRUD
         $router->post('economy', 'EconomyRecordController@store');
         $router->put('economy/{id}', 'EconomyRecordController@update');
