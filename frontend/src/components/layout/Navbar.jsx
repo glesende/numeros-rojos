@@ -3,15 +3,33 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const navLinks = [
-  { to: '/economia', label: 'Economia' },
-  { to: '/rendimiento', label: 'Rendimiento' },
-  { to: '/metodologia', label: 'Metodologia' },
+  { to: '#compromisos-economicos', label: 'Economia', scrollTo: 'compromisos-economicos', isAnchor: true },
+  { to: '#contratos', label: 'Contratos', scrollTo: 'contratos', isAnchor: true },
+  { to: '#metodologia', label: 'Metodologia', scrollTo: 'metodologia', isAnchor: true },
 ];
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const location = useLocation();
   const { isAuthenticated } = useAuth();
+
+  const handleNavClick = (e, link) => {
+    if (link.isAnchor && location.pathname === '/') {
+      e.preventDefault();
+      const element = document.getElementById(link.scrollTo);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+      setOpen(false);
+    }
+  };
+
+  const isLinkActive = (link) => {
+    if (link.isAnchor) {
+      return location.pathname === '/';
+    }
+    return location.pathname.startsWith(link.to);
+  };
 
   return (
     <nav className="bg-rojo text-white sticky top-0 z-50 shadow-lg">
@@ -27,8 +45,9 @@ export default function Navbar() {
               <Link
                 key={link.to}
                 to={link.to}
+                onClick={(e) => handleNavClick(e, link)}
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  location.pathname.startsWith(link.to)
+                  isLinkActive(link)
                     ? 'bg-white/20'
                     : 'hover:bg-white/10'
                 }`}
@@ -69,9 +88,9 @@ export default function Navbar() {
               <Link
                 key={link.to}
                 to={link.to}
-                onClick={() => setOpen(false)}
+                onClick={(e) => handleNavClick(e, link)}
                 className={`block px-3 py-2 rounded-lg text-sm font-medium ${
-                  location.pathname.startsWith(link.to)
+                  isLinkActive(link)
                     ? 'bg-white/20'
                     : 'hover:bg-white/10'
                 }`}

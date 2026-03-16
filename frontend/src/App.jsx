@@ -6,8 +6,6 @@ import EconomyPage from './pages/EconomyPage';
 import EconomyDetailPage from './pages/EconomyDetailPage';
 import ContractsPage from './pages/ContractsPage';
 import ContractDetailPage from './pages/ContractDetailPage';
-import StatsPage from './pages/StatsPage';
-import MethodologyPage from './pages/MethodologyPage';
 import LoginPage from './pages/LoginPage';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminEconomyPage from './pages/AdminEconomyPage';
@@ -34,8 +32,6 @@ export default function App() {
         <Route path="/economia/:id" element={<EconomyDetailPage />} />
         <Route path="/contratos" element={<ContractsPage />} />
         <Route path="/contratos/:id" element={<ContractDetailPage />} />
-        <Route path="/rendimiento" element={<StatsPage />} />
-        <Route path="/metodologia" element={<MethodologyPage />} />
 
         {/* Auth */}
         <Route path="/admin/login" element={<LoginPage />} />

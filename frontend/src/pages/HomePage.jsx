@@ -138,6 +138,11 @@ export default function HomePage() {
   const filteredContracts = useMemo(() => {
     let result = contracts;
 
+    result = result.filter((c) => {
+      const days = getDaysUntil(c.expiration_date);
+      return days > -30;
+    });
+
     if (searchInput.trim()) {
       const query = searchInput.toLowerCase();
       result = result.filter(
@@ -184,12 +189,12 @@ export default function HomePage() {
       </section>
 
       {/* Monthly income/expense chart */}
-      <section className="max-w-6xl mx-auto px-4 py-8">
+      <section id="compromisos-economicos" className="max-w-6xl mx-auto px-4 py-8">
         <MonthlyBarChart />
       </section>
 
       {/* Contracts carousel */}
-      <section className="max-w-6xl mx-auto px-4 py-8">
+      <section id="contratos" className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold">Contratos del plantel</h2>
         </div>
@@ -247,7 +252,59 @@ export default function HomePage() {
               ))}
             </div>
           </>
-        )}
+          )}
+        </section>
+
+      {/* Methodology */}
+      <section id="metodologia" className="max-w-3xl mx-auto px-4 py-12">
+        <h2 className="text-xl font-bold mb-4">Metodología y Fuentes</h2>
+        
+        <div className="space-y-6">
+          <section className="card">
+            <h3 className="text-lg font-bold mb-3">Fuentes de datos</h3>
+            <ul className="text-sm text-gray-600 space-y-2">
+              <li>
+                <strong>Economía:</strong> Balances publicados por el club, notas periodísticas
+                de medios especializados en fútbol argentino, y declaraciones de dirigentes.
+              </li>
+              <li>
+                <strong>Contratos:</strong> Información publicada en medios, datos de
+                transferencias internacionales y registros públicos disponibles.
+              </li>
+              <li>
+                <strong>Estadísticas:</strong> API de BeSoccer para datos en tiempo real
+                de posiciones, goles, tarjetas y rendimiento general.
+              </li>
+            </ul>
+          </section>
+
+          <section className="card">
+            <h3 className="text-lg font-bold mb-3">Marca "Oficial"</h3>
+            <p className="text-sm text-gray-600">
+              Los registros marcados como "Oficial" indican que la información fue confirmada
+              directamente por el Club Atlético Independiente o proviene de documentos oficiales.
+              Los no oficiales son estimaciones o datos periodísticos.
+            </p>
+          </section>
+
+          <section className="card">
+            <h3 className="text-lg font-bold mb-3">Actualización</h3>
+            <p className="text-sm text-gray-600">
+              La base de datos se actualiza manualmente conforme se obtienen nuevos datos.
+              Las estadísticas deportivas se actualizan automáticamente vía la API de BeSoccer
+              con cache configurable para optimizar el rendimiento.
+            </p>
+          </section>
+
+          <section className="card">
+            <h3 className="text-lg font-bold mb-3">Limitaciones</h3>
+            <p className="text-sm text-gray-600">
+              Este portal es un proyecto independiente de datos abiertos. No es una publicación
+              oficial del Club Atlético Independiente. Los montos pueden estar sujetos a variaciones
+              cambiarias y las estimaciones salariales son aproximadas.
+            </p>
+          </section>
+        </div>
       </section>
     </div>
   );

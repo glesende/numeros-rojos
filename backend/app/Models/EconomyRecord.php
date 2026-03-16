@@ -71,4 +71,15 @@ class EconomyRecord extends Model
         }
         return $query->where('carried_out', $carriedOut);
     }
+
+    public function scopeSearch($query, ?string $search): mixed
+    {
+        if ($search === null || $search === '') {
+            return $query;
+        }
+        return $query->where(function ($q) use ($search) {
+            $q->where('description', 'like', '%' . $search . '%')
+              ->orWhere('entity', 'like', '%' . $search . '%');
+        });
+    }
 }

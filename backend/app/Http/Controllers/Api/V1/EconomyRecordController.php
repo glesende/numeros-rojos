@@ -14,6 +14,7 @@ class EconomyRecordController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = EconomyRecord::query()
+            ->search($request->input('search'))
             ->official($request->boolean('official', null) !== false ? $request->input('official') : null)
             ->type($request->input('type'))
             ->dateFrom($request->input('date_from'))

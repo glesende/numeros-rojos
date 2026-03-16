@@ -4,6 +4,16 @@ export default function EconomyFilters({ filters, onFilter, onReset }) {
   return (
     <FilterBar onReset={onReset}>
       <div>
+        <label className="block text-xs font-medium text-gray-500 mb-1">Buscar</label>
+        <input
+          type="text"
+          value={filters.search || ''}
+          onChange={(e) => onFilter('search', e.target.value || null)}
+          placeholder="Descripcion o entidad"
+          className="input-field"
+        />
+      </div>
+      <div>
         <label className="block text-xs font-medium text-gray-500 mb-1">Tipo</label>
         <select
           value={filters.type || ''}

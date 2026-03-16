@@ -296,9 +296,9 @@ export default function MonthlyBarChart() {
                   <tr key={r.id} className="border-b border-gray-50 hover:bg-gray-50">
                     <td className="py-2 pr-4 whitespace-nowrap text-gray-500 text-xs">{formatDate(r.record_date)}</td>
                     <td className="py-2 pr-4">
-                      <Link to={`/economia/${r.id}`} className="text-rojo hover:underline font-medium line-clamp-1">
+                      <span className="font-medium line-clamp-1">
                         {r.description || '-'}
-                      </Link>
+                      </span>
                     </td>
                     <td className="py-2 pr-4">
                       <span className={r.type === 'cobro' ? 'badge-cobro' : 'badge-pago'}>
@@ -342,9 +342,9 @@ export default function MonthlyBarChart() {
                   <tr key={r.id} className="border-b border-gray-50 hover:bg-gray-50">
                     <td className="py-2 pr-4 whitespace-nowrap text-gray-500 text-xs">{formatDate(r.record_date)}</td>
                     <td className="py-2 pr-4">
-                      <Link to={`/economia/${r.id}`} className="text-rojo hover:underline font-medium line-clamp-1">
+                      <span className="font-medium line-clamp-1">
                         {r.description || '-'}
-                      </Link>
+                      </span>
                     </td>
                     <td className="py-2 pr-4">
                       <span className={r.type === 'cobro' ? 'badge-cobro' : 'badge-pago'}>

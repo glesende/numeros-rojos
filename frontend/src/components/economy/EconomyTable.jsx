@@ -1,5 +1,3 @@
-import { Link } from 'react-router-dom';
-
 function formatDate(dateStr) {
   if (!dateStr) return '-';
   const d = new Date(dateStr);
@@ -35,6 +33,7 @@ export default function EconomyTable({ records }) {
             <th className="pb-3 pr-4 text-right">Monto</th>
             <th className="pb-3 pr-4">Oficial</th>
             <th className="pb-3">Efectuado</th>
+            <th className="pb-3">Fuentes</th>
           </tr>
         </thead>
         <tbody>
@@ -42,11 +41,11 @@ export default function EconomyTable({ records }) {
             <tr key={r.id} className="border-b border-gray-100 hover:bg-gray-50">
               <td className="py-3 pr-4 whitespace-nowrap">{formatDate(r.record_date)}</td>
               <td className="py-3 pr-4">
-                <Link to={`/economia/${r.id}`} className="text-rojo hover:underline font-medium">
+                <span className="font-medium">
                   {r.description
                     ? (r.description.length > 60 ? r.description.slice(0, 60) + '...' : r.description)
                     : '-'}
-                </Link>
+                </span>
               </td>
               <td className="py-3 pr-4 text-gray-600 text-xs">
                 {r.entity || '-'}
@@ -71,6 +70,31 @@ export default function EconomyTable({ records }) {
                   <span className="text-green-600 text-xs font-semibold">Si</span>
                 ) : (
                   <span className="text-gray-400 text-xs">No</span>
+                )}
+              </td>
+              <td className="py-3">
+                {Array.isArray(r.links) && r.links.length > 0 ? (
+                  <ul className="text-xs text-gray-600 space-y-0.5">
+                    {r.links.slice(0, 2).map((link, i) => {
+                      let label = link;
+                      try {
+                        const url = new URL(link);
+                        label = url.hostname.replace('www.', '');
+                      } catch {}
+                      return (
+                        <li key={i}>
+                          <a href={link} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline truncate block">
+                            {label}
+                          </a>
+                        </li>
+                      );
+                    })}
+                    {r.links.length > 2 && (
+                      <li className="text-gray-400">+{r.links.length - 2} más</li>
+                    )}
+                  </ul>
+                ) : (
+                  <span className="text-gray-400 text-xs">-</span>
                 )}
               </td>
             </tr>
