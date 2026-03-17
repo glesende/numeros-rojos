@@ -22,6 +22,7 @@ services:
       - CACHE_TTL_PLAYER_DATA=${CACHE_TTL_PLAYER_DATA:-86400}
       - APP_ENV=production
       - APP_DEBUG=false
+      - LOG_CHANNEL=stderr
     depends_on:
       mysql:
         condition: service_healthy

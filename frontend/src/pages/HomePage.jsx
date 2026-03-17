@@ -335,12 +335,11 @@ export default function HomePage() {
           </p>
         </section>
 
-        <section className="card border border-red-200 bg-red-50">
+        <section className="card border border-red-200">
           <h3 className="text-lg font-bold mb-3">Proyecto replicable</h3>
           <p className="text-sm text-gray-600 mb-3">
-            Números Rojos es un proyecto de código abierto pensado para ser adoptado por otras
-            instituciones. Si representás a otro club y querés tu propio portal de transparencia,
-            podés clonar y adaptar este proyecto libremente.
+            Números Rojos es un proyecto de código abierto pensado para ser adaptado a otras
+            instituciones. El repositorio se puede clonar, adaptar y distribuir libre bajo licencia MIT.
           </p>
           <a
             href="https://github.com/glesende/numeros-rojos"

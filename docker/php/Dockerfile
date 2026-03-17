@@ -34,7 +34,8 @@ COPY docker/php/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
 
 RUN mkdir -p /var/log/nginx /var/log/php-fpm /run/nginx \
     && chown -R www-data:www-data /var/www/html/storage \
-    && chown -R www-data:www-data /var/lib/nginx
+    && chown -R www-data:www-data /var/lib/nginx \
+    && chown -R www-data:www-data /var/lib/nginx/tmp/
 
 EXPOSE 80
 
