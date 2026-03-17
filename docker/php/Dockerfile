@@ -33,9 +33,13 @@ COPY docker/php/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker/php/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
 
 RUN mkdir -p /var/log/nginx /var/log/php-fpm /run/nginx \
+    /var/lib/nginx/tmp/client_body \
+    /var/lib/nginx/tmp/fastcgi \
+    /var/lib/nginx/tmp/proxy \
+    /var/lib/nginx/tmp/scgi \
+    /var/lib/nginx/tmp/uwsgi \
     && chown -R www-data:www-data /var/www/html/storage \
-    && chown -R www-data:www-data /var/lib/nginx \
-    && chown -R www-data:www-data /var/lib/nginx/tmp/
+    && chown -R www-data:www-data /var/lib/nginx
 
 EXPOSE 80
 
