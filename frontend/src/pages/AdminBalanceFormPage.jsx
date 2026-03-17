@@ -10,6 +10,7 @@ import {
   deleteBreakdown,
   analyzeBalance,
   getBalanceDownloadUrl,
+  getSettings,
 } from '../api/endpoints';
 import Loader from '../components/common/Loader';
 import ErrorMessage from '../components/common/ErrorMessage';
@@ -42,6 +43,7 @@ export default function AdminBalanceFormPage() {
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState(null);
   const [analysisError, setAnalysisError] = useState('');
+  const [hasOpenAiKey, setHasOpenAiKey] = useState(false);
 
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
@@ -55,6 +57,15 @@ export default function AdminBalanceFormPage() {
   useEffect(() => {
     fetchItems();
   }, [fetchItems]);
+
+  useEffect(() => {
+    getSettings()
+      .then((res) => {
+        const key = res.data?.data?.openai_api_key;
+        setHasOpenAiKey(!!key);
+      })
+      .catch(() => setHasOpenAiKey(false));
+  }, []);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -258,11 +269,21 @@ export default function AdminBalanceFormPage() {
                   Si hay un archivo cargado y la API Key de OpenAI está configurada, podés usar IA
                   para generar automáticamente el desglose del balance.
                 </p>
+                {!hasOpenAiKey && (
+                  <p className="text-sm text-amber-700 mt-2 font-medium">
+                    API Key de OpenAI no configurada.{' '}
+                    <Link to="/admin/settings" className="underline">
+                      Configurala en Ajustes
+                    </Link>{' '}
+                    para habilitar esta función.
+                  </p>
+                )}
               </div>
               <button
                 onClick={handleAnalyze}
-                disabled={analyzing}
-                className="flex-shrink-0 px-4 py-2 bg-purple-700 hover:bg-purple-800 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50"
+                disabled={analyzing || !hasOpenAiKey}
+                title={!hasOpenAiKey ? 'Configurá la API Key de OpenAI en Ajustes para usar esta función' : undefined}
+                className="flex-shrink-0 px-4 py-2 bg-purple-700 hover:bg-purple-800 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {analyzing ? 'Analizando...' : 'Analizar balance'}
               </button>
