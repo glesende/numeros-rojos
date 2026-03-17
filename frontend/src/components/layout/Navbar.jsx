@@ -1,18 +1,24 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import useSectionSettings from '../../hooks/useSectionSettings';
 
-const navLinks = [
-  { to: '#compromisos-economicos', label: 'Economia', scrollTo: 'compromisos-economicos', isAnchor: true },
-  { to: '#contratos', label: 'Contratos', scrollTo: 'contratos', isAnchor: true },
-  { to: '#balances', label: 'Balances', scrollTo: 'balances', isAnchor: true },
-  { to: '#metodologia', label: 'Metodologia', scrollTo: 'metodologia', isAnchor: true },
+const ALL_NAV_LINKS = [
+  { to: '#compromisos-economicos', label: 'Economia', scrollTo: 'compromisos-economicos', isAnchor: true, sectionKey: 'section_economia_enabled' },
+  { to: '#contratos', label: 'Contratos', scrollTo: 'contratos', isAnchor: true, sectionKey: 'section_contratos_enabled' },
+  { to: '#balances', label: 'Balances', scrollTo: 'balances', isAnchor: true, sectionKey: 'section_balances_enabled' },
+  { to: '#metodologia', label: 'Metodologia', scrollTo: 'metodologia', isAnchor: true, sectionKey: null },
 ];
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const location = useLocation();
   const { isAuthenticated } = useAuth();
+  const { sections } = useSectionSettings();
+
+  const navLinks = ALL_NAV_LINKS.filter(
+    (link) => link.sectionKey === null || sections[link.sectionKey] !== false
+  );
 
   const handleNavClick = (e, link) => {
     if (link.isAnchor && location.pathname === '/') {

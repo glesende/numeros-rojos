@@ -4,6 +4,7 @@ import { getContracts } from '../api/endpoints';
 import Loader from '../components/common/Loader';
 import MonthlyBarChart from '../components/economy/MonthlyBarChart';
 import BalanceLineChart from '../components/balances/BalanceLineChart';
+import useSectionSettings from '../hooks/useSectionSettings';
 
 const VIGENCIA_OPTIONS = [
   { value: '6m', label: 'Vence en 6 meses', days: 180 },
@@ -133,6 +134,7 @@ export default function HomePage() {
   const [searchInput, setSearchInput] = useState('');
   const [contracts, setContracts] = useState([]);
   const [loading, setLoading] = useState(false);
+  const { sections } = useSectionSettings();
 
   const fetchContracts = useCallback(() => {
     setLoading(true);
@@ -207,11 +209,14 @@ export default function HomePage() {
       </section>
 
       {/* Monthly income/expense chart */}
-      <section id="compromisos-economicos" className="max-w-6xl mx-auto px-4 py-8">
-        <MonthlyBarChart />
-      </section>
+      {sections.section_economia_enabled !== false && (
+        <section id="compromisos-economicos" className="max-w-6xl mx-auto px-4 py-8">
+          <MonthlyBarChart />
+        </section>
+      )}
 
       {/* Contracts carousel */}
+      {sections.section_contratos_enabled !== false && (
       <section id="contratos" className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold">Contratos del plantel</h2>
@@ -272,17 +277,20 @@ export default function HomePage() {
           </>
           )}
         </section>
+      )}
 
       {/* Balances */}
-      <section id="balances" className="max-w-6xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold">Balances oficiales</h2>
-          <Link to="/balances" className="text-sm text-rojo hover:underline font-medium">
-            Ver todos los balances →
-          </Link>
-        </div>
-        <BalanceLineChart compact={true} showLink={true} />
-      </section>
+      {sections.section_balances_enabled !== false && (
+        <section id="balances" className="max-w-6xl mx-auto px-4 py-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold">Balances oficiales</h2>
+            <Link to="/balances" className="text-sm text-rojo hover:underline font-medium">
+              Ver todos los balances →
+            </Link>
+          </div>
+          <BalanceLineChart compact={true} showLink={true} />
+        </section>
+      )}
 
       {/* Methodology */}
       <section id="metodologia" className="max-w-3xl mx-auto px-4 py-12">
