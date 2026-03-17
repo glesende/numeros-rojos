@@ -28,6 +28,7 @@ RUN composer install --no-scripts --no-autoloader --prefer-dist
 COPY backend/ .
 RUN composer dump-autoload --optimize
 
+COPY docker/php/nginx.conf /etc/nginx/nginx.conf
 COPY docker/php/default.conf /etc/nginx/http.d/default.conf
 COPY docker/php/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker/php/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
