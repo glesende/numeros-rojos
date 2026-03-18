@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\Balance;
 use App\Models\BalanceLine;
+use App\Models\Setting;
 use App\Services\OpenAiService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -323,6 +324,10 @@ class BalanceController extends Controller
                 ($seriesMap[$key]['values_by_balance'][$line->balance_id] ?? 0) + $amountUsd;
         }
 
+        // Load admin-configured default active items (null means all are active)
+        $defaultItemsSetting = Setting::get('balance_chart_default_items');
+        $defaultItemsArray   = $defaultItemsSetting ? json_decode($defaultItemsSetting, true) : null;
+
         $series = [];
         foreach ($seriesMap as $key => $s) {
             $values = [];
@@ -331,9 +336,10 @@ class BalanceController extends Controller
             }
             if (array_sum(array_map('abs', $values)) > 0) {
                 $series[] = [
-                    'id'     => $key,
-                    'name'   => $s['name'],
-                    'values' => $values,
+                    'id'             => $key,
+                    'name'           => $s['name'],
+                    'values'         => $values,
+                    'default_active' => $defaultItemsArray === null || in_array($key, $defaultItemsArray),
                 ];
             }
         }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   LineChart,
@@ -67,13 +67,26 @@ function CustomTooltip({ active, payload, label }) {
  * Props:
  * - compact (bool): if true, renders a smaller version without item toggles (for landing)
  * - showLink (bool): show "Ver balances" link
- * - selectedItems (array of item ids): pre-filter items to show
+ * - selectedItems (array of item ids): pre-filter items to show (overrides default_active)
  */
 export default function BalanceLineChart({ compact = false, showLink = false, selectedItems = null }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeItems, setActiveItems] = useState([]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handler = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -81,12 +94,14 @@ export default function BalanceLineChart({ compact = false, showLink = false, se
       .then((res) => {
         const d = res.data?.data || { exercises: [], series: [] };
         setData(d);
-        // Default: show all (or first 5 in compact)
         const ids = d.series.map((s) => s.id);
         if (selectedItems) {
           setActiveItems(selectedItems.filter((id) => ids.includes(id)));
+        } else if (compact) {
+          setActiveItems(ids.slice(0, 5));
         } else {
-          setActiveItems(compact ? ids.slice(0, 5) : ids);
+          // Use default_active configured by admin (fallback: all active)
+          setActiveItems(d.series.filter((s) => s.default_active !== false).map((s) => s.id));
         }
       })
       .catch(() => setError('No se pudieron cargar los datos de evolución.'))
@@ -98,6 +113,9 @@ export default function BalanceLineChart({ compact = false, showLink = false, se
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   };
+
+  const selectAll = () => setActiveItems(data?.series.map((s) => s.id) || []);
+  const deselectAll = () => setActiveItems([]);
 
   if (loading) {
     return (
@@ -129,6 +147,7 @@ export default function BalanceLineChart({ compact = false, showLink = false, se
   });
 
   const visibleSeries = data.series.filter((s) => activeItems.includes(s.id));
+  const allSelected = activeItems.length === data.series.length;
 
   return (
     <div className="card overflow-hidden">
@@ -146,36 +165,116 @@ export default function BalanceLineChart({ compact = false, showLink = false, se
               Ver balances →
             </Link>
           )}
+
+          {/* Item selector dropdown (only in non-compact mode) */}
+          {!compact && data.series.length > 0 && (
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setDropdownOpen((prev) => !prev)}
+                className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <svg
+                  className="w-4 h-4 text-gray-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"
+                  />
+                </svg>
+                <span className="text-gray-700">
+                  Ítems ({activeItems.length}/{data.series.length})
+                </span>
+                <svg
+                  className={`w-4 h-4 text-gray-500 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {dropdownOpen && (
+                <div className="absolute right-0 top-full mt-1 z-50 bg-white border border-gray-200 rounded-xl shadow-lg min-w-[220px] py-2">
+                  {/* Select / Deselect all */}
+                  <div className="flex items-center gap-2 px-3 py-1.5 border-b border-gray-100 mb-1">
+                    <button
+                      onClick={selectAll}
+                      disabled={allSelected}
+                      className="text-xs text-rojo hover:underline font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      Seleccionar todos
+                    </button>
+                    <span className="text-gray-300">|</span>
+                    <button
+                      onClick={deselectAll}
+                      disabled={activeItems.length === 0}
+                      className="text-xs text-gray-500 hover:underline disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      Deseleccionar todos
+                    </button>
+                  </div>
+
+                  {/* Items list */}
+                  <div className="max-h-64 overflow-y-auto">
+                    {data.series.map((serie, idx) => {
+                      const color = LINE_COLORS[idx % LINE_COLORS.length];
+                      const active = activeItems.includes(serie.id);
+                      return (
+                        <label
+                          key={serie.id}
+                          className="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 cursor-pointer select-none"
+                        >
+                          <div
+                            className="w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors"
+                            style={
+                              active
+                                ? { backgroundColor: color, borderColor: color }
+                                : { borderColor: '#d1d5db' }
+                            }
+                          >
+                            {active && (
+                              <svg
+                                className="w-2.5 h-2.5 text-white"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={3}
+                                  d="M5 13l4 4L19 7"
+                                />
+                              </svg>
+                            )}
+                          </div>
+                          <input
+                            type="checkbox"
+                            className="sr-only"
+                            checked={active}
+                            onChange={() => toggleItem(serie.id)}
+                          />
+                          <span className="text-sm text-gray-700 truncate">{serie.name}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Item toggles (only in non-compact mode) */}
-      {!compact && data.series.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-4">
-          {data.series.map((serie, idx) => {
-            const color = LINE_COLORS[idx % LINE_COLORS.length];
-            const active = activeItems.includes(serie.id);
-            return (
-              <button
-                key={serie.id}
-                onClick={() => toggleItem(serie.id)}
-                className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
-                  active
-                    ? 'text-white'
-                    : 'bg-white text-gray-400 border-gray-200'
-                }`}
-                style={active ? { backgroundColor: color, borderColor: color } : {}}
-              >
-                {serie.name}
-              </button>
-            );
-          })}
-        </div>
-      )}
-
       {visibleSeries.length === 0 ? (
         <div className="py-12 text-center text-gray-400 text-sm">
-          Seleccioná al menos un item para visualizar.
+          Seleccioná al menos un ítem para visualizar.
         </div>
       ) : (
         <div style={{ height: compact ? 260 : 360 }}>
