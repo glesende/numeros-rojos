@@ -22,85 +22,120 @@ export default function EconomyTable({ records }) {
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-gray-200 text-left text-xs text-gray-500 uppercase">
-            <th className="pb-3 pr-4">Fecha</th>
-            <th className="pb-3 pr-4">Descripcion</th>
-            <th className="pb-3 pr-4">Entidad</th>
-            <th className="pb-3 pr-4">Tipo</th>
-            <th className="pb-3 pr-4 text-right">Monto</th>
-            <th className="pb-3 pr-4">Oficial</th>
-            <th className="pb-3">Efectuado</th>
-            <th className="pb-3">Fuentes</th>
-          </tr>
-        </thead>
-        <tbody>
-          {records.map((r) => (
-            <tr key={r.id} className="border-b border-gray-100 hover:bg-gray-50">
-              <td className="py-3 pr-4 whitespace-nowrap">{formatDate(r.record_date)}</td>
-              <td className="py-3 pr-4">
-                <span className="font-medium">
-                  {r.description
-                    ? (r.description.length > 60 ? r.description.slice(0, 60) + '...' : r.description)
-                    : '-'}
-                </span>
-              </td>
-              <td className="py-3 pr-4 text-gray-600 text-xs">
-                {r.entity || '-'}
-              </td>
-              <td className="py-3 pr-4">
-                <span className={r.type === 'cobro' ? 'badge-cobro' : 'badge-pago'}>
-                  {r.type}
-                </span>
-              </td>
-              <td className="py-3 pr-4 text-right font-mono whitespace-nowrap">
+    <>
+      {/* Vista en tarjetas para móvil */}
+      <div className="block md:hidden space-y-3">
+        {records.map((r) => (
+          <div key={r.id} className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <span className={r.type === 'cobro' ? 'badge-cobro' : 'badge-pago'}>
+                {r.type}
+              </span>
+              <span className="font-mono font-semibold text-sm">
                 {formatMoney(r.amount, r.currency)}
-              </td>
-              <td className="py-3">
+              </span>
+            </div>
+            <p className="text-sm font-medium text-gray-800 mb-2 leading-snug">
+              {r.description
+                ? (r.description.length > 80 ? r.description.slice(0, 80) + '...' : r.description)
+                : '-'}
+            </p>
+            <div className="flex items-center justify-between text-xs text-gray-500">
+              <span>{formatDate(r.record_date)}</span>
+              <span>
+                Oficial:{' '}
                 {r.official ? (
-                  <span className="text-green-600 text-xs font-semibold">Si</span>
+                  <span className="text-green-600 font-semibold">Sí</span>
                 ) : (
-                  <span className="text-gray-400 text-xs">No</span>
+                  <span className="text-gray-400">No</span>
                 )}
-              </td>
-              <td className="py-3">
-                {r.carried_out ? (
-                  <span className="text-green-600 text-xs font-semibold">Si</span>
-                ) : (
-                  <span className="text-gray-400 text-xs">No</span>
-                )}
-              </td>
-              <td className="py-3">
-                {Array.isArray(r.links) && r.links.length > 0 ? (
-                  <ul className="text-xs text-gray-600 space-y-0.5">
-                    {r.links.slice(0, 2).map((link, i) => {
-                      let label = link;
-                      try {
-                        const url = new URL(link);
-                        label = url.hostname.replace('www.', '');
-                      } catch {}
-                      return (
-                        <li key={i}>
-                          <a href={link} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline truncate block">
-                            {label}
-                          </a>
-                        </li>
-                      );
-                    })}
-                    {r.links.length > 2 && (
-                      <li className="text-gray-400">+{r.links.length - 2} más</li>
-                    )}
-                  </ul>
-                ) : (
-                  <span className="text-gray-400 text-xs">-</span>
-                )}
-              </td>
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Vista en tabla para desktop */}
+      <div className="hidden md:block overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-gray-200 text-left text-xs text-gray-500 uppercase">
+              <th className="pb-3 pr-4">Fecha</th>
+              <th className="pb-3 pr-4">Descripcion</th>
+              <th className="pb-3 pr-4">Entidad</th>
+              <th className="pb-3 pr-4">Tipo</th>
+              <th className="pb-3 pr-4 text-right">Monto</th>
+              <th className="pb-3 pr-4">Oficial</th>
+              <th className="pb-3">Efectuado</th>
+              <th className="pb-3">Fuentes</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {records.map((r) => (
+              <tr key={r.id} className="border-b border-gray-100 hover:bg-gray-50">
+                <td className="py-3 pr-4 whitespace-nowrap">{formatDate(r.record_date)}</td>
+                <td className="py-3 pr-4">
+                  <span className="font-medium">
+                    {r.description
+                      ? (r.description.length > 60 ? r.description.slice(0, 60) + '...' : r.description)
+                      : '-'}
+                  </span>
+                </td>
+                <td className="py-3 pr-4 text-gray-600 text-xs">
+                  {r.entity || '-'}
+                </td>
+                <td className="py-3 pr-4">
+                  <span className={r.type === 'cobro' ? 'badge-cobro' : 'badge-pago'}>
+                    {r.type}
+                  </span>
+                </td>
+                <td className="py-3 pr-4 text-right font-mono whitespace-nowrap">
+                  {formatMoney(r.amount, r.currency)}
+                </td>
+                <td className="py-3">
+                  {r.official ? (
+                    <span className="text-green-600 text-xs font-semibold">Si</span>
+                  ) : (
+                    <span className="text-gray-400 text-xs">No</span>
+                  )}
+                </td>
+                <td className="py-3">
+                  {r.carried_out ? (
+                    <span className="text-green-600 text-xs font-semibold">Si</span>
+                  ) : (
+                    <span className="text-gray-400 text-xs">No</span>
+                  )}
+                </td>
+                <td className="py-3">
+                  {Array.isArray(r.links) && r.links.length > 0 ? (
+                    <ul className="text-xs text-gray-600 space-y-0.5">
+                      {r.links.slice(0, 2).map((link, i) => {
+                        let label = link;
+                        try {
+                          const url = new URL(link);
+                          label = url.hostname.replace('www.', '');
+                        } catch {}
+                        return (
+                          <li key={i}>
+                            <a href={link} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline truncate block">
+                              {label}
+                            </a>
+                          </li>
+                        );
+                      })}
+                      {r.links.length > 2 && (
+                        <li className="text-gray-400">+{r.links.length - 2} más</li>
+                      )}
+                    </ul>
+                  ) : (
+                    <span className="text-gray-400 text-xs">-</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }
