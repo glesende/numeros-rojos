@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Models\Setting;
 use App\Services\BeSoccerService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -53,7 +54,7 @@ class StatsController extends Controller
 
     public function team(Request $request): JsonResponse
     {
-        $teamId = $request->query('team') ?: \App\Models\Setting::get('besoccer_team_id');
+        $teamId = $request->query('team') ?: Setting::get('besoccer_team_id');
 
         if (!$teamId) {
             return response()->json(['success' => false, 'error' => 'ID de equipo no configurado'], 422);

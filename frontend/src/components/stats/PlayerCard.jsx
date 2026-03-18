@@ -1,0 +1,41 @@
+import { useState } from 'react';
+
+export default function PlayerCard({ player, selected, onClick }) {
+  const [imgError, setImgError] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      className={`card p-3 text-left w-full transition-all hover:shadow-md ${
+        selected ? 'border-rojo ring-1 ring-rojo/30 bg-rojo/5' : ''
+      }`}
+    >
+      <div className="flex items-center gap-3">
+        <div className="relative flex-shrink-0">
+          {!imgError ? (
+            <img
+              src={player.image}
+              alt={player.nick}
+              className="w-12 h-12 rounded-full object-cover bg-gray-100"
+              onError={() => setImgError(true)}
+            />
+          ) : (
+            <div className="w-12 h-12 rounded-full bg-rojo/10 flex items-center justify-center text-rojo font-bold text-lg">
+              {player.nick.charAt(0)}
+            </div>
+          )}
+          <span className="absolute -bottom-1 -right-1 bg-rojo text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center leading-none">
+            {player.squadNumber || '?'}
+          </span>
+        </div>
+        <div className="overflow-hidden min-w-0">
+          <p className="font-semibold text-sm leading-tight truncate">{player.nick}</p>
+          {player.birthdate && (
+            <p className="text-xs text-gray-400">
+              {new Date().getFullYear() - new Date(player.birthdate).getFullYear()} años
+            </p>
+          )}
+        </div>
+      </div>
+    </button>
+  );
+}

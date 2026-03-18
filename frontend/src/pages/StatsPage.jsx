@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import { getTeam, getPlayerMatches } from '../api/endpoints';
+import { getTeam } from '../api/endpoints';
 import Loader from '../components/common/Loader';
 import FormBadges from '../components/stats/FormBadges';
+import PlayerCard from '../components/stats/PlayerCard';
+import PlayerMatchesModal from '../components/stats/PlayerMatchesModal';
 
 const ROLE_LABELS = { '1': 'Porteros', '2': 'Defensores', '3': 'Mediocampistas', '4': 'Delanteros' };
 const ROLE_ORDER = ['1', '2', '3', '4'];
@@ -64,173 +66,6 @@ function StandingsTable({ tables, teamId }) {
           })}
         </tbody>
       </table>
-    </div>
-  );
-}
-
-function PlayerCard({ player, selected, onClick }) {
-  const [imgError, setImgError] = useState(false);
-  return (
-    <button
-      onClick={onClick}
-      className={`card p-3 text-left w-full transition-all hover:shadow-md ${
-        selected ? 'border-rojo ring-1 ring-rojo/30 bg-rojo/5' : ''
-      }`}
-    >
-      <div className="flex items-center gap-3">
-        <div className="relative flex-shrink-0">
-          {!imgError ? (
-            <img
-              src={player.image}
-              alt={player.nick}
-              className="w-12 h-12 rounded-full object-cover bg-gray-100"
-              onError={() => setImgError(true)}
-            />
-          ) : (
-            <div className="w-12 h-12 rounded-full bg-rojo/10 flex items-center justify-center text-rojo font-bold text-lg">
-              {player.nick.charAt(0)}
-            </div>
-          )}
-          <span className="absolute -bottom-1 -right-1 bg-rojo text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center leading-none">
-            {player.squadNumber || '?'}
-          </span>
-        </div>
-        <div className="overflow-hidden min-w-0">
-          <p className="font-semibold text-sm leading-tight truncate">{player.nick}</p>
-          {player.birthdate && (
-            <p className="text-xs text-gray-400">
-              {new Date().getFullYear() - new Date(player.birthdate).getFullYear()} años
-            </p>
-          )}
-        </div>
-      </div>
-    </button>
-  );
-}
-
-function PlayerMatchesSection({ player }) {
-  const [matches, setMatches] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    setLoading(true);
-    setMatches(null);
-    getPlayerMatches(player.id)
-      .then((res) => setMatches(res.data?.data?.match || []))
-      .catch(() => setMatches([]))
-      .finally(() => setLoading(false));
-  }, [player.id]);
-
-  const totals = matches?.reduce(
-    (acc, m) => ({
-      pj: acc.pj + 1,
-      goals: acc.goals + (Number(m.goals) || 0),
-      asis: acc.asis + (Number(m.asis) || 0),
-      yc: acc.yc + (Number(m.yc) || 0),
-      rc: acc.rc + (Number(m.rc) || 0),
-      minutes: acc.minutes + (Number(m.minutes) > 0 ? Number(m.minutes) : 0),
-      wins: acc.wins + (m.player_winner === 'w' ? 1 : 0),
-    }),
-    { pj: 0, goals: 0, asis: 0, yc: 0, rc: 0, minutes: 0, wins: 0 }
-  );
-
-  return (
-    <div className="card mt-6">
-      <div className="flex items-center gap-3 mb-5">
-        <img
-          src={player.image}
-          alt={player.nick}
-          className="w-10 h-10 rounded-full object-cover bg-gray-100"
-          onError={(e) => { e.target.style.display = 'none'; }}
-        />
-        <div>
-          <h3 className="font-bold">{player.nick}</h3>
-          <p className="text-xs text-gray-500">
-            #{player.squadNumber} · {ROLE_LABELS[player.role] || ''}
-          </p>
-        </div>
-      </div>
-
-      {loading ? (
-        <div className="py-8"><Loader /></div>
-      ) : !matches || matches.length === 0 ? (
-        <p className="text-sm text-gray-500 py-6 text-center">Sin partidos registrados</p>
-      ) : (
-        <>
-          <div className="grid grid-cols-4 md:grid-cols-7 gap-2 mb-6">
-            {[
-              { label: 'PJ', value: totals.pj },
-              { label: 'Victorias', value: totals.wins },
-              { label: 'Goles', value: totals.goals },
-              { label: 'Asist.', value: totals.asis },
-              { label: 'Minutos', value: totals.minutes },
-              { label: 'Amarillas', value: totals.yc },
-              { label: 'Rojas', value: totals.rc },
-            ].map(({ label, value }) => (
-              <div key={label} className="text-center p-2 bg-gray-50 rounded-xl">
-                <p className="text-xl font-bold">{value}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{label}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
-            <table className="w-full text-sm min-w-[480px]">
-              <thead>
-                <tr className="text-left text-xs text-gray-400 border-b uppercase tracking-wide">
-                  <th className="pb-2 pr-3">Competición</th>
-                  <th className="pb-2 pr-3">Partido</th>
-                  <th className="pb-2 text-center px-2">Res.</th>
-                  <th className="pb-2 text-center px-2">Min</th>
-                  <th className="pb-2 text-center px-2">G</th>
-                  <th className="pb-2 text-center px-2">A</th>
-                  <th className="pb-2 text-center px-2">🟨</th>
-                  <th className="pb-2 text-center px-2">🟥</th>
-                </tr>
-              </thead>
-              <tbody>
-                {matches.map((m) => {
-                  const isHome = m.player_team_side === 'local';
-                  const home = isHome ? m.team1_name : m.team1_name;
-                  const away = isHome ? m.team2_name : m.team2_name;
-                  const score = `${m.r1}–${m.r2}`;
-                  const resultColor =
-                    m.player_winner === 'w' ? 'text-ingreso' :
-                    m.player_winner === 'l' ? 'text-egreso' :
-                    'text-gray-400';
-                  const resultLabel =
-                    m.player_winner === 'w' ? 'G' :
-                    m.player_winner === 'l' ? 'P' : 'E';
-                  const date = new Date(m.shedule);
-                  const dateStr = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}`;
-
-                  return (
-                    <tr key={m.id} className="border-b last:border-0 hover:bg-gray-50">
-                      <td className="py-2 pr-3">
-                        <div className="flex items-center gap-1.5">
-                          <img src={m.competition_logo} alt="" className="h-4 w-auto flex-shrink-0" />
-                          <span className="text-xs text-gray-400 hidden sm:inline">{dateStr}</span>
-                        </div>
-                      </td>
-                      <td className="py-2 pr-3 font-mono text-xs whitespace-nowrap">
-                        {home} <span className="text-gray-400">{score}</span> {away}
-                      </td>
-                      <td className={`py-2 text-center px-2 font-bold ${resultColor}`}>{resultLabel}</td>
-                      <td className="py-2 text-center px-2 text-gray-500">
-                        {Number(m.minutes) > 0 ? m.minutes : '–'}
-                      </td>
-                      <td className="py-2 text-center px-2">{m.goals || 0}</td>
-                      <td className="py-2 text-center px-2">{m.asis || 0}</td>
-                      <td className="py-2 text-center px-2">{m.yc || 0}</td>
-                      <td className="py-2 text-center px-2">{m.rc || 0}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </>
-      )}
     </div>
   );
 }
@@ -428,17 +263,13 @@ export default function StatsPage() {
               key={player.id}
               player={player}
               selected={selectedPlayer?.id === player.id}
-              onClick={() =>
-                setSelectedPlayer(selectedPlayer?.id === player.id ? null : player)
-              }
+              onClick={() => setSelectedPlayer(player)}
             />
           ))}
         </div>
-
-        {selectedPlayer && (
-          <PlayerMatchesSection player={selectedPlayer} />
-        )}
       </section>
+
+      <PlayerMatchesModal player={selectedPlayer} onClose={() => setSelectedPlayer(null)} />
     </div>
   );
 }

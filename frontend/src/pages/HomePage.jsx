@@ -209,11 +209,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Stats widget */}
-      <section id="estadisticas" className="max-w-6xl mx-auto px-4 pt-8">
-        <StatsWidget />
-      </section>
-
       {/* Monthly income/expense chart */}
       {sections.section_economia_enabled !== false && (
         <section id="compromisos-economicos" className="max-w-6xl mx-auto px-4 py-8">
@@ -297,6 +292,11 @@ export default function HomePage() {
           <BalanceLineChart compact={true} showLink={true} />
         </section>
       )}
+
+      {/* Stats widget */}
+      <section id="estadisticas" className="max-w-6xl mx-auto px-4 py-8">
+        <StatsWidget />
+      </section>
 
       {/* Methodology */}
       <section id="metodologia" className="max-w-3xl mx-auto px-4 py-12">
