@@ -19,6 +19,8 @@ export const deleteContract = (id) => client.delete(`/admin/contracts/${id}`);
 export const getStandings = (params = {}) => client.get('/standings', { params });
 export const getPlayerStats = (id) => client.get(`/player/${id}/stats`);
 export const getLeagueStats = (params = {}) => client.get('/league/stats', { params });
+export const getTeam = (params = {}) => client.get('/team', { params });
+export const getPlayerMatches = (id) => client.get(`/player/${id}/matches`);
 
 // Settings
 export const getSettings = () => client.get('/admin/settings');

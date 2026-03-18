@@ -50,4 +50,32 @@ class StatsController extends Controller
 
         return response()->json($data);
     }
+
+    public function team(Request $request): JsonResponse
+    {
+        $teamId = $request->query('team') ?: \App\Models\Setting::get('besoccer_team_id');
+
+        if (!$teamId) {
+            return response()->json(['success' => false, 'error' => 'ID de equipo no configurado'], 422);
+        }
+
+        $data = $this->besoccer->getTeam($teamId);
+
+        if (!($data['success'] ?? false)) {
+            return response()->json($data, 502);
+        }
+
+        return response()->json($data);
+    }
+
+    public function playerMatches(string $id): JsonResponse
+    {
+        $data = $this->besoccer->getPlayerMatches($id);
+
+        if (!($data['success'] ?? false)) {
+            return response()->json($data, 502);
+        }
+
+        return response()->json($data);
+    }
 }

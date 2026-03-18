@@ -22,6 +22,7 @@ export default function AdminSettings() {
 
   const [dataService, setDataService] = useState('disabled');
   const [besoccerApiKey, setBesoccerApiKey] = useState('');
+  const [besoccerTeamId, setBesoccerTeamId] = useState('');
   const [serviceError, setServiceError] = useState('');
   const [serviceSuccess, setServiceSuccess] = useState('');
   const [serviceLoading, setServiceLoading] = useState(false);
@@ -42,6 +43,7 @@ export default function AdminSettings() {
         const data = res.data?.data || {};
         setDataService(data.data_service || 'disabled');
         setBesoccerApiKey(data.besoccer_api_key || '');
+        setBesoccerTeamId(data.besoccer_team_id || '');
         setOpenaiApiKey(data.openai_api_key || '');
         setOpenaiModel(data.openai_model || 'gpt-4o');
         setSettingsLoaded(true);
@@ -92,6 +94,7 @@ export default function AdminSettings() {
       const payload = { data_service: dataService };
       if (dataService === 'besoccer') {
         payload.besoccer_api_key = besoccerApiKey;
+        payload.besoccer_team_id = besoccerTeamId;
       }
       await updateSettings(payload);
       setServiceSuccess('Configuración guardada correctamente');
@@ -152,16 +155,31 @@ export default function AdminSettings() {
             </div>
 
             {dataService === 'besoccer' && (
-              <div>
-                <label className="block text-sm font-medium mb-1">API Key de BeSoccer</label>
-                <input
-                  type="text"
-                  value={besoccerApiKey}
-                  onChange={(e) => setBesoccerApiKey(e.target.value)}
-                  className="input-field w-full"
-                  placeholder="Introduce la API Key"
-                />
-              </div>
+              <>
+                <div>
+                  <label className="block text-sm font-medium mb-1">API Key de BeSoccer</label>
+                  <input
+                    type="text"
+                    value={besoccerApiKey}
+                    onChange={(e) => setBesoccerApiKey(e.target.value)}
+                    className="input-field w-full"
+                    placeholder="Introduce la API Key"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">ID del equipo destacado</label>
+                  <input
+                    type="text"
+                    value={besoccerTeamId}
+                    onChange={(e) => setBesoccerTeamId(e.target.value)}
+                    className="input-field w-full"
+                    placeholder="Ej: 1373"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">
+                    Se usa para resaltar el equipo en las tablas de estadísticas.
+                  </p>
+                </div>
+              </>
             )}
 
             <button

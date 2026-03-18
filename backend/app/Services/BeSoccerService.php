@@ -71,6 +71,40 @@ class BeSoccerService
         });
     }
 
+    public function getTeam(string $teamId): array
+    {
+        if (!$this->isEnabled()) {
+            return ['success' => false, 'error' => 'Servicio de datos desactivado'];
+        }
+
+        $cacheKey = "besoccer:team:{$teamId}";
+
+        return Cache::remember($cacheKey, $this->cacheTtl['standings'], function () use ($teamId) {
+            return $this->request('/api.php', [
+                'format' => 'json',
+                'req'    => 'team',
+                'id'     => $teamId,
+            ]);
+        });
+    }
+
+    public function getPlayerMatches(string $playerId): array
+    {
+        if (!$this->isEnabled()) {
+            return ['success' => false, 'error' => 'Servicio de datos desactivado'];
+        }
+
+        $cacheKey = "besoccer:player:{$playerId}:matches";
+
+        return Cache::remember($cacheKey, $this->cacheTtl['player_stats'], function () use ($playerId) {
+            return $this->request('/api.php', [
+                'format' => 'json',
+                'req'    => 'player_matches',
+                'player' => $playerId,
+            ]);
+        });
+    }
+
     public function getPlayerByExternalId(string $externalId): array
     {
         if (!$this->isEnabled()) {

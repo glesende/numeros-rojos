@@ -17,6 +17,7 @@ import AdminContractFormPage from './pages/AdminContractFormPage';
 import AdminBalancesPage from './pages/AdminBalancesPage';
 import AdminBalanceFormPage from './pages/AdminBalanceFormPage';
 import AdminSettings from './pages/AdminSettings';
+import StatsPage from './pages/StatsPage';
 import Loader from './components/common/Loader';
 
 function ProtectedRoute({ children }) {
@@ -38,6 +39,7 @@ export default function App() {
         <Route path="/contratos/:id" element={<ContractDetailPage />} />
         <Route path="/balances" element={<BalancesPage />} />
         <Route path="/balances/:id" element={<BalanceDetailPage />} />
+        <Route path="/estadisticas" element={<StatsPage />} />
 
         {/* Auth */}
         <Route path="/admin/login" element={<LoginPage />} />
