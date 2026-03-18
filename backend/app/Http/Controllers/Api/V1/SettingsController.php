@@ -38,6 +38,7 @@ class SettingsController extends Controller
         $this->validate($request, [
             'data_service'               => 'sometimes|in:disabled,besoccer',
             'besoccer_api_key'           => 'sometimes|nullable|string',
+            'besoccer_team_id'           => 'sometimes|nullable|string|max:50',
             'openai_api_key'             => 'sometimes|nullable|string',
             'openai_model'               => 'sometimes|nullable|string|max:100',
             'section_economia_enabled'   => 'sometimes|boolean',
@@ -46,7 +47,7 @@ class SettingsController extends Controller
         ]);
 
         $allowed = [
-            'data_service', 'besoccer_api_key', 'openai_api_key', 'openai_model',
+            'data_service', 'besoccer_api_key', 'besoccer_team_id', 'openai_api_key', 'openai_model',
             'section_economia_enabled', 'section_contratos_enabled', 'section_balances_enabled',
         ];
 
