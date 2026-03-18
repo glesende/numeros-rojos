@@ -77,9 +77,5 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
         $router->post('stadium/sectors', 'StadiumController@storeSector');
         $router->put('stadium/sectors/{id}', 'StadiumController@updateSector');
         $router->delete('stadium/sectors/{id}', 'StadiumController@destroySector');
-        $router->get('stadium/matches/{id}', 'StadiumController@showMatch');
-        $router->post('stadium/matches', 'StadiumController@storeMatch');
-        $router->put('stadium/matches/{id}', 'StadiumController@updateMatch');
-        $router->delete('stadium/matches/{id}', 'StadiumController@destroyMatch');
     });
 });

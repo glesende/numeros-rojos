@@ -56,11 +56,6 @@ export const createStadiumSector = (data) => client.post('/admin/stadium/sectors
 export const updateStadiumSector = (id, data) => client.put(`/admin/stadium/sectors/${id}`, data);
 export const deleteStadiumSector = (id) => client.delete(`/admin/stadium/sectors/${id}`);
 
-// Stadium matches (admin)
-export const getStadiumMatch = (id) => client.get(`/admin/stadium/matches/${id}`);
-export const createStadiumMatch = (data) => client.post('/admin/stadium/matches', data);
-export const updateStadiumMatch = (id, data) => client.put(`/admin/stadium/matches/${id}`, data);
-export const deleteStadiumMatch = (id) => client.delete(`/admin/stadium/matches/${id}`);
 
 // Auth
 export const login = (credentials) => client.post('/auth/login', credentials);

@@ -130,22 +130,7 @@ function ContractCard({ contract }) {
   );
 }
 
-function isPast(dateStr) {
-  if (!dateStr) return false;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return new Date(dateStr + 'T00:00:00') < today;
-}
-
-function formatPrice(price, currency) {
-  return new Intl.NumberFormat('es-AR', {
-    style: 'currency',
-    currency: currency || 'ARS',
-    maximumFractionDigits: 0,
-  }).format(price);
-}
-
-function StadiumPreview() {
+function StadiumBlock() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -159,60 +144,53 @@ function StadiumPreview() {
   if (loading) return <Loader />;
   if (!data?.stadium) return null;
 
-  const upcoming = (data.matches || [])
-    .filter((m) => !isPast(m.match_date))
-    .sort((a, b) => new Date(a.match_date) - new Date(b.match_date))
-    .slice(0, 3);
+  const { stadium } = data;
+  const sectors = stadium.sectors || [];
+  const totalCapacity = sectors.reduce((sum, s) => sum + (s.capacity || 0), 0);
 
   return (
     <div className="card">
-      <div className="flex items-center justify-between mb-3">
-        <div>
-          <h3 className="font-bold text-gray-900">{data.stadium.name}</h3>
-          {data.stadium.link && (
-            <a href={data.stadium.link} target="_blank" rel="noopener noreferrer" className="text-xs text-rojo hover:underline">
-              Más info →
-            </a>
-          )}
-        </div>
-        {data.stadium.sectors?.length > 0 && (
-          <span className="text-xs text-gray-500">
-            {data.stadium.sectors.length} sector{data.stadium.sectors.length !== 1 ? 'es' : ''}
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-bold text-gray-900">{stadium.name}</h3>
+        {totalCapacity > 0 && (
+          <span className="text-sm font-mono text-gray-600">
+            {totalCapacity.toLocaleString('es-AR')} espectadores
           </span>
         )}
       </div>
-      {upcoming.length === 0 ? (
-        <p className="text-sm text-gray-400">No hay próximos partidos con información.</p>
-      ) : (
-        <div className="space-y-3">
-          {upcoming.map((m) => (
-            <div key={m.id} className="border-t pt-3 first:border-t-0 first:pt-0">
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <div>
-                  <p className="font-medium text-sm">
-                    {m.is_home ? 'Independiente' : m.opponent} vs {m.is_home ? m.opponent : 'Independiente'}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {new Date(m.match_date + 'T00:00:00').toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' })}
-                    {m.match_time && <span className="ml-2 font-mono">{m.match_time.slice(0, 5)}hs</span>}
-                    {m.competition && <span className="ml-2 text-gray-400">· {m.competition}</span>}
-                  </p>
-                </div>
-                {m.prices?.length > 0 && (
-                  <div className="flex gap-2 flex-wrap">
-                    {m.prices.slice(0, 2).map((p) => (
-                      <span key={p.id} className="text-xs bg-gray-100 rounded px-2 py-1">
-                        {p.sector?.name}: <strong>{formatPrice(p.price, p.currency)}</strong>
-                      </span>
-                    ))}
-                    {m.prices.length > 2 && (
-                      <span className="text-xs text-gray-400">+{m.prices.length - 2}</span>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
+
+      {sectors.length > 0 && (
+        <table className="w-full text-sm mb-4">
+          <thead>
+            <tr className="border-b text-left text-xs text-gray-500 uppercase">
+              <th className="pb-2 pr-4">Sector</th>
+              <th className="pb-2 text-right">Capacidad</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sectors.map((s) => (
+              <tr key={s.id} className="border-b border-gray-100">
+                <td className="py-2 pr-4">{s.name}</td>
+                <td className="py-2 text-right font-mono text-gray-700">
+                  {s.capacity !== null ? s.capacity.toLocaleString('es-AR') : '-'}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      {stadium.link && (
+        <div className="flex items-center gap-2 text-xs">
+          <span className="text-gray-500">Fuente:</span>
+          <a href={stadium.link} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline">
+            {(() => { try { return new URL(stadium.link).hostname.replace('www.', ''); } catch { return stadium.link; } })()}
+          </a>
+          {stadium.link_official ? (
+            <span className="text-green-600 font-semibold">Oficial</span>
+          ) : (
+            <span className="text-gray-400 italic">No oficial</span>
+          )}
         </div>
       )}
     </div>
@@ -392,11 +370,8 @@ export default function HomePage() {
         <section id="estadio" className="max-w-6xl mx-auto px-4 py-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold">Estadio</h2>
-            <Link to="/estadio" className="text-sm text-rojo hover:underline font-medium">
-              Ver detalle y precios →
-            </Link>
           </div>
-          <StadiumPreview />
+          <StadiumBlock />
         </section>
       )}
 

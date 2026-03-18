@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             EconomyRecordSeeder::class,
             ContractSeeder::class,
+            StadiumSeeder::class,
         ]);
     }
 }

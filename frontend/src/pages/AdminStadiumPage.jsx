@@ -1,32 +1,24 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
   getStadium,
   saveStadiumConfig,
   createStadiumSector,
   updateStadiumSector,
   deleteStadiumSector,
-  deleteStadiumMatch,
 } from '../api/endpoints';
 import Loader from '../components/common/Loader';
 import ErrorMessage from '../components/common/ErrorMessage';
 import SectionEnableToggle from '../components/admin/SectionEnableToggle';
 
-function formatDate(dateStr) {
-  if (!dateStr) return '-';
-  const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-}
-
 export default function AdminStadiumPage() {
   const [loading, setLoading] = useState(true);
   const [stadium, setStadium] = useState(null);
-  const [matches, setMatches] = useState([]);
-  const navigate = useNavigate();
 
   // Stadium config form
   const [configName, setConfigName] = useState('');
   const [configLink, setConfigLink] = useState('');
+  const [configLinkOfficial, setConfigLinkOfficial] = useState(false);
   const [configLoading, setConfigLoading] = useState(false);
   const [configError, setConfigError] = useState('');
   const [configSuccess, setConfigSuccess] = useState('');
@@ -45,10 +37,10 @@ export default function AdminStadiumPage() {
       .then((res) => {
         const data = res.data?.data || {};
         setStadium(data.stadium || null);
-        setMatches(data.matches || []);
         if (data.stadium) {
           setConfigName(data.stadium.name || '');
           setConfigLink(data.stadium.link || '');
+          setConfigLinkOfficial(data.stadium.link_official || false);
         }
       })
       .catch(() => {})
@@ -65,7 +57,7 @@ export default function AdminStadiumPage() {
     setConfigSuccess('');
     setConfigLoading(true);
     try {
-      await saveStadiumConfig({ name: configName, link: configLink || null });
+      await saveStadiumConfig({ name: configName, link: configLink || null, link_official: configLinkOfficial });
       setConfigSuccess('Configuración guardada correctamente');
       fetchData();
     } catch (err) {
@@ -119,14 +111,8 @@ export default function AdminStadiumPage() {
   };
 
   const handleDeleteSector = async (id) => {
-    if (!window.confirm('¿Eliminar este sector? Se perderán los precios asociados.')) return;
+    if (!window.confirm('¿Eliminar este sector?')) return;
     await deleteStadiumSector(id);
-    fetchData();
-  };
-
-  const handleDeleteMatch = async (id) => {
-    if (!window.confirm('¿Eliminar este partido?')) return;
-    await deleteStadiumMatch(id);
     fetchData();
   };
 
@@ -141,14 +127,6 @@ export default function AdminStadiumPage() {
           <Link to="/admin" className="text-rojo text-sm hover:underline">&larr; Admin</Link>
           <h1 className="text-2xl font-extrabold">Estadio</h1>
         </div>
-        <button
-          onClick={() => navigate('/admin/estadio/partidos/nuevo')}
-          className="btn-primary text-sm"
-          disabled={!stadium}
-          title={!stadium ? 'Primero configure el estadio' : ''}
-        >
-          + Nuevo partido
-        </button>
       </div>
 
       {loading ? (
@@ -183,7 +161,16 @@ export default function AdminStadiumPage() {
                   className="input-field w-full"
                   placeholder="https://..."
                 />
-                <p className="text-xs text-gray-400 mt-1">Puede ser un enlace oficial o no oficial con información del estadio.</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <input
+                    type="checkbox"
+                    id="linkOfficial"
+                    checked={configLinkOfficial}
+                    onChange={(e) => setConfigLinkOfficial(e.target.checked)}
+                    className="rounded"
+                  />
+                  <label htmlFor="linkOfficial" className="text-sm text-gray-700">Enlace oficial</label>
+                </div>
               </div>
               <button type="submit" disabled={configLoading} className="btn-primary">
                 {configLoading ? 'Guardando...' : 'Guardar configuración'}
@@ -293,78 +280,6 @@ export default function AdminStadiumPage() {
                   )}
                 </div>
               </form>
-            )}
-          </div>
-
-          {/* Matches */}
-          <div className="card">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold">Partidos y precios de entradas</h2>
-            </div>
-
-            {matches.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <p className="text-sm">No hay partidos cargados.</p>
-                {stadium && (
-                  <button
-                    onClick={() => navigate('/admin/estadio/partidos/nuevo')}
-                    className="btn-primary text-sm mt-4"
-                  >
-                    Cargar primer partido
-                  </button>
-                )}
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left text-xs text-gray-500 uppercase">
-                      <th className="pb-3 pr-4">Fecha</th>
-                      <th className="pb-3 pr-4">Rival</th>
-                      <th className="pb-3 pr-4">Competencia</th>
-                      <th className="pb-3 pr-4">Local/Visit.</th>
-                      <th className="pb-3 pr-4">Precios</th>
-                      <th className="pb-3">Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {matches.map((m) => (
-                      <tr key={m.id} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="py-2 pr-4 font-mono text-xs whitespace-nowrap">
-                          {formatDate(m.match_date)}
-                          {m.match_time && <span className="text-gray-400 ml-1">{m.match_time.slice(0, 5)}</span>}
-                        </td>
-                        <td className="py-2 pr-4 font-medium">{m.opponent}</td>
-                        <td className="py-2 pr-4 text-gray-600">{m.competition || '-'}</td>
-                        <td className="py-2 pr-4">
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${m.is_home ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
-                            {m.is_home ? 'Local' : 'Visitante'}
-                          </span>
-                        </td>
-                        <td className="py-2 pr-4 text-gray-500 text-xs">
-                          {m.prices?.length > 0
-                            ? `${m.prices.length} sector${m.prices.length !== 1 ? 'es' : ''}`
-                            : <span className="text-gray-300">Sin precios</span>}
-                        </td>
-                        <td className="py-2 whitespace-nowrap">
-                          <button
-                            onClick={() => navigate(`/admin/estadio/partidos/${m.id}/editar`)}
-                            className="text-blue-600 text-xs mr-3 hover:underline"
-                          >
-                            Editar
-                          </button>
-                          <button
-                            onClick={() => handleDeleteMatch(m.id)}
-                            className="text-red-600 text-xs hover:underline"
-                          >
-                            Eliminar
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
             )}
           </div>
         </div>

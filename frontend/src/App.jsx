@@ -18,7 +18,6 @@ import AdminBalancesPage from './pages/AdminBalancesPage';
 import AdminBalanceFormPage from './pages/AdminBalanceFormPage';
 import AdminSettings from './pages/AdminSettings';
 import AdminStadiumPage from './pages/AdminStadiumPage';
-import AdminMatchFormPage from './pages/AdminMatchFormPage';
 import StadiumPage from './pages/StadiumPage';
 import StatsPage from './pages/StatsPage';
 import Loader from './components/common/Loader';
@@ -61,8 +60,6 @@ export default function App() {
         <Route path="/admin/balances/:id/editar" element={<ProtectedRoute><AdminBalanceFormPage /></ProtectedRoute>} />
         <Route path="/admin/configuracion" element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
         <Route path="/admin/estadio" element={<ProtectedRoute><AdminStadiumPage /></ProtectedRoute>} />
-        <Route path="/admin/estadio/partidos/nuevo" element={<ProtectedRoute><AdminMatchFormPage /></ProtectedRoute>} />
-        <Route path="/admin/estadio/partidos/:id/editar" element={<ProtectedRoute><AdminMatchFormPage /></ProtectedRoute>} />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

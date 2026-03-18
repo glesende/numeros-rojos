@@ -5,7 +5,7 @@ import FormBadges from '../components/stats/FormBadges';
 import PlayerCard from '../components/stats/PlayerCard';
 import PlayerMatchesModal from '../components/stats/PlayerMatchesModal';
 
-const ROLE_LABELS = { '1': 'Porteros', '2': 'Defensores', '3': 'Mediocampistas', '4': 'Delanteros' };
+const ROLE_LABELS = { '1': 'Arqueros', '2': 'Defensores', '3': 'Mediocampistas', '4': 'Delanteros' };
 const ROLE_ORDER = ['1', '2', '3', '4'];
 
 function computePJ(row) {

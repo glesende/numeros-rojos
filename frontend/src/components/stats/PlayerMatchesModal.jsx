@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { getPlayerMatches } from '../../api/endpoints';
 import Loader from '../common/Loader';
 
-const ROLE_LABELS = { '1': 'Porteros', '2': 'Defensores', '3': 'Mediocampistas', '4': 'Delanteros' };
+const ROLE_LABELS = { '1': 'Arqueros', '2': 'Defensores', '3': 'Mediocampistas', '4': 'Delanteros' };
 
 function PlayerMatchesSection({ player }) {
   const [matches, setMatches] = useState(null);

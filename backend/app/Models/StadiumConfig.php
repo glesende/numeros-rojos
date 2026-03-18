@@ -9,7 +9,9 @@ class StadiumConfig extends Model
 {
     protected $table = 'stadium_config';
 
-    protected $fillable = ['name', 'link'];
+    protected $fillable = ['name', 'link', 'link_official'];
+
+    protected $casts = ['link_official' => 'boolean'];
 
     public function sectors(): HasMany
     {
