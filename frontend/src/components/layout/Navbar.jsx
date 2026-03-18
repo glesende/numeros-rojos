@@ -8,6 +8,7 @@ const ALL_NAV_LINKS = [
   { to: '#contratos', label: 'Contratos', scrollTo: 'contratos', isAnchor: true, sectionKey: 'section_contratos_enabled' },
   { to: '#balances', label: 'Balances', scrollTo: 'balances', isAnchor: true, sectionKey: 'section_balances_enabled' },
   { to: '#metodologia', label: 'Metodologia', scrollTo: 'metodologia', isAnchor: true, sectionKey: null },
+  { to: '#estadisticas', label: 'Estadísticas', scrollTo: 'estadisticas', isAnchor: true, sectionKey: null },
 ];
 
 export default function Navbar() {

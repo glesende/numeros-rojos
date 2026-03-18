@@ -2,3 +2,4 @@
 /.env
 /storage/*.key
 /storage/app/*.csv
+/storage/app/balances/

@@ -16,8 +16,8 @@ import AdminContractsPage from './pages/AdminContractsPage';
 import AdminContractFormPage from './pages/AdminContractFormPage';
 import AdminBalancesPage from './pages/AdminBalancesPage';
 import AdminBalanceFormPage from './pages/AdminBalanceFormPage';
-import AdminBalanceItemsPage from './pages/AdminBalanceItemsPage';
 import AdminSettings from './pages/AdminSettings';
+import StatsPage from './pages/StatsPage';
 import Loader from './components/common/Loader';
 
 function ProtectedRoute({ children }) {
@@ -39,6 +39,7 @@ export default function App() {
         <Route path="/contratos/:id" element={<ContractDetailPage />} />
         <Route path="/balances" element={<BalancesPage />} />
         <Route path="/balances/:id" element={<BalanceDetailPage />} />
+        <Route path="/estadisticas" element={<StatsPage />} />
 
         {/* Auth */}
         <Route path="/admin/login" element={<LoginPage />} />
@@ -53,7 +54,6 @@ export default function App() {
         <Route path="/admin/contratos/:id/editar" element={<ProtectedRoute><AdminContractFormPage /></ProtectedRoute>} />
         <Route path="/admin/balances" element={<ProtectedRoute><AdminBalancesPage /></ProtectedRoute>} />
         <Route path="/admin/balances/nuevo" element={<ProtectedRoute><AdminBalanceFormPage /></ProtectedRoute>} />
-        <Route path="/admin/balances/items" element={<ProtectedRoute><AdminBalanceItemsPage /></ProtectedRoute>} />
         <Route path="/admin/balances/:id/editar" element={<ProtectedRoute><AdminBalanceFormPage /></ProtectedRoute>} />
         <Route path="/admin/configuracion" element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
 

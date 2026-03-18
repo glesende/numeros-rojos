@@ -1,105 +1,93 @@
+import { useState } from 'react';
+
 /**
- * BalanceBreakdownTable
+ * BalanceLinesTree
  *
- * Renders a grouped breakdown table by item and subitem.
+ * Renders a hierarchical balance tree.
  *
  * Props:
- * - breakdown: array of { id, item_id, item_name, subitem_id, subitem_name, amount, currency }
- * - currency: currently selected currency filter
+ * - lines:    array of nested line objects (each with id, name, amount, currency, is_total, children[])
+ * - currency: display currency label (e.g. 'ARS')
  */
-export default function BalanceBreakdownTable({ breakdown = [], currency = 'ARS' }) {
-  const filtered = breakdown.filter((row) => row.currency === currency);
 
-  if (filtered.length === 0) {
-    return (
-      <div className="card text-center py-8 text-gray-400 text-sm">
-        No hay desglose disponible en {currency} para este balance.
-      </div>
-    );
-  }
-
-  // Group by item
-  const grouped = {};
-  filtered.forEach((row) => {
-    const key = row.item_id;
-    if (!grouped[key]) {
-      grouped[key] = { item_name: row.item_name, rows: [], total: 0 };
-    }
-    grouped[key].rows.push(row);
-    grouped[key].total += Number(row.amount);
-  });
+function LineRow({ node, level = 0 }) {
+  const [open, setOpen] = useState(level < 2);
+  const hasChildren = node.children?.length > 0;
 
   const formatMoney = (amount) =>
     new Intl.NumberFormat('es-AR', {
       style: 'currency',
-      currency,
+      currency: node.currency || 'ARS',
       maximumFractionDigits: 0,
     }).format(amount);
 
-  const grandTotal = filtered.reduce((sum, r) => sum + Number(r.amount), 0);
+  return (
+    <>
+      <tr
+        className={`border-b transition-colors ${
+          node.is_total
+            ? 'bg-gray-50 font-bold'
+            : level === 0
+            ? 'hover:bg-gray-50'
+            : 'hover:bg-gray-50'
+        }`}
+      >
+        <td
+          className="py-2 pr-4"
+          style={{ paddingLeft: `${level * 18 + 8}px` }}
+        >
+          <button
+            type="button"
+            onClick={() => hasChildren && setOpen((o) => !o)}
+            className={`flex items-center gap-1 text-left w-full ${hasChildren ? 'cursor-pointer' : 'cursor-default'}`}
+          >
+            {hasChildren && (
+              <span className="text-gray-400 text-xs w-3 flex-shrink-0">{open ? '▾' : '▸'}</span>
+            )}
+            {!hasChildren && <span className="w-3 flex-shrink-0" />}
+            <span className={level === 0 ? 'font-semibold text-gray-800' : level === 1 ? 'text-gray-700' : 'text-gray-600 text-sm'}>
+              {node.name}
+            </span>
+          </button>
+        </td>
+        <td className="py-2 text-right font-mono">
+          {node.amount != null ? (
+            <span className={Number(node.amount) < 0 ? 'text-red-600' : 'text-gray-800'}>
+              {formatMoney(node.amount)}
+            </span>
+          ) : null}
+        </td>
+      </tr>
+      {open && hasChildren && node.children.map((child) => (
+        <LineRow key={child.id} node={child} level={level + 1} />
+      ))}
+    </>
+  );
+}
+
+export default function BalanceBreakdownTable({ lines = [] }) {
+  if (lines.length === 0) {
+    return (
+      <div className="text-center py-8 text-gray-400 text-sm">
+        No hay desglose disponible para este balance.
+      </div>
+    );
+  }
 
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm border-collapse">
         <thead>
           <tr className="border-b-2 border-gray-200 text-left text-xs text-gray-500 uppercase tracking-wide">
-            <th className="pb-2 pr-4 font-semibold">Item</th>
-            <th className="pb-2 pr-4 font-semibold">Subitem</th>
-            <th className="pb-2 text-right font-semibold">Monto ({currency})</th>
+            <th className="pb-2 pr-4 font-semibold pl-2">Concepto</th>
+            <th className="pb-2 text-right font-semibold">Monto</th>
           </tr>
         </thead>
         <tbody>
-          {Object.values(grouped).map((group) => (
-            <>
-              {group.rows.map((row, idx) => (
-                <tr
-                  key={row.id}
-                  className="border-b border-gray-50 hover:bg-gray-50 transition-colors"
-                >
-                  {idx === 0 ? (
-                    <td
-                      className="py-2 pr-4 font-semibold text-gray-800 align-top"
-                      rowSpan={group.rows.length}
-                    >
-                      {group.item_name}
-                    </td>
-                  ) : null}
-                  <td className="py-2 pr-4 text-gray-600">
-                    {row.subitem_name || <span className="text-gray-400 italic">Sin subitem</span>}
-                  </td>
-                  <td className="py-2 text-right font-mono">
-                    <span className={Number(row.amount) < 0 ? 'text-red-600' : 'text-gray-800'}>
-                      {formatMoney(row.amount)}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-              {/* Item subtotal row */}
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <td colSpan={2} className="py-1.5 pr-4 text-xs font-bold text-gray-500 uppercase">
-                  Subtotal {group.item_name}
-                </td>
-                <td className="py-1.5 text-right font-mono text-xs font-bold">
-                  <span className={group.total < 0 ? 'text-red-600' : 'text-gray-700'}>
-                    {formatMoney(group.total)}
-                  </span>
-                </td>
-              </tr>
-            </>
+          {lines.map((line) => (
+            <LineRow key={line.id} node={line} level={0} />
           ))}
         </tbody>
-        <tfoot>
-          <tr className="bg-gray-100 border-t-2 border-gray-300">
-            <td colSpan={2} className="py-2 pr-4 font-extrabold text-gray-800">
-              TOTAL
-            </td>
-            <td className="py-2 text-right font-mono font-extrabold text-gray-900">
-              <span className={grandTotal < 0 ? 'text-red-700' : ''}>
-                {formatMoney(grandTotal)}
-              </span>
-            </td>
-          </tr>
-        </tfoot>
       </table>
     </div>
   );

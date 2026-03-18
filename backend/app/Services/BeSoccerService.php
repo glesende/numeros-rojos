@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 class BeSoccerService
 {
     private Client $client;
-    private string $apiKey;
+    private ?string $apiKey;
     private array $cacheTtl;
     private string $baseUrl;
 
@@ -23,13 +23,13 @@ class BeSoccerService
             'timeout' => 15,
         ]);
         $settingKey = Setting::get('besoccer_api_key');
-        $this->apiKey = $settingKey ?: config('besoccer.api_key');
+        $this->apiKey = $settingKey ?: config('besoccer.api_key') ?: null;
         $this->cacheTtl = config('besoccer.cache_ttl');
     }
 
     public function isEnabled(): bool
     {
-        return Setting::get('data_service', 'disabled') === 'besoccer';
+        return Setting::get('data_service', 'disabled') === 'besoccer' && !empty($this->apiKey);
     }
 
     public function getStandings(array $params = []): array
@@ -40,7 +40,7 @@ class BeSoccerService
 
         $cacheKey = 'besoccer:standings:' . md5(json_encode($params));
 
-        return Cache::remember($cacheKey, $this->cacheTtl['standings'], function () use ($params) {
+        return $this->rememberOnSuccess($cacheKey, $this->cacheTtl['standings'], function () use ($params) {
             return $this->request('/standings', $params);
         });
     }
@@ -53,7 +53,7 @@ class BeSoccerService
 
         $cacheKey = "besoccer:player:{$playerId}:stats";
 
-        return Cache::remember($cacheKey, $this->cacheTtl['player_stats'], function () use ($playerId) {
+        return $this->rememberOnSuccess($cacheKey, $this->cacheTtl['player_stats'], function () use ($playerId) {
             return $this->request("/player/{$playerId}/stats");
         });
     }
@@ -66,8 +66,42 @@ class BeSoccerService
 
         $cacheKey = 'besoccer:league:stats:' . md5(json_encode($params));
 
-        return Cache::remember($cacheKey, $this->cacheTtl['league_stats'], function () use ($params) {
+        return $this->rememberOnSuccess($cacheKey, $this->cacheTtl['league_stats'], function () use ($params) {
             return $this->request('/league/stats', $params);
+        });
+    }
+
+    public function getTeam(string $teamId): array
+    {
+        if (!$this->isEnabled()) {
+            return ['success' => false, 'error' => 'Servicio de datos desactivado'];
+        }
+
+        $cacheKey = "besoccer:team:{$teamId}";
+
+        return $this->rememberOnSuccess($cacheKey, $this->cacheTtl['standings'], function () use ($teamId) {
+            return $this->request('/api.php', [
+                'format' => 'json',
+                'req'    => 'team',
+                'id'     => $teamId,
+            ]);
+        });
+    }
+
+    public function getPlayerMatches(string $playerId): array
+    {
+        if (!$this->isEnabled()) {
+            return ['success' => false, 'error' => 'Servicio de datos desactivado'];
+        }
+
+        $cacheKey = "besoccer:player:{$playerId}:matches";
+
+        return $this->rememberOnSuccess($cacheKey, $this->cacheTtl['player_stats'], function () use ($playerId) {
+            return $this->request('/api.php', [
+                'format' => 'json',
+                'req'    => 'player_matches',
+                'id'     => $playerId,
+            ]);
         });
     }
 
@@ -80,13 +114,28 @@ class BeSoccerService
         $cacheKey = "besoccer:player:{$externalId}:data";
         $ttl = rand(172800, 432000);
 
-        return Cache::remember($cacheKey, $ttl, function () use ($externalId) {
+        return $this->rememberOnSuccess($cacheKey, $ttl, function () use ($externalId) {
             return $this->request('/api.php', [
                 'format' => 'json',
                 'req'    => 'player',
                 'id'     => $externalId,
             ]);
         });
+    }
+
+    private function rememberOnSuccess(string $cacheKey, int $ttl, callable $callback): array
+    {
+        if (Cache::has($cacheKey)) {
+            return Cache::get($cacheKey);
+        }
+
+        $result = $callback();
+
+        if ($result['success'] ?? false) {
+            Cache::put($cacheKey, $result, $ttl);
+        }
+
+        return $result;
     }
 
     private function request(string $endpoint, array $params = []): array

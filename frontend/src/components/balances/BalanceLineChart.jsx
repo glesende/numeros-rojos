@@ -43,7 +43,7 @@ function formatAmount(value) {
   return formatted;
 }
 
-function CustomTooltip({ active, payload, label, currency }) {
+function CustomTooltip({ active, payload, label }) {
   if (!active || !payload || payload.length === 0) return null;
 
   return (
@@ -53,7 +53,7 @@ function CustomTooltip({ active, payload, label, currency }) {
         <div key={entry.dataKey} className="flex justify-between gap-4 py-0.5">
           <span className="truncate" style={{ color: entry.color }}>{entry.name}</span>
           <span className="font-mono font-semibold" style={{ color: entry.color }}>
-            {currency} {formatAmount(entry.value)}
+            USD {formatAmount(entry.value)}
           </span>
         </div>
       ))}
@@ -73,12 +73,11 @@ export default function BalanceLineChart({ compact = false, showLink = false, se
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currency, setCurrency] = useState('ARS');
   const [activeItems, setActiveItems] = useState([]);
 
   useEffect(() => {
     setLoading(true);
-    getBalancesEvolution({ currency })
+    getBalancesEvolution()
       .then((res) => {
         const d = res.data?.data || { exercises: [], series: [] };
         setData(d);
@@ -92,7 +91,7 @@ export default function BalanceLineChart({ compact = false, showLink = false, se
       })
       .catch(() => setError('No se pudieron cargar los datos de evolución.'))
       .finally(() => setLoading(false));
-  }, [currency]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const toggleItem = (id) => {
     setActiveItems((prev) =>
@@ -139,22 +138,6 @@ export default function BalanceLineChart({ compact = false, showLink = false, se
           <p className="text-sm text-gray-500 mt-0.5">Comparativa por ejercicio</p>
         </div>
         <div className="flex items-center gap-3">
-          {/* Currency toggle */}
-          <div className="flex gap-1 bg-gray-100 rounded-lg p-1 self-start sm:self-auto">
-            {['ARS', 'USD'].map((c) => (
-              <button
-                key={c}
-                onClick={() => setCurrency(c)}
-                className={`px-3 py-1.5 rounded-md text-sm font-semibold transition-all ${
-                  currency === c
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
           {showLink && (
             <Link
               to="/balances"
@@ -215,7 +198,7 @@ export default function BalanceLineChart({ compact = false, showLink = false, se
                 axisLine={false}
                 width={65}
               />
-              <Tooltip content={<CustomTooltip currency={currency} />} />
+              <Tooltip content={<CustomTooltip />} />
               {!compact && <Legend formatter={(value) => value} />}
               {visibleSeries.map((serie, idx) => {
                 const colorIdx = data.series.findIndex((s) => s.id === serie.id);
