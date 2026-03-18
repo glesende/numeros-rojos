@@ -30,7 +30,7 @@ export default function EconomyDetailPage() {
 
       <div className="card">
         <div className="flex items-center gap-3 mb-4">
-          <span className={`text-xs font-bold uppercase px-2 py-1 rounded ${record.type === 'cobro' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+          <span className={record.type === 'cobro' ? 'badge-cobro' : 'badge-pago'}>
             {record.type}
           </span>
           {record.official && <span className="text-xs font-semibold text-green-600">Oficial</span>}
