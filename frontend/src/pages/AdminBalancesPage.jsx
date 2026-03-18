@@ -37,12 +37,6 @@ export default function AdminBalancesPage() {
         </div>
         <div className="flex gap-3">
           <button
-            onClick={() => navigate('/admin/balances/items')}
-            className="btn-secondary text-sm"
-          >
-            Catalogo items
-          </button>
-          <button
             onClick={() => navigate('/admin/balances/nuevo')}
             className="btn-primary text-sm"
           >

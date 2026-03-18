@@ -19,8 +19,13 @@ class Balance extends Model
         'published_at'     => 'date',
     ];
 
-    public function breakdowns()
+    public function lines()
     {
-        return $this->hasMany(BalanceBreakdown::class);
+        return $this->hasMany(BalanceLine::class)->orderBy('order');
+    }
+
+    public function rootLines()
+    {
+        return $this->hasMany(BalanceLine::class)->whereNull('parent_id')->orderBy('order');
     }
 }

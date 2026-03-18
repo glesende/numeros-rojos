@@ -16,7 +16,6 @@ import AdminContractsPage from './pages/AdminContractsPage';
 import AdminContractFormPage from './pages/AdminContractFormPage';
 import AdminBalancesPage from './pages/AdminBalancesPage';
 import AdminBalanceFormPage from './pages/AdminBalanceFormPage';
-import AdminBalanceItemsPage from './pages/AdminBalanceItemsPage';
 import AdminSettings from './pages/AdminSettings';
 import Loader from './components/common/Loader';
 
@@ -53,7 +52,6 @@ export default function App() {
         <Route path="/admin/contratos/:id/editar" element={<ProtectedRoute><AdminContractFormPage /></ProtectedRoute>} />
         <Route path="/admin/balances" element={<ProtectedRoute><AdminBalancesPage /></ProtectedRoute>} />
         <Route path="/admin/balances/nuevo" element={<ProtectedRoute><AdminBalanceFormPage /></ProtectedRoute>} />
-        <Route path="/admin/balances/items" element={<ProtectedRoute><AdminBalanceItemsPage /></ProtectedRoute>} />
         <Route path="/admin/balances/:id/editar" element={<ProtectedRoute><AdminBalanceFormPage /></ProtectedRoute>} />
         <Route path="/admin/configuracion" element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
 

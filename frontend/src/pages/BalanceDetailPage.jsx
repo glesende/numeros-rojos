@@ -3,16 +3,12 @@ import { useParams, Link } from 'react-router-dom';
 import { getBalance, getBalanceDownloadUrl } from '../api/endpoints';
 import Loader from '../components/common/Loader';
 import BalanceBreakdownTable from '../components/balances/BalanceBreakdownTable';
-import BalanceLineChart from '../components/balances/BalanceLineChart';
-
-const CURRENCIES = ['ARS', 'USD', 'EUR'];
 
 export default function BalanceDetailPage() {
   const { id } = useParams();
   const [balance, setBalance] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [currency, setCurrency] = useState('ARS');
+  const [error, setError]     = useState(null);
 
   useEffect(() => {
     setLoading(true);
@@ -47,17 +43,21 @@ export default function BalanceDetailPage() {
     );
   }
 
-  // Determine available currencies in the breakdown
-  const availableCurrencies = [...new Set((balance.breakdown || []).map((r) => r.currency))];
-
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Breadcrumb */}
       <div className="mb-6">
         <Link to="/balances" className="text-rojo text-sm hover:underline">&larr; Balances</Link>
         <h1 className="text-3xl font-extrabold mt-1">Balance {balance.exercise}</h1>
-        {balance.published_at && (
+        {balance.fecha && (
           <p className="text-sm text-gray-500 mt-1">
+            Ejercicio al {new Date(balance.fecha).toLocaleDateString('es-AR', {
+              day: '2-digit', month: 'long', year: 'numeric',
+            })}
+          </p>
+        )}
+        {balance.published_at && (
+          <p className="text-sm text-gray-500">
             Publicado el {new Date(balance.published_at).toLocaleDateString('es-AR', {
               day: '2-digit', month: 'long', year: 'numeric',
             })}
@@ -91,35 +91,10 @@ export default function BalanceDetailPage() {
         </div>
       )}
 
-      {/* Evolution chart */}
-      <div className="mb-6">
-        <BalanceLineChart compact={false} showLink={false} />
-      </div>
-
-      {/* Breakdown table */}
+      {/* Lines tree */}
       <div className="card">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold">Desglose del balance</h2>
-          {availableCurrencies.length > 1 && (
-            <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
-              {CURRENCIES.filter((c) => availableCurrencies.includes(c)).map((c) => (
-                <button
-                  key={c}
-                  onClick={() => setCurrency(c)}
-                  className={`px-3 py-1.5 rounded-md text-sm font-semibold transition-all ${
-                    currency === c
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <BalanceBreakdownTable breakdown={balance.breakdown || []} currency={currency} />
+        <h2 className="text-xl font-bold mb-4">Desglose del balance</h2>
+        <BalanceBreakdownTable lines={balance.lines || []} />
       </div>
     </div>
   );

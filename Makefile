@@ -1,5 +1,7 @@
 COMPOSE := docker-compose
 
+-include .env.local
+
 .PHONY: help up down build restart logs shell-api shell-frontend migrate seed fresh test lint fresh-start
 
 # Colors for output
@@ -103,8 +105,8 @@ fresh-start: ## Fresh install: down, build, up, npm-install, migrate:fresh --see
 
 # ─── Production ─────────────────────────────────────────────────
 
-SERVER := ubuntu@148.113.207.54
-DEPLOY_PATH := /home/ubuntu/projects/numeros-rojos
+SERVER ?= $(error SERVER no definido. Crea .env.local con SERVER=user@ip)
+DEPLOY_PATH ?= $(error DEPLOY_PATH no definido. Crea .env.local con DEPLOY_PATH=/ruta/proyecto)
 
 prod-build: ## Construir para producción
 	docker-compose -f docker-compose.prod.yml --env-file .env.prod build

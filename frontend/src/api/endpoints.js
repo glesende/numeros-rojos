@@ -36,20 +36,12 @@ export const createBalance = (data) => client.post('/admin/balances', data, { he
 export const updateBalance = (id, formData) => client.post(`/admin/balances/${id}/update`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const deleteBalance = (id) => client.delete(`/admin/balances/${id}`);
 export const analyzeBalance = (id) => client.post(`/admin/balances/${id}/analyze`);
+export const applyBalanceAnalysis = (id, data) => client.post(`/admin/balances/${id}/apply-analysis`, data);
 
-// Balance breakdowns (admin)
-export const createBreakdown = (balanceId, data) => client.post(`/admin/balances/${balanceId}/breakdowns`, data);
-export const updateBreakdown = (balanceId, breakdownId, data) => client.put(`/admin/balances/${balanceId}/breakdowns/${breakdownId}`, data);
-export const deleteBreakdown = (balanceId, breakdownId) => client.delete(`/admin/balances/${balanceId}/breakdowns/${breakdownId}`);
-
-// Balance items (public + admin)
-export const getBalanceItems = () => client.get('/balance-items');
-export const createBalanceItem = (data) => client.post('/admin/balance-items', data);
-export const updateBalanceItem = (id, data) => client.put(`/admin/balance-items/${id}`, data);
-export const deleteBalanceItem = (id) => client.delete(`/admin/balance-items/${id}`);
-export const createBalanceSubitem = (itemId, data) => client.post(`/admin/balance-items/${itemId}/subitems`, data);
-export const updateBalanceSubitem = (itemId, subitemId, data) => client.put(`/admin/balance-items/${itemId}/subitems/${subitemId}`, data);
-export const deleteBalanceSubitem = (itemId, subitemId) => client.delete(`/admin/balance-items/${itemId}/subitems/${subitemId}`);
+// Balance lines CRUD (admin)
+export const createLine = (balanceId, data) => client.post(`/admin/balances/${balanceId}/lines`, data);
+export const updateLine = (balanceId, lineId, data) => client.put(`/admin/balances/${balanceId}/lines/${lineId}`, data);
+export const deleteLine = (balanceId, lineId) => client.delete(`/admin/balances/${balanceId}/lines/${lineId}`);
 
 // Auth
 export const login = (credentials) => client.post('/auth/login', credentials);

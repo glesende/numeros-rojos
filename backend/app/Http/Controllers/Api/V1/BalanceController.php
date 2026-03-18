@@ -4,9 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Balance;
-use App\Models\BalanceBreakdown;
-use App\Models\BalanceItem;
-use App\Models\BalanceSubitem;
+use App\Models\BalanceLine;
 use App\Services\OpenAiService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -38,20 +36,36 @@ class BalanceController extends Controller
     {
         $balance = Balance::findOrFail($id);
 
-        $breakdowns = BalanceBreakdown::with(['item', 'subitem'])
-            ->where('balance_id', $id)
-            ->get()
-            ->map(function (BalanceBreakdown $bd) {
-                return [
-                    'id'         => $bd->id,
-                    'item_id'    => $bd->balance_item_id,
-                    'item_name'  => $bd->item?->name,
-                    'subitem_id' => $bd->balance_subitem_id,
-                    'subitem_name' => $bd->subitem?->name,
-                    'amount'     => (float) $bd->amount,
-                    'currency'   => $bd->currency,
-                ];
-            });
+        // Flat query + PHP tree assembly (handles any depth, single DB round-trip)
+        $allLines = BalanceLine::where('balance_id', $id)->orderBy('order')->get();
+
+        $map   = [];
+        $roots = [];
+
+        foreach ($allLines as $line) {
+            $map[$line->id] = [
+                'id'              => $line->id,
+                'parent_id'       => $line->parent_id,
+                'name'            => $line->name,
+                'normalized_name' => $line->normalized_name,
+                'level'           => $line->level,
+                'order'           => $line->order,
+                'amount'          => $line->amount !== null ? (float) $line->amount : null,
+                'currency'        => $line->currency,
+                'is_total'        => (bool) $line->is_total,
+                'path'            => $line->path,
+                'children'        => [],
+            ];
+        }
+
+        foreach ($map as $lineId => &$node) {
+            if ($node['parent_id'] === null) {
+                $roots[] = &$node;
+            } elseif (isset($map[$node['parent_id']])) {
+                $map[$node['parent_id']]['children'][] = &$node;
+            }
+        }
+        unset($node);
 
         return response()->json([
             'data' => [
@@ -61,7 +75,7 @@ class BalanceController extends Controller
                 'published_at'       => $balance->published_at?->toDateString(),
                 'has_file'           => !empty($balance->file_path),
                 'file_original_name' => $balance->file_original_name,
-                'breakdown'          => $breakdowns,
+                'lines'              => $roots,
             ],
         ]);
     }
@@ -81,7 +95,7 @@ class BalanceController extends Controller
         if ($request->hasFile('file') && $request->file('file')->isValid()) {
             $file             = $request->file('file');
             $fileOriginalName = $file->getClientOriginalName();
-            $filePath         = $file->store('balances', 'local');
+            $filePath         = $this->storeFile($file);
         }
 
         $balance = Balance::create([
@@ -107,13 +121,12 @@ class BalanceController extends Controller
         ]);
 
         if ($request->hasFile('file') && $request->file('file')->isValid()) {
-            // Delete old file
             if ($balance->file_path) {
                 Storage::disk('local')->delete($balance->file_path);
             }
             $file = $request->file('file');
             $balance->file_original_name = $file->getClientOriginalName();
-            $balance->file_path          = $file->store('balances', 'local');
+            $balance->file_path          = $this->storeFile($file);
         }
 
         $balance->fill($request->only(['exercise', 'dollar_reference', 'published_at']));
@@ -149,6 +162,10 @@ class BalanceController extends Controller
         return response()->download($path, $fileName);
     }
 
+    // --------------------------------------------------------
+    // AI Analysis (single stage)
+    // --------------------------------------------------------
+
     public function analyze(int $id): JsonResponse
     {
         $balance = Balance::findOrFail($id);
@@ -157,85 +174,116 @@ class BalanceController extends Controller
             return response()->json(['error' => 'El balance no tiene archivo adjunto'], 422);
         }
 
-        $items = BalanceItem::with('subitems')->orderBy('order')->orderBy('name')->get();
-
         $service = new OpenAiService();
-
-        $result = $service->analyzeBalance($balance, $items->toArray());
+        $result  = $service->analyzeBalance($balance);
 
         return response()->json(['data' => $result]);
     }
 
+    /**
+     * Apply the AI-generated hierarchical tree to the balance.
+     * Receives the confirmed `data` array and persists it.
+     */
+    public function applyAnalysis(Request $request, int $id): JsonResponse
+    {
+        $balance = Balance::findOrFail($id);
+
+        $this->validate($request, [
+            'data' => 'required|array',
+        ]);
+
+        $service = new OpenAiService();
+        $service->persistLines($balance, $request->input('data'));
+
+        return $this->show($id);
+    }
+
     // --------------------------------------------------------
-    // Breakdown CRUD (nested under balance)
+    // Balance lines CRUD (manual editing)
     // --------------------------------------------------------
 
-    public function storeBreakdown(Request $request, int $balanceId): JsonResponse
+    public function storeLine(Request $request, int $balanceId): JsonResponse
     {
         Balance::findOrFail($balanceId);
 
         $this->validate($request, [
-            'balance_item_id'    => 'required|exists:balance_items,id',
-            'balance_subitem_id' => 'nullable|exists:balance_subitems,id',
-            'amount'             => 'required|numeric',
-            'currency'           => 'required|in:ARS,USD,EUR',
+            'parent_id' => 'nullable|exists:balance_lines,id',
+            'name'      => 'required|string|max:255',
+            'amount'    => 'nullable|numeric',
+            'currency'  => 'nullable|in:ARS,USD,EUR',
+            'is_total'  => 'nullable|boolean',
         ]);
 
-        $bd = BalanceBreakdown::create([
-            'balance_id'         => $balanceId,
-            'balance_item_id'    => $request->input('balance_item_id'),
-            'balance_subitem_id' => $request->input('balance_subitem_id'),
-            'amount'             => $request->input('amount'),
-            'currency'           => $request->input('currency', 'ARS'),
+        $parentId   = $request->input('parent_id');
+        $level      = 1;
+        $parentPath = '';
+
+        if ($parentId) {
+            $parent     = BalanceLine::findOrFail($parentId);
+            $level      = $parent->level + 1;
+            $parentPath = $parent->path ?? '';
+        }
+
+        $name  = $request->input('name');
+        $path  = $parentPath ? ($parentPath . ' > ' . $name) : $name;
+        $order = BalanceLine::where('balance_id', $balanceId)
+            ->where('parent_id', $parentId)
+            ->max('order') + 1;
+
+        $line = BalanceLine::create([
+            'balance_id'      => $balanceId,
+            'parent_id'       => $parentId,
+            'name'            => $name,
+            'normalized_name' => BalanceLine::normalizeName($name),
+            'level'           => $level,
+            'order'           => $order,
+            'amount'          => $request->input('amount'),
+            'currency'        => $request->input('currency', 'ARS'),
+            'is_total'        => $request->boolean('is_total', false),
+            'path'            => $path,
         ]);
 
-        $bd->load(['item', 'subitem']);
-
-        return response()->json(['data' => [
-            'id'           => $bd->id,
-            'item_id'      => $bd->balance_item_id,
-            'item_name'    => $bd->item?->name,
-            'subitem_id'   => $bd->balance_subitem_id,
-            'subitem_name' => $bd->subitem?->name,
-            'amount'       => (float) $bd->amount,
-            'currency'     => $bd->currency,
-        ]], 201);
+        return response()->json(['data' => $line], 201);
     }
 
-    public function updateBreakdown(Request $request, int $balanceId, int $breakdownId): JsonResponse
+    public function updateLine(Request $request, int $balanceId, int $lineId): JsonResponse
     {
         Balance::findOrFail($balanceId);
-        $bd = BalanceBreakdown::where('balance_id', $balanceId)->findOrFail($breakdownId);
+        $line = BalanceLine::where('balance_id', $balanceId)->findOrFail($lineId);
 
         $this->validate($request, [
-            'balance_item_id'    => 'sometimes|exists:balance_items,id',
-            'balance_subitem_id' => 'nullable|exists:balance_subitems,id',
-            'amount'             => 'sometimes|numeric',
-            'currency'           => 'sometimes|in:ARS,USD,EUR',
+            'name'     => 'sometimes|string|max:255',
+            'amount'   => 'nullable|numeric',
+            'currency' => 'nullable|in:ARS,USD,EUR',
+            'is_total' => 'nullable|boolean',
         ]);
 
-        $bd->fill($request->only(['balance_item_id', 'balance_subitem_id', 'amount', 'currency']));
-        $bd->save();
-        $bd->load(['item', 'subitem']);
+        if ($request->has('name')) {
+            $line->name            = $request->input('name');
+            $line->normalized_name = BalanceLine::normalizeName($request->input('name'));
+        }
+        if ($request->has('amount')) {
+            $line->amount = $request->input('amount');
+        }
+        if ($request->has('currency')) {
+            $line->currency = $request->input('currency');
+        }
+        if ($request->has('is_total')) {
+            $line->is_total = $request->boolean('is_total');
+        }
 
-        return response()->json(['data' => [
-            'id'           => $bd->id,
-            'item_id'      => $bd->balance_item_id,
-            'item_name'    => $bd->item?->name,
-            'subitem_id'   => $bd->balance_subitem_id,
-            'subitem_name' => $bd->subitem?->name,
-            'amount'       => (float) $bd->amount,
-            'currency'     => $bd->currency,
-        ]]);
+        $line->save();
+
+        return response()->json(['data' => $line]);
     }
 
-    public function destroyBreakdown(int $balanceId, int $breakdownId): JsonResponse
+    public function destroyLine(int $balanceId, int $lineId): JsonResponse
     {
         Balance::findOrFail($balanceId);
-        $bd = BalanceBreakdown::where('balance_id', $balanceId)->findOrFail($breakdownId);
-        $bd->delete();
+        $line = BalanceLine::where('balance_id', $balanceId)->findOrFail($lineId);
+        $line->delete(); // cascades to children
 
-        return response()->json(['message' => 'Registro eliminado'], 200);
+        return response()->json(['message' => 'Línea eliminada'], 200);
     }
 
     // --------------------------------------------------------
@@ -246,40 +294,43 @@ class BalanceController extends Controller
     {
         $currency = $request->input('currency', 'ARS');
 
-        // Get all items with subitems
-        $items = BalanceItem::with('subitems')->orderBy('order')->orderBy('name')->get();
-
-        // Get all balances ordered by exercise
         $balances = Balance::orderBy('published_at')->orderBy('exercise')->get();
 
         if ($balances->isEmpty()) {
             return response()->json(['data' => ['exercises' => [], 'series' => []]]);
         }
 
-        // Get all breakdowns for the requested currency
-        $breakdowns = BalanceBreakdown::where('currency', $currency)
+        // Root lines (level 1) grouped by normalized_name for cross-balance comparison
+        $rootLines = BalanceLine::whereNull('parent_id')
             ->whereIn('balance_id', $balances->pluck('id'))
-            ->with(['item', 'subitem'])
+            ->where('currency', $currency)
+            ->whereNotNull('normalized_name')
+            ->whereNotNull('amount')
             ->get();
 
         $exercises = $balances->pluck('exercise')->toArray();
 
-        // Build series: one per item (aggregated, no subitem filter)
+        // Build series map: normalized_name => { name, values_by_balance_id }
+        $seriesMap = [];
+        foreach ($rootLines as $line) {
+            $key = $line->normalized_name;
+            if (!isset($seriesMap[$key])) {
+                $seriesMap[$key] = ['name' => $line->name, 'values_by_balance' => []];
+            }
+            $seriesMap[$key]['values_by_balance'][$line->balance_id] =
+                ($seriesMap[$key]['values_by_balance'][$line->balance_id] ?? 0) + (float) $line->amount;
+        }
+
         $series = [];
-        foreach ($items as $item) {
+        foreach ($seriesMap as $key => $s) {
             $values = [];
             foreach ($balances as $balance) {
-                $total = $breakdowns
-                    ->where('balance_id', $balance->id)
-                    ->where('balance_item_id', $item->id)
-                    ->sum('amount');
-                $values[] = round((float) $total, 2);
+                $values[] = round($s['values_by_balance'][$balance->id] ?? 0, 2);
             }
-            // Only include items that have at least one non-zero value
             if (array_sum(array_map('abs', $values)) > 0) {
                 $series[] = [
-                    'id'     => $item->id,
-                    'name'   => $item->name,
+                    'id'     => $key,
+                    'name'   => $s['name'],
                     'values' => $values,
                 ];
             }
@@ -292,5 +343,22 @@ class BalanceController extends Controller
                 'series'    => $series,
             ],
         ]);
+    }
+
+    // --------------------------------------------------------
+    // Private helpers
+    // --------------------------------------------------------
+
+    private function storeFile(\Illuminate\Http\UploadedFile $file): string
+    {
+        Storage::disk('local')->makeDirectory('balances');
+
+        $path = $file->store('balances', 'local');
+
+        if ($path === false || $path === '') {
+            throw new \RuntimeException('No se pudo guardar el archivo. Verificá los permisos del directorio de almacenamiento.');
+        }
+
+        return $path;
     }
 }

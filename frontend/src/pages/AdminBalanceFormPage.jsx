@@ -1,23 +1,263 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import {
   getBalance,
   createBalance,
   updateBalance,
-  getBalanceItems,
-  createBreakdown,
-  updateBreakdown,
-  deleteBreakdown,
   analyzeBalance,
+  applyBalanceAnalysis,
   getBalanceDownloadUrl,
   getSettings,
-  createBalanceItem,
-  createBalanceSubitem,
+  createLine,
+  updateLine,
+  deleteLine,
 } from '../api/endpoints';
 import Loader from '../components/common/Loader';
 import ErrorMessage from '../components/common/ErrorMessage';
 
 const CURRENCIES = ['ARS', 'USD', 'EUR'];
+
+const formatMoney = (amount, currency = 'ARS') =>
+  new Intl.NumberFormat('es-AR', {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: 0,
+  }).format(amount);
+
+// ── Tree preview (AI result before applying) ──────────────────────────────────
+
+function PreviewNode({ node, level = 0 }) {
+  const [open, setOpen] = useState(level < 2);
+  const hasChildren = node.children?.length > 0;
+
+  return (
+    <div style={{ paddingLeft: `${level * 14}px` }}>
+      <div
+        className={`flex items-center justify-between py-0.5 ${node.is_total ? 'font-semibold text-gray-800' : 'text-gray-700'}`}
+      >
+        <button
+          type="button"
+          onClick={() => hasChildren && setOpen((o) => !o)}
+          className={`flex items-center gap-1 text-left text-xs ${hasChildren ? 'cursor-pointer' : 'cursor-default'}`}
+        >
+          {hasChildren && (
+            <span className="text-gray-400 w-3">{open ? '▾' : '▸'}</span>
+          )}
+          {!hasChildren && <span className="w-3" />}
+          <span>{node.name}</span>
+          {node.is_total && (
+            <span className="ml-1 text-[10px] text-purple-600 font-normal">(total)</span>
+          )}
+        </button>
+        {node.amount != null && (
+          <span className={`text-xs font-mono ml-4 ${node.amount < 0 ? 'text-red-600' : ''}`}>
+            {Number(node.amount).toLocaleString('es-AR')}
+          </span>
+        )}
+      </div>
+      {open && hasChildren && node.children.map((child, i) => (
+        <PreviewNode key={i} node={child} level={level + 1} />
+      ))}
+    </div>
+  );
+}
+
+// ── Editable lines tree ───────────────────────────────────────────────────────
+
+function LineNode({ node, balanceId, level = 0, onDelete, onLineAdded, onLineUpdated }) {
+  const [addingChild, setAddingChild]   = useState(false);
+  const [editingAmount, setEditingAmount] = useState(false);
+  const [amountInput, setAmountInput]   = useState(node.amount ?? '');
+  const [open, setOpen] = useState(level < 2);
+  const hasChildren = node.children?.length > 0;
+
+  const handleAddChild = () => setAddingChild(true);
+
+  const handleAmountSave = async () => {
+    try {
+      const res = await updateLine(balanceId, node.id, { amount: amountInput === '' ? null : parseFloat(amountInput) });
+      onLineUpdated(res.data.data);
+      setEditingAmount(false);
+    } catch {
+      setEditingAmount(false);
+    }
+  };
+
+  return (
+    <div style={{ paddingLeft: level > 0 ? `${level * 14}px` : undefined }}>
+      <div
+        className={`flex items-center justify-between gap-2 py-1 border-b border-gray-50 group ${node.is_total ? 'font-semibold' : ''}`}
+      >
+        <button
+          type="button"
+          onClick={() => (hasChildren || node.children?.length > 0) && setOpen((o) => !o)}
+          className="flex items-center gap-1 text-xs text-left flex-1 min-w-0"
+        >
+          {(hasChildren || addingChild) && (
+            <span className="text-gray-400 w-3 flex-shrink-0">{open ? '▾' : '▸'}</span>
+          )}
+          {!hasChildren && !addingChild && <span className="w-3 flex-shrink-0" />}
+          <span className="truncate">{node.name}</span>
+          {node.is_total && <span className="ml-1 text-[10px] text-gray-400 font-normal flex-shrink-0">(total)</span>}
+        </button>
+
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {editingAmount ? (
+            <div className="flex items-center gap-1">
+              <input
+                type="number"
+                value={amountInput}
+                onChange={(e) => setAmountInput(e.target.value)}
+                className="input-field text-xs w-28 py-0.5 px-1"
+                step="0.01"
+                autoFocus
+              />
+              <button onClick={handleAmountSave} className="text-xs text-green-600 hover:underline">✓</button>
+              <button onClick={() => setEditingAmount(false)} className="text-xs text-gray-400 hover:underline">✕</button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => { setAmountInput(node.amount ?? ''); setEditingAmount(true); }}
+              className="text-xs font-mono text-gray-600 hover:text-blue-600"
+            >
+              {node.amount != null ? (
+                <span className={node.amount < 0 ? 'text-red-600' : ''}>
+                  {formatMoney(node.amount, node.currency)}
+                </span>
+              ) : (
+                <span className="text-gray-300 text-[10px]">— monto</span>
+              )}
+            </button>
+          )}
+
+          <div className="hidden group-hover:flex items-center gap-1">
+            <button
+              type="button"
+              onClick={handleAddChild}
+              title="Agregar sub-línea"
+              className="text-[10px] text-blue-500 hover:underline px-1"
+            >
+              + hijo
+            </button>
+            <button
+              type="button"
+              onClick={() => onDelete(node.id)}
+              title="Eliminar línea y sus hijos"
+              className="text-[10px] text-red-400 hover:underline px-1"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {open && (
+        <>
+          {node.children?.map((child) => (
+            <LineNode
+              key={child.id}
+              node={child}
+              balanceId={balanceId}
+              level={level + 1}
+              onDelete={onDelete}
+              onLineAdded={onLineAdded}
+              onLineUpdated={onLineUpdated}
+            />
+          ))}
+          {addingChild && (
+            <AddLineForm
+              balanceId={balanceId}
+              parentId={node.id}
+              parentCurrency={node.currency}
+              onAdded={(line) => { onLineAdded(line); setAddingChild(false); setOpen(true); }}
+              onCancel={() => setAddingChild(false)}
+              indent={level + 1}
+            />
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+function AddLineForm({ balanceId, parentId = null, parentCurrency = 'ARS', onAdded, onCancel, indent = 0 }) {
+  const [name, setName]       = useState('');
+  const [amount, setAmount]   = useState('');
+  const [currency, setCurrency] = useState(parentCurrency);
+  const [isTotal, setIsTotal] = useState(false);
+  const [saving, setSaving]   = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+    setSaving(true);
+    try {
+      const res = await createLine(balanceId, {
+        parent_id: parentId,
+        name:      name.trim(),
+        amount:    amount !== '' ? parseFloat(amount) : null,
+        currency,
+        is_total:  isTotal,
+      });
+      onAdded(res.data.data);
+      setName('');
+      setAmount('');
+    } catch {
+      // noop
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div style={{ paddingLeft: `${indent * 14}px` }} className="py-1">
+      <form onSubmit={handleSubmit} className="flex items-center gap-2 flex-wrap">
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Nombre de la línea"
+          className="input-field text-xs py-1 px-2 flex-1 min-w-32"
+          required
+          autoFocus
+        />
+        <input
+          type="number"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          placeholder="Monto (opcional)"
+          className="input-field text-xs py-1 px-2 w-32"
+          step="0.01"
+        />
+        <select
+          value={currency}
+          onChange={(e) => setCurrency(e.target.value)}
+          className="input-field text-xs py-1 px-2 w-20"
+        >
+          {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <label className="flex items-center gap-1 text-xs text-gray-600 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={isTotal}
+            onChange={(e) => setIsTotal(e.target.checked)}
+            className="rounded"
+          />
+          total
+        </label>
+        <button type="submit" disabled={saving} className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50">
+          {saving ? '...' : '+ Agregar'}
+        </button>
+        <button type="button" onClick={onCancel} className="text-xs text-gray-400 hover:underline">
+          Cancelar
+        </button>
+      </form>
+    </div>
+  );
+}
+
+// ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function AdminBalanceFormPage() {
   const { id } = useParams();
@@ -25,54 +265,32 @@ export default function AdminBalanceFormPage() {
   const isEdit = Boolean(id);
 
   // Balance form state
-  const [exercise, setExercise] = useState('');
+  const [exercise, setExercise]       = useState('');
   const [dollarReference, setDollarReference] = useState('');
   const [publishedAt, setPublishedAt] = useState('');
-  const [file, setFile] = useState(null);
+  const [file, setFile]               = useState(null);
   const [existingFile, setExistingFile] = useState(null);
 
-  // Breakdown state
-  const [breakdown, setBreakdown] = useState([]);
-  const [items, setItems] = useState([]);
-
-  // New breakdown row state
-  const [newItemId, setNewItemId] = useState('');
-  const [newSubitemId, setNewSubitemId] = useState('');
-  const [newAmount, setNewAmount] = useState('');
-  const [newCurrency, setNewCurrency] = useState('ARS');
+  // Lines tree
+  const [lines, setLines] = useState([]);
+  const [addingRoot, setAddingRoot] = useState(false);
 
   // AI Analysis
-  const [analyzing, setAnalyzing] = useState(false);
+  const [analyzing, setAnalyzing]       = useState(false);
   const [analysisResult, setAnalysisResult] = useState(null);
-  const [analysisError, setAnalysisError] = useState('');
+  const [analysisError, setAnalysisError]   = useState('');
   const [hasOpenAiKey, setHasOpenAiKey] = useState(false);
-
-  // Apply breakdown
-  const [applyingBreakdown, setApplyingBreakdown] = useState(false);
-  const [applyResult, setApplyResult] = useState(null);
-
-  // Creating suggested items/subitems
-  const [creatingItems, setCreatingItems] = useState({});
+  const [applying, setApplying]         = useState(false);
+  const [applyError, setApplyError]     = useState('');
 
   const [loading, setLoading] = useState(isEdit);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
+  const [saving, setSaving]   = useState(false);
+  const [error, setError]     = useState('');
   const [success, setSuccess] = useState('');
-
-  const fetchItems = useCallback(() => {
-    getBalanceItems().then((res) => setItems(res.data?.data || []));
-  }, []);
-
-  useEffect(() => {
-    fetchItems();
-  }, [fetchItems]);
 
   useEffect(() => {
     getSettings()
-      .then((res) => {
-        const key = res.data?.data?.openai_api_key;
-        setHasOpenAiKey(!!key);
-      })
+      .then((res) => setHasOpenAiKey(!!res.data?.data?.openai_api_key))
       .catch(() => setHasOpenAiKey(false));
   }, []);
 
@@ -86,18 +304,14 @@ export default function AdminBalanceFormPage() {
         setDollarReference(d.dollar_reference ?? '');
         setPublishedAt(d.published_at || '');
         setExistingFile(d.has_file ? d.file_original_name : null);
-        setBreakdown(d.breakdown || []);
+        setLines(d.lines || []);
       })
       .finally(() => setLoading(false));
   }, [id, isEdit]);
 
   const handleSave = async (e) => {
     e.preventDefault();
-    if (!exercise.trim()) {
-      setError('El ejercicio es obligatorio');
-      return;
-    }
-
+    if (!exercise.trim()) { setError('El ejercicio es obligatorio'); return; }
     setSaving(true);
     setError('');
     setSuccess('');
@@ -105,8 +319,8 @@ export default function AdminBalanceFormPage() {
     const formData = new FormData();
     formData.append('exercise', exercise.trim());
     if (dollarReference) formData.append('dollar_reference', dollarReference);
-    if (publishedAt) formData.append('published_at', publishedAt);
-    if (file) formData.append('file', file);
+    if (publishedAt)     formData.append('published_at', publishedAt);
+    if (file)            formData.append('file', file);
 
     try {
       if (isEdit) {
@@ -125,33 +339,6 @@ export default function AdminBalanceFormPage() {
     }
   };
 
-  const handleAddBreakdown = async (e) => {
-    e.preventDefault();
-    if (!newItemId || !newAmount) return;
-
-    try {
-      const res = await createBreakdown(id, {
-        balance_item_id: parseInt(newItemId),
-        balance_subitem_id: newSubitemId ? parseInt(newSubitemId) : null,
-        amount: parseFloat(newAmount),
-        currency: newCurrency,
-      });
-      setBreakdown((prev) => [...prev, res.data.data]);
-      setNewItemId('');
-      setNewSubitemId('');
-      setNewAmount('');
-      setNewCurrency('ARS');
-    } catch (err) {
-      setError(err.response?.data?.error || 'Error al agregar el desglose');
-    }
-  };
-
-  const handleDeleteBreakdown = async (breakdownId) => {
-    if (!window.confirm('¿Eliminar este registro del desglose?')) return;
-    await deleteBreakdown(id, breakdownId);
-    setBreakdown((prev) => prev.filter((b) => b.id !== breakdownId));
-  };
-
   const handleAnalyze = async () => {
     if (!existingFile && !file) {
       setAnalysisError('Primero guarda el balance con un archivo para poder analizar.');
@@ -160,7 +347,7 @@ export default function AdminBalanceFormPage() {
     setAnalyzing(true);
     setAnalysisError('');
     setAnalysisResult(null);
-    setApplyResult(null);
+    setApplyError('');
     try {
       const res = await analyzeBalance(id);
       setAnalysisResult(res.data?.data || {});
@@ -171,122 +358,58 @@ export default function AdminBalanceFormPage() {
     }
   };
 
-  /**
-   * Create a suggested item from stage 1 and refresh the catalog.
-   */
-  const handleCreateSuggestedItem = async (name) => {
-    const key = `item:${name}`;
-    setCreatingItems((prev) => ({ ...prev, [key]: true }));
+  const handleApplyAnalysis = async () => {
+    if (!analysisResult?.data?.length) return;
+    setApplying(true);
+    setApplyError('');
     try {
-      await createBalanceItem({ name });
-      await fetchItems();
-      setCreatingItems((prev) => ({ ...prev, [key]: 'done' }));
-    } catch {
-      setCreatingItems((prev) => ({ ...prev, [key]: 'error' }));
+      const res = await applyBalanceAnalysis(id, { data: analysisResult.data });
+      setLines(res.data?.data?.lines || []);
+      setAnalysisResult(null);
+    } catch (err) {
+      setApplyError(err.response?.data?.error || 'Error al aplicar el desglose');
+    } finally {
+      setApplying(false);
     }
   };
 
-  /**
-   * Create a suggested subitem from stage 1 and refresh the catalog.
-   */
-  const handleCreateSuggestedSubitem = async (parentItemName, subName) => {
-    const key = `subitem:${parentItemName}:${subName}`;
-    setCreatingItems((prev) => ({ ...prev, [key]: true }));
-    try {
-      // Find parent item ID (may have been just created, so use refreshed items)
-      const refreshed = await getBalanceItems();
-      const catalog = refreshed.data?.data || [];
-      setItems(catalog);
-
-      const parent = catalog.find(
-        (i) => i.name.toLowerCase() === parentItemName.toLowerCase()
-      );
-      if (!parent) {
-        setCreatingItems((prev) => ({ ...prev, [key]: 'error' }));
-        return;
-      }
-      await createBalanceSubitem(parent.id, { name: subName });
-      await fetchItems();
-      setCreatingItems((prev) => ({ ...prev, [key]: 'done' }));
-    } catch {
-      setCreatingItems((prev) => ({ ...prev, [key]: 'error' }));
-    }
+  // Rebuild the tree from a flat updated line (for amount edits)
+  const updateLineInTree = (updated) => {
+    const patch = (nodes) => nodes.map((n) => {
+      if (n.id === updated.id) return { ...n, amount: updated.amount };
+      return { ...n, children: patch(n.children || []) };
+    });
+    setLines((prev) => patch(prev));
   };
 
-  /**
-   * Apply the breakdown from stage 2 to the balance.
-   * Matches items/subitems by name against the current catalog.
-   * Skips rows where the item is not found in the catalog.
-   */
-  const handleApplyBreakdown = async () => {
-    const breakdownRows = analysisResult?.stage2?.breakdown || analysisResult?.breakdown || [];
-    if (!breakdownRows.length) return;
-
-    setApplyingBreakdown(true);
-    setApplyResult(null);
-
-    // Refresh catalog before matching
-    const refreshed = await getBalanceItems();
-    const catalog = refreshed.data?.data || [];
-    setItems(catalog);
-
-    let applied = 0;
-    let skipped = 0;
-    const newRows = [];
-
-    for (const row of breakdownRows) {
-      const item = catalog.find(
-        (i) => i.name.toLowerCase() === (row.item || '').toLowerCase()
-      );
-      if (!item) {
-        skipped++;
-        continue;
-      }
-
-      let subitemId = null;
-      if (row.subitem) {
-        const subitem = item.subitems?.find(
-          (s) => s.name.toLowerCase() === row.subitem.toLowerCase()
-        );
-        if (subitem) subitemId = subitem.id;
-      }
-
-      try {
-        const res = await createBreakdown(id, {
-          balance_item_id: item.id,
-          balance_subitem_id: subitemId,
-          amount: row.amount,
-          currency: row.currency || 'ARS',
-        });
-        newRows.push(res.data.data);
-        applied++;
-      } catch {
-        skipped++;
-      }
-    }
-
-    setBreakdown((prev) => [...prev, ...newRows]);
-    setApplyResult({ applied, skipped });
-    setApplyingBreakdown(false);
+  // Remove a node (and its children) from the local tree
+  const removeLineFromTree = (lineId) => {
+    const remove = (nodes) => nodes
+      .filter((n) => n.id !== lineId)
+      .map((n) => ({ ...n, children: remove(n.children || []) }));
+    setLines((prev) => remove(prev));
   };
 
-  const selectedItem = items.find((item) => item.id === parseInt(newItemId));
-  const subitems = selectedItem?.subitems || [];
+  const handleDeleteLine = async (lineId) => {
+    if (!window.confirm('¿Eliminar esta línea y todas sus sub-líneas?')) return;
+    await deleteLine(id, lineId);
+    removeLineFromTree(lineId);
+  };
 
-  const formatMoney = (amount, currency) =>
-    new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency,
-      maximumFractionDigits: 0,
-    }).format(amount);
+  // Add a root-level line to local tree
+  const handleRootLineAdded = (line) => {
+    setLines((prev) => [...prev, { ...line, children: [] }]);
+  };
+
+  // Add a child line into the tree (we reload the whole tree for simplicity)
+  const handleChildLineAdded = () => {
+    getBalance(id).then((res) => setLines(res.data?.data?.lines || []));
+  };
 
   if (loading) return <Loader />;
 
-  const stage1 = analysisResult?.stage1 || {};
-  const stage2 = analysisResult?.stage2 || {};
-  const breakdownRows = stage2.breakdown || analysisResult?.breakdown || [];
-  const newItemsSuggested = stage1.new_items || analysisResult?.new_items || [];
-  const newSubitemsSuggested = stage1.new_subitems || analysisResult?.new_subitems || [];
+  const aiData  = analysisResult?.data  || [];
+  const aiNotes = analysisResult?.notes || '';
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -295,14 +418,12 @@ export default function AdminBalanceFormPage() {
         <h1 className="text-2xl font-extrabold">{isEdit ? 'Editar balance' : 'Nuevo balance'}</h1>
       </div>
 
-      {/* Balance metadata form */}
+      {/* Metadata form */}
       <div className="card mb-6">
         <h2 className="text-lg font-bold mb-4">Datos del balance</h2>
         <form onSubmit={handleSave} className="space-y-4">
-          {error && <ErrorMessage message={error} />}
-          {success && (
-            <div className="p-3 bg-green-50 text-green-700 rounded-lg text-sm">{success}</div>
-          )}
+          {error   && <ErrorMessage message={error} />}
+          {success && <div className="p-3 bg-green-50 text-green-700 rounded-lg text-sm">{success}</div>}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -327,24 +448,18 @@ export default function AdminBalanceFormPage() {
                 className="input-field w-full"
               />
             </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Valor de referencia del dólar (ARS)
-            </label>
-            <input
-              type="number"
-              value={dollarReference}
-              onChange={(e) => setDollarReference(e.target.value)}
-              className="input-field w-full"
-              placeholder="1250"
-              min="0"
-              step="0.01"
-            />
-            <p className="text-xs text-gray-400 mt-1">
-              Tipo de cambio al momento de publicación, para cálculos posteriores.
-            </p>
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-medium mb-1">Valor de referencia del dólar (ARS)</label>
+              <input
+                type="number"
+                value={dollarReference}
+                onChange={(e) => setDollarReference(e.target.value)}
+                className="input-field w-full"
+                placeholder="1250"
+                min="0"
+                step="0.01"
+              />
+            </div>
           </div>
 
           <div>
@@ -372,7 +487,7 @@ export default function AdminBalanceFormPage() {
         </form>
       </div>
 
-      {/* Breakdown section - only shown in edit mode */}
+      {/* Edit-mode sections */}
       {isEdit && (
         <>
           {/* AI Analysis */}
@@ -381,15 +496,13 @@ export default function AdminBalanceFormPage() {
               <div>
                 <h2 className="text-lg font-bold text-purple-900">Análisis con IA</h2>
                 <p className="text-sm text-purple-700 mt-1">
-                  El análisis se realiza en dos etapas: primero evalúa el catálogo de items y luego
-                  genera el desglose completo del balance.
+                  La IA extrae el desglose jerárquico completo del ejercicio principal.
+                  Revisá el resultado antes de aplicarlo.
                 </p>
                 {!hasOpenAiKey && (
                   <p className="text-sm text-amber-700 mt-2 font-medium">
                     API Key de OpenAI no configurada.{' '}
-                    <Link to="/admin/settings" className="underline">
-                      Configurala en Ajustes
-                    </Link>{' '}
+                    <Link to="/admin/configuracion" className="underline">Configurala en Ajustes</Link>{' '}
                     para habilitar esta función.
                   </p>
                 )}
@@ -397,7 +510,7 @@ export default function AdminBalanceFormPage() {
               <button
                 onClick={handleAnalyze}
                 disabled={analyzing || !hasOpenAiKey}
-                title={!hasOpenAiKey ? 'Configurá la API Key de OpenAI en Ajustes para usar esta función' : undefined}
+                title={!hasOpenAiKey ? 'Configurá la API Key de OpenAI en Ajustes' : undefined}
                 className="flex-shrink-0 px-4 py-2 bg-purple-700 hover:bg-purple-800 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {analyzing ? 'Analizando...' : 'Analizar balance'}
@@ -405,302 +518,108 @@ export default function AdminBalanceFormPage() {
             </div>
 
             {analyzing && (
-              <div className="mt-3 p-3 bg-purple-100 text-purple-800 rounded-lg text-sm">
-                <div className="flex items-center gap-2">
-                  <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                  Procesando documento en dos etapas... esto puede tomar hasta 2 minutos.
-                </div>
+              <div className="mt-3 p-3 bg-purple-100 text-purple-800 rounded-lg text-sm flex items-center gap-2">
+                <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Procesando documento... esto puede tomar hasta 2 minutos.
               </div>
             )}
 
             {analysisError && (
-              <div className="mt-3 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
-                {analysisError}
-              </div>
+              <div className="mt-3 p-3 bg-red-50 text-red-700 rounded-lg text-sm">{analysisError}</div>
             )}
 
-            {analysisResult && (
-              <div className="mt-4 space-y-4">
-
-                {/* Stage 1: Catalog evaluation */}
-                <div className="bg-white rounded-lg border border-purple-100 overflow-hidden">
-                  <div className="px-4 py-2 bg-purple-100 flex items-center gap-2">
-                    <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-purple-700 text-white text-xs font-bold">1</span>
-                    <span className="text-sm font-semibold text-purple-900">Evaluación del catálogo</span>
+            {analysisResult && aiData.length > 0 && (
+              <div className="mt-4 bg-white rounded-lg border border-purple-100 overflow-hidden">
+                <div className="px-4 py-2 bg-purple-100 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-semibold text-purple-900">
+                      Resultado del análisis
+                    </span>
+                    {analysisResult.estado && (
+                      <span className="text-xs text-purple-600">{analysisResult.estado}</span>
+                    )}
+                    {analysisResult.fecha && (
+                      <span className="text-xs text-purple-600">{analysisResult.fecha}</span>
+                    )}
+                    {analysisResult.moneda && (
+                      <span className="text-xs text-purple-600">{analysisResult.moneda}</span>
+                    )}
                   </div>
-                  <div className="p-4 space-y-3">
-                    {stage1.catalog_assessment && (
-                      <p className="text-sm text-gray-700">{stage1.catalog_assessment}</p>
-                    )}
-                    {stage1.notes && (
-                      <p className="text-xs text-gray-500 italic">{stage1.notes}</p>
-                    )}
-
-                    {newItemsSuggested.length === 0 && newSubitemsSuggested.length === 0 && (
-                      <div className="flex items-center gap-2 text-sm text-green-700">
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                        El catálogo actual es suficiente para este balance.
-                      </div>
-                    )}
-
-                    {newItemsSuggested.length > 0 && (
-                      <div>
-                        <p className="text-xs font-semibold text-yellow-800 mb-2">
-                          Items nuevos sugeridos ({newItemsSuggested.length}):
-                        </p>
-                        <ul className="space-y-1">
-                          {newItemsSuggested.map((name, i) => {
-                            const key = `item:${name}`;
-                            const status = creatingItems[key];
-                            return (
-                              <li key={i} className="flex items-center justify-between gap-2 bg-yellow-50 rounded px-3 py-1.5 text-sm">
-                                <span className="text-gray-800">{name}</span>
-                                {status === 'done' ? (
-                                  <span className="text-xs text-green-600 font-medium">✓ Creado</span>
-                                ) : status === 'error' ? (
-                                  <span className="text-xs text-red-600">Error</span>
-                                ) : (
-                                  <button
-                                    onClick={() => handleCreateSuggestedItem(name)}
-                                    disabled={status === true}
-                                    className="text-xs px-2 py-0.5 bg-yellow-600 hover:bg-yellow-700 text-white rounded disabled:opacity-50"
-                                  >
-                                    {status === true ? 'Creando...' : 'Crear'}
-                                  </button>
-                                )}
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      </div>
-                    )}
-
-                    {newSubitemsSuggested.length > 0 && (
-                      <div>
-                        <p className="text-xs font-semibold text-yellow-800 mb-2">
-                          Subitems nuevos sugeridos ({newSubitemsSuggested.length}):
-                        </p>
-                        <ul className="space-y-1">
-                          {newSubitemsSuggested.map((s, i) => {
-                            const key = `subitem:${s.item}:${s.name}`;
-                            const status = creatingItems[key];
-                            return (
-                              <li key={i} className="flex items-center justify-between gap-2 bg-yellow-50 rounded px-3 py-1.5 text-sm">
-                                <span className="text-gray-800">
-                                  <span className="text-gray-500">{s.item}</span>
-                                  <span className="mx-1 text-gray-400">→</span>
-                                  {s.name}
-                                </span>
-                                {status === 'done' ? (
-                                  <span className="text-xs text-green-600 font-medium">✓ Creado</span>
-                                ) : status === 'error' ? (
-                                  <span className="text-xs text-red-600">Error</span>
-                                ) : (
-                                  <button
-                                    onClick={() => handleCreateSuggestedSubitem(s.item, s.name)}
-                                    disabled={status === true}
-                                    className="text-xs px-2 py-0.5 bg-yellow-600 hover:bg-yellow-700 text-white rounded disabled:opacity-50"
-                                  >
-                                    {status === true ? 'Creando...' : 'Crear'}
-                                  </button>
-                                )}
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      </div>
-                    )}
+                  <button
+                    onClick={handleApplyAnalysis}
+                    disabled={applying}
+                    className="text-xs px-3 py-1.5 bg-purple-700 hover:bg-purple-800 text-white rounded-lg font-semibold disabled:opacity-50"
+                  >
+                    {applying ? 'Aplicando...' : 'Aplicar desglose'}
+                  </button>
+                </div>
+                <div className="p-4">
+                  {aiNotes && <p className="text-xs text-gray-500 italic mb-3">{aiNotes}</p>}
+                  {applyError && (
+                    <p className="text-xs text-red-600 mb-3">{applyError}</p>
+                  )}
+                  <div className="max-h-80 overflow-y-auto text-sm">
+                    {aiData.map((node, i) => <PreviewNode key={i} node={node} level={0} />)}
                   </div>
                 </div>
-
-                {/* Stage 2: Breakdown */}
-                {breakdownRows.length > 0 && (
-                  <div className="bg-white rounded-lg border border-purple-100 overflow-hidden">
-                    <div className="px-4 py-2 bg-purple-100 flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-purple-700 text-white text-xs font-bold">2</span>
-                        <span className="text-sm font-semibold text-purple-900">
-                          Desglose generado ({breakdownRows.length} filas)
-                        </span>
-                      </div>
-                      <button
-                        onClick={handleApplyBreakdown}
-                        disabled={applyingBreakdown}
-                        className="text-xs px-3 py-1.5 bg-purple-700 hover:bg-purple-800 text-white rounded-lg font-semibold disabled:opacity-50"
-                      >
-                        {applyingBreakdown ? 'Aplicando...' : 'Aplicar desglose'}
-                      </button>
-                    </div>
-
-                    <div className="p-4">
-                      {stage2.notes && (
-                        <p className="text-xs text-gray-600 mb-3 italic">{stage2.notes}</p>
-                      )}
-
-                      {applyResult && (
-                        <div className={`mb-3 p-2 rounded text-xs font-medium ${applyResult.skipped > 0 ? 'bg-yellow-50 text-yellow-800' : 'bg-green-50 text-green-800'}`}>
-                          {applyResult.applied} filas aplicadas
-                          {applyResult.skipped > 0 && ` · ${applyResult.skipped} omitidas (item no encontrado en catálogo)`}
-                        </div>
-                      )}
-
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-xs">
-                          <thead>
-                            <tr className="border-b text-gray-500">
-                              <th className="pb-1 pr-3 text-left">Item</th>
-                              <th className="pb-1 pr-3 text-left">Subitem</th>
-                              <th className="pb-1 pr-3 text-right">Monto</th>
-                              <th className="pb-1 text-left">Moneda</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {breakdownRows.map((row, i) => (
-                              <tr key={i} className="border-b border-gray-50">
-                                <td className="py-1 pr-3">{row.item}</td>
-                                <td className="py-1 pr-3 text-gray-500">{row.subitem || '-'}</td>
-                                <td className={`py-1 pr-3 text-right font-mono ${row.amount < 0 ? 'text-red-600' : ''}`}>
-                                  {Number(row.amount).toLocaleString('es-AR')}
-                                </td>
-                                <td className="py-1">{row.currency}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-
-                      <p className="mt-3 text-xs text-purple-600">
-                        Revisá los items sugeridos en la Etapa 1, creá los que falten en el catálogo
-                        y luego hacé clic en &quot;Aplicar desglose&quot; para cargar los datos automáticamente.
-                      </p>
-                    </div>
-                  </div>
-                )}
               </div>
             )}
           </div>
 
-          {/* Breakdown CRUD */}
+          {/* Lines tree */}
           <div className="card mb-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold">Desglose del balance</h2>
-              {existingFile && (
-                <a
-                  href={getBalanceDownloadUrl(id)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-rojo hover:underline"
+              <div className="flex items-center gap-3">
+                {existingFile && (
+                  <a
+                    href={getBalanceDownloadUrl(id)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-rojo hover:underline"
+                  >
+                    Descargar archivo →
+                  </a>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setAddingRoot(true)}
+                  className="text-sm text-blue-600 hover:underline"
                 >
-                  Descargar archivo →
-                </a>
-              )}
+                  + Agregar línea
+                </button>
+              </div>
             </div>
 
-            {/* Add new breakdown row */}
-            <form onSubmit={handleAddBreakdown} className="bg-gray-50 rounded-lg p-4 mb-4">
-              <p className="text-sm font-semibold mb-3 text-gray-700">Agregar registro</p>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
-                <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-xs font-medium mb-1">Item</label>
-                  <select
-                    value={newItemId}
-                    onChange={(e) => { setNewItemId(e.target.value); setNewSubitemId(''); }}
-                    className="input-field w-full text-sm"
-                    required
-                  >
-                    <option value="">Seleccionar item</option>
-                    {items.map((item) => (
-                      <option key={item.id} value={item.id}>{item.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="col-span-2 sm:col-span-1">
-                  <label className="block text-xs font-medium mb-1">Subitem (opcional)</label>
-                  <select
-                    value={newSubitemId}
-                    onChange={(e) => setNewSubitemId(e.target.value)}
-                    className="input-field w-full text-sm"
-                    disabled={!newItemId || subitems.length === 0}
-                  >
-                    <option value="">Sin subitem</option>
-                    {subitems.map((sub) => (
-                      <option key={sub.id} value={sub.id}>{sub.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium mb-1">Monto</label>
-                  <input
-                    type="number"
-                    value={newAmount}
-                    onChange={(e) => setNewAmount(e.target.value)}
-                    className="input-field w-full text-sm"
-                    placeholder="0"
-                    step="0.01"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium mb-1">Moneda</label>
-                  <select
-                    value={newCurrency}
-                    onChange={(e) => setNewCurrency(e.target.value)}
-                    className="input-field w-full text-sm"
-                  >
-                    {CURRENCIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
-              </div>
-              <button type="submit" className="btn-primary text-sm px-4 py-2">
-                + Agregar
-              </button>
-            </form>
-
-            {/* Breakdown table */}
-            {breakdown.length === 0 ? (
+            {lines.length === 0 && !addingRoot ? (
               <p className="text-sm text-gray-400 text-center py-6">
-                No hay desglose cargado aún.
+                No hay desglose cargado aún. Usá el análisis IA o agregá líneas manualmente.
               </p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left text-xs text-gray-500 uppercase">
-                      <th className="pb-2 pr-3">Item</th>
-                      <th className="pb-2 pr-3">Subitem</th>
-                      <th className="pb-2 pr-3 text-right">Monto</th>
-                      <th className="pb-2">Moneda</th>
-                      <th className="pb-2"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {breakdown.map((bd) => (
-                      <tr key={bd.id} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="py-2 pr-3 font-medium">{bd.item_name}</td>
-                        <td className="py-2 pr-3 text-gray-500">{bd.subitem_name || '-'}</td>
-                        <td className="py-2 pr-3 text-right font-mono">
-                          <span className={bd.amount < 0 ? 'text-red-600' : ''}>
-                            {formatMoney(bd.amount, bd.currency)}
-                          </span>
-                        </td>
-                        <td className="py-2 text-gray-500">{bd.currency}</td>
-                        <td className="py-2 text-right">
-                          <button
-                            onClick={() => handleDeleteBreakdown(bd.id)}
-                            className="text-red-500 text-xs hover:underline"
-                          >
-                            Eliminar
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="text-sm">
+                {lines.map((line) => (
+                  <LineNode
+                    key={line.id}
+                    node={line}
+                    balanceId={id}
+                    level={0}
+                    onDelete={handleDeleteLine}
+                    onLineAdded={handleChildLineAdded}
+                    onLineUpdated={updateLineInTree}
+                  />
+                ))}
+                {addingRoot && (
+                  <AddLineForm
+                    balanceId={id}
+                    parentId={null}
+                    onAdded={(line) => { handleRootLineAdded(line); setAddingRoot(false); }}
+                    onCancel={() => setAddingRoot(false)}
+                    indent={0}
+                  />
+                )}
               </div>
             )}
           </div>

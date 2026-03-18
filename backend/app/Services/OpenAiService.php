@@ -3,9 +3,11 @@
 namespace App\Services;
 
 use App\Models\Balance;
+use App\Models\BalanceLine;
 use App\Models\Setting;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class OpenAiService
@@ -27,11 +29,11 @@ class OpenAiService
     }
 
     /**
-     * Analyze a balance document in two stages:
-     * Stage 1: Evaluate existing catalog against the document (what's missing?)
-     * Stage 2: Professional breakdown of every figure into items/subitems
+     * Analyze a balance document (single stage).
+     * Returns the parsed hierarchical JSON from the AI for preview.
+     * Does NOT persist anything to the database.
      */
-    public function analyzeBalance(Balance $balance, array $items): array
+    public function analyzeBalance(Balance $balance): array
     {
         $apiKey = Setting::get('openai_api_key');
         $model  = Setting::get('openai_model', 'gpt-4o');
@@ -50,104 +52,6 @@ class OpenAiService
         $mimeType       = $this->detectMimeType($filePath);
         $fileAttachment = $this->buildFileContent($fileContent, $mimeType, $balance->file_original_name);
 
-        // Stage 1: Evaluate existing catalog vs document
-        $stage1 = $this->evaluateCatalog($apiKey, $model, $fileAttachment, $items, $balance->exercise);
-
-        // Build enriched catalog: existing items + stage 1 suggestions
-        $enrichedItems = $this->mergeWithSuggestions($items, $stage1);
-
-        // Stage 2: Professional and exhaustive breakdown using enriched catalog
-        $stage2 = $this->generateBreakdown($apiKey, $model, $fileAttachment, $enrichedItems, $balance->exercise);
-
-        $notes = implode(' ', array_filter([
-            $stage1['catalog_assessment'] ?? '',
-            $stage2['notes'] ?? '',
-        ]));
-
-        return [
-            'stage1'       => $stage1,
-            'stage2'       => $stage2,
-            // Backward-compatible fields
-            'breakdown'    => $stage2['breakdown'] ?? [],
-            'new_items'    => $stage1['new_items'] ?? [],
-            'new_subitems' => $stage1['new_subitems'] ?? [],
-            'notes'        => trim($notes),
-        ];
-    }
-
-    /**
-     * Stage 1: Evaluate whether the existing catalog of items/subitems covers
-     * all financial concepts present in the balance document.
-     * Returns suggestions for new items and subitems to create.
-     */
-    private function evaluateCatalog(
-        string $apiKey,
-        string $model,
-        array $fileAttachment,
-        array $items,
-        string $exercise
-    ): array {
-        $itemsList = $this->buildItemsList($items);
-
-        $systemPrompt = <<<PROMPT
-Eres un experto en contabilidad de clubes de fútbol argentinos, con profundo conocimiento de las normas de la Asociación del Fútbol Argentino (AFA) y la CONEAU.
-Tu tarea es evaluar si el catálogo de categorías contables existente es suficiente para representar TODOS los conceptos financieros presentes en el balance adjunto.
-Debes responder ÚNICAMENTE con un JSON válido, sin texto adicional ni explicaciones fuera del JSON.
-PROMPT;
-
-        $userPrompt = <<<PROMPT
-Analiza el balance del ejercicio {$exercise} y evaluá si el catálogo actual cubre todos sus conceptos financieros.
-
-Catálogo actual de items y subitems:
-{$itemsList}
-
-Respondé ÚNICAMENTE con el siguiente JSON (sin texto fuera del JSON):
-{
-  "new_items": ["nombre del item nuevo 1", "nombre del item nuevo 2"],
-  "new_subitems": [
-    {"item": "nombre del item padre existente", "name": "nombre del subitem nuevo"}
-  ],
-  "catalog_assessment": "evaluación concisa del catálogo: qué conceptos del balance no tienen representación adecuada",
-  "notes": "observaciones adicionales relevantes para el desglose"
-}
-
-Criterios para sugerir nuevos items:
-- Solo sugerir si el concepto NO puede encajar razonablemente en ningún item existente
-- Usar nomenclatura estándar de contabilidad de clubes de fútbol argentinos
-- Los items deben permitir comparación histórica entre ejercicios
-- No duplicar ni fragmentar en exceso: preferir subitems sobre items nuevos cuando sea posible
-- Si el catálogo es suficiente, devolver arrays vacíos
-PROMPT;
-
-        $messages = [
-            ['role' => 'system', 'content' => $systemPrompt],
-            [
-                'role'    => 'user',
-                'content' => [
-                    ['type' => 'text', 'text' => $userPrompt],
-                    $fileAttachment,
-                ],
-            ],
-        ];
-
-        return $this->callOpenAi($apiKey, $model, $messages, 2048);
-    }
-
-    /**
-     * Stage 2: Generate a complete and professional financial breakdown.
-     * Every monetary figure in the document must be captured.
-     * Uses the enriched catalog (existing + stage 1 suggestions).
-     */
-    private function generateBreakdown(
-        string $apiKey,
-        string $model,
-        array $fileAttachment,
-        array $items,
-        string $exercise
-    ): array {
-        $itemsList = $this->buildItemsList($items);
-
-        // Allow larger output for models that support it
         $maxTokens = match (true) {
             str_contains($model, 'gpt-4o') => 8192,
             $model === 'gpt-4'             => 8192,
@@ -155,42 +59,66 @@ PROMPT;
         };
 
         $systemPrompt = <<<PROMPT
-Eres un experto contable especializado en balances de clubes de fútbol argentinos.
-Tu misión es extraer el desglose financiero COMPLETO, PRECISO y EXHAUSTIVO del balance adjunto.
-Cada cifra del documento DEBE ser capturada correctamente para garantizar comparación histórica entre ejercicios.
-No omitir ningún dato. Priorizar la completitud sobre la brevedad.
-Debes responder ÚNICAMENTE con un JSON válido, sin texto adicional ni explicaciones fuera del JSON.
+Sos un parser contable especializado en estados financieros.
+
+Objetivo:
+Extraer datos estructurados únicamente del ejercicio principal del documento.
+
+Definición:
+El ejercicio principal se indica claramente en alguna de las primeras páginas del documento.
+Cualquier columna comparativa con otros ejercicios debe ser ignorada completamente. Esos balances se cargarán de forma independiente.
+
+Reglas:
+- Extraer SOLO valores del ejercicio principal
+- Ignorar completamente: columnas comparativas, ejercicios anteriores, porcentajes o variaciones
+- Si una fila tiene múltiples valores: tomar únicamente el correspondiente al ejercicio principal
+- No devolver múltiples fechas
+- Mantener estructura jerárquica completa
+- No renombrar cuentas
+- No agrupar ni resumir
+- Marcar "is_total": true en los nodos que representen totales o subtotales (ej: "Total Activo Corriente", "Total Activo")
+- Montos numéricos sin símbolos ni separadores de miles (ej: 1234567.89)
+- Montos NEGATIVOS para egresos, pasivos, pérdidas y déficit
+- Si un nodo tiene children, puede o no tener "amount" (solo incluirlo si el documento lo muestra explícitamente)
+
+Debes responder ÚNICAMENTE con un JSON válido, sin texto adicional.
 PROMPT;
 
         $userPrompt = <<<PROMPT
-Realizá un análisis PROFESIONAL y EXHAUSTIVO del balance del ejercicio {$exercise}.
-
-Catálogo disponible de items y subitems (usá los nombres EXACTAMENTE como aparecen):
-{$itemsList}
+Analizá el documento adjunto y extraé el estado financiero principal.
 
 Respondé ÚNICAMENTE con el siguiente JSON (sin texto fuera del JSON):
 {
-  "breakdown": [
+  "estado": "situacion_patrimonial",
+  "fecha": "2024-06-30",
+  "moneda": "ARS",
+  "data": [
     {
-      "item": "nombre exacto del item del catálogo",
-      "subitem": "nombre exacto del subitem del catálogo o null",
-      "amount": 1234567.89,
-      "currency": "ARS"
+      "name": "Activo",
+      "is_total": false,
+      "children": [
+        {
+          "name": "Activo Corriente",
+          "is_total": false,
+          "children": [
+            {
+              "name": "Caja y Bancos",
+              "amount": 1704387140,
+              "is_total": false
+            }
+          ]
+        },
+        {
+          "name": "Total Activo Corriente",
+          "amount": 5000000000,
+          "is_total": true
+        }
+      ]
     }
-  ],
-  "notes": "porcentaje estimado del balance capturado y observaciones importantes sobre el análisis"
+  ]
 }
 
-Requisitos obligatorios:
-- Extraer CADA cifra monetaria del documento, sin excepción
-- Usar nombres EXACTOS del catálogo (sin variaciones, abreviaciones ni traducciones)
-- Montos numéricos sin símbolos ni separadores de miles (ej: 1234567.89, no $1.234.567,89)
-- Montos NEGATIVOS para egresos, pasivos, pérdidas y déficit
-- Moneda ARS, USD o EUR según corresponda al documento
-- Si un concepto aparece en múltiples secciones (ingresos y egresos separados), registrar cada uno por separado
-- Registrar subtotales y totales solo si representan conceptos distintos no cubiertos por los ítems individuales
-- Ante la duda en la categorización, asignar al item más específico disponible
-- Es preferible más filas que perder datos
+Valores aceptados para "estado": situacion_patrimonial, resultados, estado_flujo, otros
 PROMPT;
 
         $messages = [
@@ -208,42 +136,48 @@ PROMPT;
     }
 
     /**
-     * Merge existing items catalog with stage 1 suggestions.
-     * New items and subitems are added as virtual entries (id = null)
-     * so stage 2 can reference them by name.
+     * Persist the hierarchical AI result into balance_lines.
+     * Deletes all existing lines for this balance first, then inserts recursively.
      */
-    private function mergeWithSuggestions(array $items, array $stage1Result): array
+    public function persistLines(Balance $balance, array $data): void
     {
-        $newItems    = $stage1Result['new_items'] ?? [];
-        $newSubitems = $stage1Result['new_subitems'] ?? [];
+        DB::transaction(function () use ($balance, $data) {
+            BalanceLine::where('balance_id', $balance->id)->delete();
 
-        foreach ($newItems as $newItemName) {
-            $exists = array_filter($items, fn ($item) => strtolower($item['name']) === strtolower($newItemName));
-            if (empty($exists)) {
-                $items[] = ['id' => null, 'name' => $newItemName, 'subitems' => []];
+            $order = 0;
+            foreach ($data as $node) {
+                $this->insertLine($node, $balance->id, null, 1, '', $order);
+                $order++;
             }
+        });
+    }
+
+    /**
+     * Recursive helper to insert a single line and all its descendants.
+     */
+    private function insertLine(array $node, int $balanceId, ?int $parentId, int $level, string $parentPath, int $order): void
+    {
+        $name = $node['name'] ?? '';
+        $path = $parentPath ? ($parentPath . ' > ' . $name) : $name;
+
+        $line = BalanceLine::create([
+            'balance_id'      => $balanceId,
+            'parent_id'       => $parentId,
+            'name'            => $name,
+            'normalized_name' => BalanceLine::normalizeName($name),
+            'level'           => $level,
+            'order'           => $order,
+            'amount'          => $node['amount'] ?? null,
+            'currency'        => $node['currency'] ?? 'ARS',
+            'is_total'        => $node['is_total'] ?? false,
+            'path'            => $path,
+        ]);
+
+        $childOrder = 0;
+        foreach ($node['children'] ?? [] as $child) {
+            $this->insertLine($child, $balanceId, $line->id, $level + 1, $path, $childOrder);
+            $childOrder++;
         }
-
-        foreach ($newSubitems as $newSubitem) {
-            $parentName = $newSubitem['item'] ?? '';
-            $subName    = $newSubitem['name'] ?? '';
-
-            foreach ($items as &$item) {
-                if (strtolower($item['name']) === strtolower($parentName)) {
-                    $subExists = array_filter(
-                        $item['subitems'],
-                        fn ($s) => strtolower($s['name']) === strtolower($subName)
-                    );
-                    if (empty($subExists)) {
-                        $item['subitems'][] = ['id' => null, 'name' => $subName];
-                    }
-                    break;
-                }
-            }
-            unset($item);
-        }
-
-        return $items;
     }
 
     private function callOpenAi(string $apiKey, string $model, array $messages, int $maxTokens = 4096): array
@@ -271,28 +205,8 @@ PROMPT;
         }
     }
 
-    private function buildItemsList(array $items): string
-    {
-        if (empty($items)) {
-            return '(sin items configurados)';
-        }
-
-        $lines = [];
-        foreach ($items as $item) {
-            $lines[] = "- {$item['name']}";
-            if (!empty($item['subitems'])) {
-                foreach ($item['subitems'] as $sub) {
-                    $lines[] = "  - {$sub['name']}";
-                }
-            }
-        }
-
-        return implode("\n", $lines);
-    }
-
     private function buildFileContent(string $base64Content, string $mimeType, ?string $filename): array
     {
-        // PDF: send as file content (supported by GPT-4o)
         if ($mimeType === 'application/pdf') {
             return [
                 'type' => 'file',
@@ -303,7 +217,6 @@ PROMPT;
             ];
         }
 
-        // Images: send as image_url
         if (str_starts_with($mimeType, 'image/')) {
             return [
                 'type'      => 'image_url',
@@ -314,7 +227,6 @@ PROMPT;
             ];
         }
 
-        // Other file types: send as decoded text
         return [
             'type' => 'text',
             'text' => "Contenido del archivo:\n" . base64_decode($base64Content),

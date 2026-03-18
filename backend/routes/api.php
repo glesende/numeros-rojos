@@ -23,9 +23,6 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
     $router->get('balances/{id}', 'BalanceController@show');
     $router->get('balances/{id}/download', 'BalanceController@download');
 
-    // Balance items (public catalog)
-    $router->get('balance-items', 'BalanceItemController@index');
-
     // Section visibility (public)
     $router->get('settings/sections', 'SettingsController@sections');
 
@@ -63,18 +60,11 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
         $router->post('balances/{id}/update', 'BalanceController@update');
         $router->delete('balances/{id}', 'BalanceController@destroy');
         $router->post('balances/{id}/analyze', 'BalanceController@analyze');
+        $router->post('balances/{id}/apply-analysis', 'BalanceController@applyAnalysis');
 
-        // Balance breakdowns (nested)
-        $router->post('balances/{balanceId}/breakdowns', 'BalanceController@storeBreakdown');
-        $router->put('balances/{balanceId}/breakdowns/{breakdownId}', 'BalanceController@updateBreakdown');
-        $router->delete('balances/{balanceId}/breakdowns/{breakdownId}', 'BalanceController@destroyBreakdown');
-
-        // Balance items catalog CRUD
-        $router->post('balance-items', 'BalanceItemController@store');
-        $router->put('balance-items/{id}', 'BalanceItemController@update');
-        $router->delete('balance-items/{id}', 'BalanceItemController@destroy');
-        $router->post('balance-items/{itemId}/subitems', 'BalanceItemController@storeSubitem');
-        $router->put('balance-items/{itemId}/subitems/{subitemId}', 'BalanceItemController@updateSubitem');
-        $router->delete('balance-items/{itemId}/subitems/{subitemId}', 'BalanceItemController@destroySubitem');
+        // Balance lines CRUD (manual editing)
+        $router->post('balances/{balanceId}/lines', 'BalanceController@storeLine');
+        $router->put('balances/{balanceId}/lines/{lineId}', 'BalanceController@updateLine');
+        $router->delete('balances/{balanceId}/lines/{lineId}', 'BalanceController@destroyLine');
     });
 });
