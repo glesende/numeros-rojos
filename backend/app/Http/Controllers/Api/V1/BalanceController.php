@@ -300,8 +300,8 @@ class BalanceController extends Controller
 
         $balancesById = $balances->keyBy('id');
 
-        // Root lines (level 1) grouped by normalized_name for cross-balance comparison
-        $rootLines = BalanceLine::whereNull('parent_id')
+        // Total/subtotal lines grouped by normalized_name for cross-balance comparison
+        $rootLines = BalanceLine::where('is_total', true)
             ->whereIn('balance_id', $balances->pluck('id'))
             ->whereNotNull('normalized_name')
             ->whereNotNull('amount')
