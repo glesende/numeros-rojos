@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 class BeSoccerService
 {
     private Client $client;
-    private string $apiKey;
+    private ?string $apiKey;
     private array $cacheTtl;
     private string $baseUrl;
 
@@ -23,13 +23,13 @@ class BeSoccerService
             'timeout' => 15,
         ]);
         $settingKey = Setting::get('besoccer_api_key');
-        $this->apiKey = $settingKey ?: config('besoccer.api_key');
+        $this->apiKey = $settingKey ?: config('besoccer.api_key') ?: null;
         $this->cacheTtl = config('besoccer.cache_ttl');
     }
 
     public function isEnabled(): bool
     {
-        return Setting::get('data_service', 'disabled') === 'besoccer';
+        return Setting::get('data_service', 'disabled') === 'besoccer' && !empty($this->apiKey);
     }
 
     public function getStandings(array $params = []): array

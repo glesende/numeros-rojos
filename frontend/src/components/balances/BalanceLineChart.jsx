@@ -53,7 +53,7 @@ function CustomTooltip({ active, payload, label }) {
         <div key={entry.dataKey} className="flex justify-between gap-4 py-0.5">
           <span className="truncate" style={{ color: entry.color }}>{entry.name}</span>
           <span className="font-mono font-semibold" style={{ color: entry.color }}>
-            ARS {formatAmount(entry.value)}
+            USD {formatAmount(entry.value)}
           </span>
         </div>
       ))}

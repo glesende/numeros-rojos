@@ -62,56 +62,96 @@ class OpenAiService
 Sos un parser contable especializado en estados financieros.
 
 Objetivo:
-Extraer datos estructurados únicamente del ejercicio principal del documento.
+Extraer datos estructurados de TODOS los estados financieros presentes en el documento, únicamente del ejercicio principal.
 
 Definición:
 El ejercicio principal se indica claramente en alguna de las primeras páginas del documento.
 Cualquier columna comparativa con otros ejercicios debe ser ignorada completamente. Esos balances se cargarán de forma independiente.
 
 Reglas:
+
+- Extraer TODOS los estados financieros presentes, incluyendo:
+  - Estado de Situación Patrimonial
+  - Estado de Resultados (Recursos y Gastos)
+  - Estado de Flujo de Efectivo
+  - Estado de Evolución del Patrimonio Neto
+
+- Cada estado debe ser representado como un nodo raíz independiente dentro de "data"
+
+- Usar nombres normalizados para los nodos raíz:
+  - "situacion_patrimonial"
+  - "resultados"
+  - "estado_flujo"
+  - "patrimonio_neto"
+  - "otros" (solo si no encaja en los anteriores)
+
 - Extraer SOLO valores del ejercicio principal
-- Ignorar completamente: columnas comparativas, ejercicios anteriores, porcentajes o variaciones
-- Si una fila tiene múltiples valores: tomar únicamente el correspondiente al ejercicio principal
+
+- Ignorar completamente:
+  - columnas comparativas
+  - ejercicios anteriores
+  - porcentajes o variaciones
+
+- Si una fila tiene múltiples valores:
+  - tomar únicamente el correspondiente al ejercicio principal
+
 - No devolver múltiples fechas
+
 - Mantener estructura jerárquica completa
-- No renombrar cuentas
+
+- No renombrar cuentas (excepto los nodos raíz que deben estar normalizados)
+
 - No agrupar ni resumir
-- Marcar "is_total": true en los nodos que representen totales o subtotales (ej: "Total Activo Corriente", "Total Activo")
-- Montos numéricos sin símbolos ni separadores de miles (ej: 1234567.89)
-- Montos NEGATIVOS para egresos, pasivos, pérdidas y déficit
-- Si un nodo tiene children, puede o no tener "amount" (solo incluirlo si el documento lo muestra explícitamente)
+
+- Marcar "is_total": true en los nodos que representen totales o subtotales
+
+- Montos numéricos sin símbolos ni separadores de miles
+
+- Montos NEGATIVOS para:
+  - egresos
+  - pasivos
+  - pérdidas
+  - déficit
+
+Considerar equivalencias:
+- "Estado de Recursos y Gastos" = resultados
+- "Estado de Ingresos y Egresos" = resultados
+- "Estado de Origen y Aplicación de Fondos" = estado_flujo
+- "Cash Flow" = estado_flujo
+
+- Si un nodo tiene children, puede o no tener "amount"
 
 Debes responder ÚNICAMENTE con un JSON válido, sin texto adicional.
 PROMPT;
 
         $userPrompt = <<<PROMPT
-Analizá el documento adjunto y extraé el estado financiero principal.
+Analizá el documento adjunto y extraé TODOS los estados financieros presentes.
 
 Respondé ÚNICAMENTE con el siguiente JSON (sin texto fuera del JSON):
+
 {
-  "estado": "situacion_patrimonial",
   "fecha": "2024-06-30",
   "moneda": "ARS",
   "data": [
     {
-      "name": "Activo",
+      "name": "situacion_patrimonial",
       "is_total": false,
       "children": [
         {
-          "name": "Activo Corriente",
+          "name": "Activo",
           "is_total": false,
-          "children": [
-            {
-              "name": "Caja y Bancos",
-              "amount": 1704387140,
-              "is_total": false
-            }
-          ]
-        },
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "resultados",
+      "is_total": false,
+      "children": [
         {
-          "name": "Total Activo Corriente",
-          "amount": 5000000000,
-          "is_total": true
+          "name": "Ingresos",
+          "is_total": false,
+          "children": []
         }
       ]
     }

@@ -290,20 +290,19 @@ class BalanceController extends Controller
     // Evolution chart data (public)
     // --------------------------------------------------------
 
-    public function evolution(Request $request): JsonResponse
+    public function evolution(): JsonResponse
     {
-        $currency = $request->input('currency', 'ARS');
-
         $balances = Balance::orderBy('published_at')->orderBy('exercise')->get();
 
         if ($balances->isEmpty()) {
             return response()->json(['data' => ['exercises' => [], 'series' => []]]);
         }
 
+        $balancesById = $balances->keyBy('id');
+
         // Root lines (level 1) grouped by normalized_name for cross-balance comparison
         $rootLines = BalanceLine::whereNull('parent_id')
             ->whereIn('balance_id', $balances->pluck('id'))
-            ->where('currency', $currency)
             ->whereNotNull('normalized_name')
             ->whereNotNull('amount')
             ->get();
@@ -311,14 +310,17 @@ class BalanceController extends Controller
         $exercises = $balances->pluck('exercise')->toArray();
 
         // Build series map: normalized_name => { name, values_by_balance_id }
+        // Values are converted from ARS to USD using each balance's dollar_reference
         $seriesMap = [];
         foreach ($rootLines as $line) {
             $key = $line->normalized_name;
             if (!isset($seriesMap[$key])) {
                 $seriesMap[$key] = ['name' => $line->name, 'values_by_balance' => []];
             }
+            $dollarRef = (float) ($balancesById[$line->balance_id]->dollar_reference ?? 0);
+            $amountUsd = $dollarRef > 0 ? (float) $line->amount / $dollarRef : 0;
             $seriesMap[$key]['values_by_balance'][$line->balance_id] =
-                ($seriesMap[$key]['values_by_balance'][$line->balance_id] ?? 0) + (float) $line->amount;
+                ($seriesMap[$key]['values_by_balance'][$line->balance_id] ?? 0) + $amountUsd;
         }
 
         $series = [];
@@ -339,7 +341,7 @@ class BalanceController extends Controller
         return response()->json([
             'data' => [
                 'exercises' => $exercises,
-                'currency'  => $currency,
+                'currency'  => 'USD',
                 'series'    => $series,
             ],
         ]);
