@@ -11,6 +11,8 @@ import {
   analyzeBalance,
   getBalanceDownloadUrl,
   getSettings,
+  createBalanceItem,
+  createBalanceSubitem,
 } from '../api/endpoints';
 import Loader from '../components/common/Loader';
 import ErrorMessage from '../components/common/ErrorMessage';
@@ -44,6 +46,13 @@ export default function AdminBalanceFormPage() {
   const [analysisResult, setAnalysisResult] = useState(null);
   const [analysisError, setAnalysisError] = useState('');
   const [hasOpenAiKey, setHasOpenAiKey] = useState(false);
+
+  // Apply breakdown
+  const [applyingBreakdown, setApplyingBreakdown] = useState(false);
+  const [applyResult, setApplyResult] = useState(null);
+
+  // Creating suggested items/subitems
+  const [creatingItems, setCreatingItems] = useState({});
 
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
@@ -151,6 +160,7 @@ export default function AdminBalanceFormPage() {
     setAnalyzing(true);
     setAnalysisError('');
     setAnalysisResult(null);
+    setApplyResult(null);
     try {
       const res = await analyzeBalance(id);
       setAnalysisResult(res.data?.data || {});
@@ -159,6 +169,105 @@ export default function AdminBalanceFormPage() {
     } finally {
       setAnalyzing(false);
     }
+  };
+
+  /**
+   * Create a suggested item from stage 1 and refresh the catalog.
+   */
+  const handleCreateSuggestedItem = async (name) => {
+    const key = `item:${name}`;
+    setCreatingItems((prev) => ({ ...prev, [key]: true }));
+    try {
+      await createBalanceItem({ name });
+      await fetchItems();
+      setCreatingItems((prev) => ({ ...prev, [key]: 'done' }));
+    } catch {
+      setCreatingItems((prev) => ({ ...prev, [key]: 'error' }));
+    }
+  };
+
+  /**
+   * Create a suggested subitem from stage 1 and refresh the catalog.
+   */
+  const handleCreateSuggestedSubitem = async (parentItemName, subName) => {
+    const key = `subitem:${parentItemName}:${subName}`;
+    setCreatingItems((prev) => ({ ...prev, [key]: true }));
+    try {
+      // Find parent item ID (may have been just created, so use refreshed items)
+      const refreshed = await getBalanceItems();
+      const catalog = refreshed.data?.data || [];
+      setItems(catalog);
+
+      const parent = catalog.find(
+        (i) => i.name.toLowerCase() === parentItemName.toLowerCase()
+      );
+      if (!parent) {
+        setCreatingItems((prev) => ({ ...prev, [key]: 'error' }));
+        return;
+      }
+      await createBalanceSubitem(parent.id, { name: subName });
+      await fetchItems();
+      setCreatingItems((prev) => ({ ...prev, [key]: 'done' }));
+    } catch {
+      setCreatingItems((prev) => ({ ...prev, [key]: 'error' }));
+    }
+  };
+
+  /**
+   * Apply the breakdown from stage 2 to the balance.
+   * Matches items/subitems by name against the current catalog.
+   * Skips rows where the item is not found in the catalog.
+   */
+  const handleApplyBreakdown = async () => {
+    const breakdownRows = analysisResult?.stage2?.breakdown || analysisResult?.breakdown || [];
+    if (!breakdownRows.length) return;
+
+    setApplyingBreakdown(true);
+    setApplyResult(null);
+
+    // Refresh catalog before matching
+    const refreshed = await getBalanceItems();
+    const catalog = refreshed.data?.data || [];
+    setItems(catalog);
+
+    let applied = 0;
+    let skipped = 0;
+    const newRows = [];
+
+    for (const row of breakdownRows) {
+      const item = catalog.find(
+        (i) => i.name.toLowerCase() === (row.item || '').toLowerCase()
+      );
+      if (!item) {
+        skipped++;
+        continue;
+      }
+
+      let subitemId = null;
+      if (row.subitem) {
+        const subitem = item.subitems?.find(
+          (s) => s.name.toLowerCase() === row.subitem.toLowerCase()
+        );
+        if (subitem) subitemId = subitem.id;
+      }
+
+      try {
+        const res = await createBreakdown(id, {
+          balance_item_id: item.id,
+          balance_subitem_id: subitemId,
+          amount: row.amount,
+          currency: row.currency || 'ARS',
+        });
+        newRows.push(res.data.data);
+        applied++;
+      } catch {
+        skipped++;
+      }
+    }
+
+    setBreakdown((prev) => [...prev, ...newRows]);
+    setApplyResult({ applied, skipped });
+    setApplyingBreakdown(false);
   };
 
   const selectedItem = items.find((item) => item.id === parseInt(newItemId));
@@ -172,6 +281,12 @@ export default function AdminBalanceFormPage() {
     }).format(amount);
 
   if (loading) return <Loader />;
+
+  const stage1 = analysisResult?.stage1 || {};
+  const stage2 = analysisResult?.stage2 || {};
+  const breakdownRows = stage2.breakdown || analysisResult?.breakdown || [];
+  const newItemsSuggested = stage1.new_items || analysisResult?.new_items || [];
+  const newSubitemsSuggested = stage1.new_subitems || analysisResult?.new_subitems || [];
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -266,8 +381,8 @@ export default function AdminBalanceFormPage() {
               <div>
                 <h2 className="text-lg font-bold text-purple-900">Análisis con IA</h2>
                 <p className="text-sm text-purple-700 mt-1">
-                  Si hay un archivo cargado y la API Key de OpenAI está configurada, podés usar IA
-                  para generar automáticamente el desglose del balance.
+                  El análisis se realiza en dos etapas: primero evalúa el catálogo de items y luego
+                  genera el desglose completo del balance.
                 </p>
                 {!hasOpenAiKey && (
                   <p className="text-sm text-amber-700 mt-2 font-medium">
@@ -289,6 +404,18 @@ export default function AdminBalanceFormPage() {
               </button>
             </div>
 
+            {analyzing && (
+              <div className="mt-3 p-3 bg-purple-100 text-purple-800 rounded-lg text-sm">
+                <div className="flex items-center gap-2">
+                  <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Procesando documento en dos etapas... esto puede tomar hasta 2 minutos.
+                </div>
+              </div>
+            )}
+
             {analysisError && (
               <div className="mt-3 p-3 bg-red-50 text-red-700 rounded-lg text-sm">
                 {analysisError}
@@ -296,60 +423,162 @@ export default function AdminBalanceFormPage() {
             )}
 
             {analysisResult && (
-              <div className="mt-4 space-y-3">
-                {analysisResult.notes && (
-                  <div className="p-3 bg-white rounded-lg text-sm text-gray-700 border border-purple-100">
-                    <strong>Notas del análisis:</strong> {analysisResult.notes}
+              <div className="mt-4 space-y-4">
+
+                {/* Stage 1: Catalog evaluation */}
+                <div className="bg-white rounded-lg border border-purple-100 overflow-hidden">
+                  <div className="px-4 py-2 bg-purple-100 flex items-center gap-2">
+                    <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-purple-700 text-white text-xs font-bold">1</span>
+                    <span className="text-sm font-semibold text-purple-900">Evaluación del catálogo</span>
                   </div>
-                )}
-                {analysisResult.new_items?.length > 0 && (
-                  <div className="p-3 bg-yellow-50 rounded-lg text-sm border border-yellow-100">
-                    <strong>Items nuevos sugeridos:</strong>
-                    <ul className="mt-1 list-disc list-inside text-gray-700">
-                      {analysisResult.new_items.map((name, i) => <li key={i}>{name}</li>)}
-                    </ul>
+                  <div className="p-4 space-y-3">
+                    {stage1.catalog_assessment && (
+                      <p className="text-sm text-gray-700">{stage1.catalog_assessment}</p>
+                    )}
+                    {stage1.notes && (
+                      <p className="text-xs text-gray-500 italic">{stage1.notes}</p>
+                    )}
+
+                    {newItemsSuggested.length === 0 && newSubitemsSuggested.length === 0 && (
+                      <div className="flex items-center gap-2 text-sm text-green-700">
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        El catálogo actual es suficiente para este balance.
+                      </div>
+                    )}
+
+                    {newItemsSuggested.length > 0 && (
+                      <div>
+                        <p className="text-xs font-semibold text-yellow-800 mb-2">
+                          Items nuevos sugeridos ({newItemsSuggested.length}):
+                        </p>
+                        <ul className="space-y-1">
+                          {newItemsSuggested.map((name, i) => {
+                            const key = `item:${name}`;
+                            const status = creatingItems[key];
+                            return (
+                              <li key={i} className="flex items-center justify-between gap-2 bg-yellow-50 rounded px-3 py-1.5 text-sm">
+                                <span className="text-gray-800">{name}</span>
+                                {status === 'done' ? (
+                                  <span className="text-xs text-green-600 font-medium">✓ Creado</span>
+                                ) : status === 'error' ? (
+                                  <span className="text-xs text-red-600">Error</span>
+                                ) : (
+                                  <button
+                                    onClick={() => handleCreateSuggestedItem(name)}
+                                    disabled={status === true}
+                                    className="text-xs px-2 py-0.5 bg-yellow-600 hover:bg-yellow-700 text-white rounded disabled:opacity-50"
+                                  >
+                                    {status === true ? 'Creando...' : 'Crear'}
+                                  </button>
+                                )}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    )}
+
+                    {newSubitemsSuggested.length > 0 && (
+                      <div>
+                        <p className="text-xs font-semibold text-yellow-800 mb-2">
+                          Subitems nuevos sugeridos ({newSubitemsSuggested.length}):
+                        </p>
+                        <ul className="space-y-1">
+                          {newSubitemsSuggested.map((s, i) => {
+                            const key = `subitem:${s.item}:${s.name}`;
+                            const status = creatingItems[key];
+                            return (
+                              <li key={i} className="flex items-center justify-between gap-2 bg-yellow-50 rounded px-3 py-1.5 text-sm">
+                                <span className="text-gray-800">
+                                  <span className="text-gray-500">{s.item}</span>
+                                  <span className="mx-1 text-gray-400">→</span>
+                                  {s.name}
+                                </span>
+                                {status === 'done' ? (
+                                  <span className="text-xs text-green-600 font-medium">✓ Creado</span>
+                                ) : status === 'error' ? (
+                                  <span className="text-xs text-red-600">Error</span>
+                                ) : (
+                                  <button
+                                    onClick={() => handleCreateSuggestedSubitem(s.item, s.name)}
+                                    disabled={status === true}
+                                    className="text-xs px-2 py-0.5 bg-yellow-600 hover:bg-yellow-700 text-white rounded disabled:opacity-50"
+                                  >
+                                    {status === true ? 'Creando...' : 'Crear'}
+                                  </button>
+                                )}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    )}
                   </div>
-                )}
-                {analysisResult.new_subitems?.length > 0 && (
-                  <div className="p-3 bg-yellow-50 rounded-lg text-sm border border-yellow-100">
-                    <strong>Subitems nuevos sugeridos:</strong>
-                    <ul className="mt-1 list-disc list-inside text-gray-700">
-                      {analysisResult.new_subitems.map((s, i) => (
-                        <li key={i}>{s.item} &rarr; {s.name}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                {analysisResult.breakdown?.length > 0 && (
-                  <div className="p-3 bg-white rounded-lg text-sm border border-purple-100">
-                    <strong className="block mb-2">Desglose sugerido por IA:</strong>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-xs">
-                        <thead>
-                          <tr className="border-b text-gray-500">
-                            <th className="pb-1 pr-3 text-left">Item</th>
-                            <th className="pb-1 pr-3 text-left">Subitem</th>
-                            <th className="pb-1 pr-3 text-right">Monto</th>
-                            <th className="pb-1 text-left">Moneda</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {analysisResult.breakdown.map((row, i) => (
-                            <tr key={i} className="border-b border-gray-50">
-                              <td className="py-1 pr-3">{row.item}</td>
-                              <td className="py-1 pr-3 text-gray-500">{row.subitem || '-'}</td>
-                              <td className="py-1 pr-3 text-right font-mono">
-                                {Number(row.amount).toLocaleString('es-AR')}
-                              </td>
-                              <td className="py-1">{row.currency}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                </div>
+
+                {/* Stage 2: Breakdown */}
+                {breakdownRows.length > 0 && (
+                  <div className="bg-white rounded-lg border border-purple-100 overflow-hidden">
+                    <div className="px-4 py-2 bg-purple-100 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-purple-700 text-white text-xs font-bold">2</span>
+                        <span className="text-sm font-semibold text-purple-900">
+                          Desglose generado ({breakdownRows.length} filas)
+                        </span>
+                      </div>
+                      <button
+                        onClick={handleApplyBreakdown}
+                        disabled={applyingBreakdown}
+                        className="text-xs px-3 py-1.5 bg-purple-700 hover:bg-purple-800 text-white rounded-lg font-semibold disabled:opacity-50"
+                      >
+                        {applyingBreakdown ? 'Aplicando...' : 'Aplicar desglose'}
+                      </button>
                     </div>
-                    <p className="mt-3 text-xs text-purple-600">
-                      Revisá los items sugeridos, creá los que falten en el catálogo y luego cargalos manualmente abajo.
-                    </p>
+
+                    <div className="p-4">
+                      {stage2.notes && (
+                        <p className="text-xs text-gray-600 mb-3 italic">{stage2.notes}</p>
+                      )}
+
+                      {applyResult && (
+                        <div className={`mb-3 p-2 rounded text-xs font-medium ${applyResult.skipped > 0 ? 'bg-yellow-50 text-yellow-800' : 'bg-green-50 text-green-800'}`}>
+                          {applyResult.applied} filas aplicadas
+                          {applyResult.skipped > 0 && ` · ${applyResult.skipped} omitidas (item no encontrado en catálogo)`}
+                        </div>
+                      )}
+
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="border-b text-gray-500">
+                              <th className="pb-1 pr-3 text-left">Item</th>
+                              <th className="pb-1 pr-3 text-left">Subitem</th>
+                              <th className="pb-1 pr-3 text-right">Monto</th>
+                              <th className="pb-1 text-left">Moneda</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {breakdownRows.map((row, i) => (
+                              <tr key={i} className="border-b border-gray-50">
+                                <td className="py-1 pr-3">{row.item}</td>
+                                <td className="py-1 pr-3 text-gray-500">{row.subitem || '-'}</td>
+                                <td className={`py-1 pr-3 text-right font-mono ${row.amount < 0 ? 'text-red-600' : ''}`}>
+                                  {Number(row.amount).toLocaleString('es-AR')}
+                                </td>
+                                <td className="py-1">{row.currency}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <p className="mt-3 text-xs text-purple-600">
+                        Revisá los items sugeridos en la Etapa 1, creá los que falten en el catálogo
+                        y luego hacé clic en &quot;Aplicar desglose&quot; para cargar los datos automáticamente.
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>
