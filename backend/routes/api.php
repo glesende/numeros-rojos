@@ -26,6 +26,9 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
     // Section visibility (public)
     $router->get('settings/sections', 'SettingsController@sections');
 
+    // Stadium (public)
+    $router->get('stadium', 'StadiumController@index');
+
     // Stats (BeSoccer proxy)
     $router->get('standings', 'StatsController@standings');
     $router->get('player/{id}/stats', 'StatsController@playerStats');
@@ -66,5 +69,15 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
         $router->post('balances/{balanceId}/lines', 'BalanceController@storeLine');
         $router->put('balances/{balanceId}/lines/{lineId}', 'BalanceController@updateLine');
         $router->delete('balances/{balanceId}/lines/{lineId}', 'BalanceController@destroyLine');
+
+        // Stadium CRUD
+        $router->post('stadium/config', 'StadiumController@storeConfig');
+        $router->post('stadium/sectors', 'StadiumController@storeSector');
+        $router->put('stadium/sectors/{id}', 'StadiumController@updateSector');
+        $router->delete('stadium/sectors/{id}', 'StadiumController@destroySector');
+        $router->get('stadium/matches/{id}', 'StadiumController@showMatch');
+        $router->post('stadium/matches', 'StadiumController@storeMatch');
+        $router->put('stadium/matches/{id}', 'StadiumController@updateMatch');
+        $router->delete('stadium/matches/{id}', 'StadiumController@destroyMatch');
     });
 });

@@ -7,6 +7,7 @@ const ALL_NAV_LINKS = [
   { to: '#compromisos-economicos', label: 'Economia', scrollTo: 'compromisos-economicos', isAnchor: true, sectionKey: 'section_economia_enabled' },
   { to: '#contratos', label: 'Contratos', scrollTo: 'contratos', isAnchor: true, sectionKey: 'section_contratos_enabled' },
   { to: '#balances', label: 'Balances', scrollTo: 'balances', isAnchor: true, sectionKey: 'section_balances_enabled' },
+  { to: '/estadio', label: 'Estadio', isAnchor: false, sectionKey: 'section_estadio_enabled' },
   { to: '#metodologia', label: 'Metodologia', scrollTo: 'metodologia', isAnchor: true, sectionKey: null },
 ];
 

@@ -17,6 +17,9 @@ import AdminContractFormPage from './pages/AdminContractFormPage';
 import AdminBalancesPage from './pages/AdminBalancesPage';
 import AdminBalanceFormPage from './pages/AdminBalanceFormPage';
 import AdminSettings from './pages/AdminSettings';
+import AdminStadiumPage from './pages/AdminStadiumPage';
+import AdminMatchFormPage from './pages/AdminMatchFormPage';
+import StadiumPage from './pages/StadiumPage';
 import Loader from './components/common/Loader';
 
 function ProtectedRoute({ children }) {
@@ -38,6 +41,7 @@ export default function App() {
         <Route path="/contratos/:id" element={<ContractDetailPage />} />
         <Route path="/balances" element={<BalancesPage />} />
         <Route path="/balances/:id" element={<BalanceDetailPage />} />
+        <Route path="/estadio" element={<StadiumPage />} />
 
         {/* Auth */}
         <Route path="/admin/login" element={<LoginPage />} />
@@ -54,6 +58,9 @@ export default function App() {
         <Route path="/admin/balances/nuevo" element={<ProtectedRoute><AdminBalanceFormPage /></ProtectedRoute>} />
         <Route path="/admin/balances/:id/editar" element={<ProtectedRoute><AdminBalanceFormPage /></ProtectedRoute>} />
         <Route path="/admin/configuracion" element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
+        <Route path="/admin/estadio" element={<ProtectedRoute><AdminStadiumPage /></ProtectedRoute>} />
+        <Route path="/admin/estadio/partidos/nuevo" element={<ProtectedRoute><AdminMatchFormPage /></ProtectedRoute>} />
+        <Route path="/admin/estadio/partidos/:id/editar" element={<ProtectedRoute><AdminMatchFormPage /></ProtectedRoute>} />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

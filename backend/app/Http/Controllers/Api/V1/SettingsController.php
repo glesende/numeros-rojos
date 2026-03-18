@@ -13,6 +13,7 @@ class SettingsController extends Controller
         'section_economia_enabled',
         'section_contratos_enabled',
         'section_balances_enabled',
+        'section_estadio_enabled',
     ];
 
     public function index(): JsonResponse
@@ -43,11 +44,13 @@ class SettingsController extends Controller
             'section_economia_enabled'   => 'sometimes|boolean',
             'section_contratos_enabled'  => 'sometimes|boolean',
             'section_balances_enabled'   => 'sometimes|boolean',
+            'section_estadio_enabled'    => 'sometimes|boolean',
         ]);
 
         $allowed = [
             'data_service', 'besoccer_api_key', 'openai_api_key', 'openai_model',
             'section_economia_enabled', 'section_contratos_enabled', 'section_balances_enabled',
+            'section_estadio_enabled',
         ];
 
         foreach ($request->only($allowed) as $key => $value) {
