@@ -45,6 +45,18 @@ export const createLine = (balanceId, data) => client.post(`/admin/balances/${ba
 export const updateLine = (balanceId, lineId, data) => client.put(`/admin/balances/${balanceId}/lines/${lineId}`, data);
 export const deleteLine = (balanceId, lineId) => client.delete(`/admin/balances/${balanceId}/lines/${lineId}`);
 
+// Stadium (public)
+export const getStadium = () => client.get('/stadium');
+
+// Stadium config (admin)
+export const saveStadiumConfig = (data) => client.post('/admin/stadium/config', data);
+
+// Stadium sectors (admin)
+export const createStadiumSector = (data) => client.post('/admin/stadium/sectors', data);
+export const updateStadiumSector = (id, data) => client.put(`/admin/stadium/sectors/${id}`, data);
+export const deleteStadiumSector = (id) => client.delete(`/admin/stadium/sectors/${id}`);
+
+
 // Auth
 export const login = (credentials) => client.post('/auth/login', credentials);
 export const getMe = () => client.get('/admin/me');

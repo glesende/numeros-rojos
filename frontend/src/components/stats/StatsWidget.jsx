@@ -5,7 +5,7 @@ import FormBadges from './FormBadges';
 import PlayerCard from './PlayerCard';
 import PlayerMatchesModal from './PlayerMatchesModal';
 
-const ROLE_LABELS = { '1': 'Porteros', '2': 'Defensores', '3': 'Mediocampistas', '4': 'Delanteros' };
+const ROLE_LABELS = { '1': 'Arqueros', '2': 'Defensores', '3': 'Mediocampistas', '4': 'Delanteros' };
 const ROLE_ORDER = ['1', '2', '3', '4'];
 
 export default function StatsWidget() {

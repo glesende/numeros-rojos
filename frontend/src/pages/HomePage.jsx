@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { getContracts } from '../api/endpoints';
+import { getContracts, getStadium } from '../api/endpoints';
 import Loader from '../components/common/Loader';
 import MonthlyBarChart from '../components/economy/MonthlyBarChart';
 import BalanceLineChart from '../components/balances/BalanceLineChart';
@@ -124,6 +124,73 @@ function ContractCard({ contract }) {
               <li className="text-gray-400">+{contract.links.length - 2} más</li>
             )}
           </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StadiumBlock() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getStadium()
+      .then((res) => setData(res.data?.data || null))
+      .catch(() => setData(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <Loader />;
+  if (!data?.stadium) return null;
+
+  const { stadium } = data;
+  const sectors = stadium.sectors || [];
+  const totalCapacity = sectors.reduce((sum, s) => sum + (s.capacity || 0), 0);
+
+  return (
+    <div className="card">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-bold text-gray-900">{stadium.name}</h3>
+        {totalCapacity > 0 && (
+          <span className="text-sm font-mono text-gray-600">
+            {totalCapacity.toLocaleString('es-AR')} espectadores
+          </span>
+        )}
+      </div>
+
+      {sectors.length > 0 && (
+        <table className="w-full text-sm mb-4">
+          <thead>
+            <tr className="border-b text-left text-xs text-gray-500 uppercase">
+              <th className="pb-2 pr-4">Sector</th>
+              <th className="pb-2 text-right">Capacidad</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sectors.map((s) => (
+              <tr key={s.id} className="border-b border-gray-100">
+                <td className="py-2 pr-4">{s.name}</td>
+                <td className="py-2 text-right font-mono text-gray-700">
+                  {s.capacity !== null ? s.capacity.toLocaleString('es-AR') : '-'}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      {stadium.link && (
+        <div className="flex items-center gap-2 text-xs">
+          <span className="text-gray-500">Fuente:</span>
+          <a href={stadium.link} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline">
+            {(() => { try { return new URL(stadium.link).hostname.replace('www.', ''); } catch { return stadium.link; } })()}
+          </a>
+          {stadium.link_official ? (
+            <span className="text-green-600 font-semibold">Oficial</span>
+          ) : (
+            <span className="text-gray-400 italic">No oficial</span>
+          )}
         </div>
       )}
     </div>
@@ -297,6 +364,16 @@ export default function HomePage() {
       <section id="estadisticas" className="max-w-6xl mx-auto px-4 py-8">
         <StatsWidget />
       </section>
+
+      {/* Estadio */}
+      {sections.section_estadio_enabled !== false && (
+        <section id="estadio" className="max-w-6xl mx-auto px-4 py-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold">Estadio</h2>
+          </div>
+          <StadiumBlock />
+        </section>
+      )}
 
       {/* Methodology */}
       <section id="metodologia" className="max-w-3xl mx-auto px-4 py-12">
