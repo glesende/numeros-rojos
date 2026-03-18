@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { getBalances, deleteBalance } from '../api/endpoints';
 import Loader from '../components/common/Loader';
 import SectionEnableToggle from '../components/admin/SectionEnableToggle';
+import BalanceChartDefaultItems from '../components/admin/BalanceChartDefaultItems';
 
 export default function AdminBalancesPage() {
   const [balances, setBalances] = useState([]);
@@ -110,6 +111,8 @@ export default function AdminBalancesPage() {
           </table>
         </div>
       )}
+
+      <BalanceChartDefaultItems />
     </div>
   );
 }
