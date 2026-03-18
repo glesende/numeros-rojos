@@ -34,6 +34,7 @@ export const getBalancesEvolution = (params = {}) => client.get('/balances/evolu
 export const getBalanceDownloadUrl = (id) => `${client.defaults.baseURL}/balances/${id}/download`;
 
 // Balances (admin)
+export const getBalanceAllItems = () => client.get('/admin/balances/items');
 export const createBalance = (data) => client.post('/admin/balances', data, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const updateBalance = (id, formData) => client.post(`/admin/balances/${id}/update`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const deleteBalance = (id) => client.delete(`/admin/balances/${id}`);

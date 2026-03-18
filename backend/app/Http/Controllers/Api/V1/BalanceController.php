@@ -288,6 +288,25 @@ class BalanceController extends Controller
     }
 
     // --------------------------------------------------------
+    // All balance items for admin selector (admin)
+    // --------------------------------------------------------
+
+    public function allBalanceItems(): JsonResponse
+    {
+        $items = BalanceLine::whereNotNull('normalized_name')
+            ->whereNotNull('amount')
+            ->select('normalized_name', 'name')
+            ->distinct()
+            ->orderBy('name')
+            ->get()
+            ->unique('normalized_name')
+            ->values()
+            ->map(fn($l) => ['id' => $l->normalized_name, 'name' => $l->name]);
+
+        return response()->json(['data' => $items]);
+    }
+
+    // --------------------------------------------------------
     // Evolution chart data (public)
     // --------------------------------------------------------
 
@@ -301,12 +320,22 @@ class BalanceController extends Controller
 
         $balancesById = $balances->keyBy('id');
 
-        // Total/subtotal lines grouped by normalized_name for cross-balance comparison
-        $rootLines = BalanceLine::where('is_total', true)
-            ->whereIn('balance_id', $balances->pluck('id'))
+        // Determine which lines to include based on admin configuration
+        $filterItemsSetting = Setting::get('balance_chart_filter_items');
+        $filterItemsArray   = $filterItemsSetting ? json_decode($filterItemsSetting, true) : null;
+
+        $linesQuery = BalanceLine::whereIn('balance_id', $balances->pluck('id'))
             ->whereNotNull('normalized_name')
-            ->whereNotNull('amount')
-            ->get();
+            ->whereNotNull('amount');
+
+        if ($filterItemsArray !== null) {
+            $linesQuery->whereIn('normalized_name', $filterItemsArray);
+        } else {
+            // Default: only is_total lines
+            $linesQuery->where('is_total', true);
+        }
+
+        $rootLines = $linesQuery->get();
 
         $exercises = $balances->pluck('exercise')->toArray();
 
