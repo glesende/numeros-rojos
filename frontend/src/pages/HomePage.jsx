@@ -4,6 +4,7 @@ import { getContracts, getStadium } from '../api/endpoints';
 import Loader from '../components/common/Loader';
 import MonthlyBarChart from '../components/economy/MonthlyBarChart';
 import BalanceLineChart from '../components/balances/BalanceLineChart';
+import StatsWidget from '../components/stats/StatsWidget';
 import useSectionSettings from '../hooks/useSectionSettings';
 
 const VIGENCIA_OPTIONS = [
@@ -380,6 +381,11 @@ export default function HomePage() {
           <BalanceLineChart compact={true} showLink={true} />
         </section>
       )}
+
+      {/* Stats widget */}
+      <section id="estadisticas" className="max-w-6xl mx-auto px-4 py-8">
+        <StatsWidget />
+      </section>
 
       {/* Estadio */}
       {sections.section_estadio_enabled !== false && (

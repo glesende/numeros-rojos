@@ -9,6 +9,7 @@ const ALL_NAV_LINKS = [
   { to: '#balances', label: 'Balances', scrollTo: 'balances', isAnchor: true, sectionKey: 'section_balances_enabled' },
   { to: '/estadio', label: 'Estadio', isAnchor: false, sectionKey: 'section_estadio_enabled' },
   { to: '#metodologia', label: 'Metodologia', scrollTo: 'metodologia', isAnchor: true, sectionKey: null },
+  { to: '#estadisticas', label: 'Estadísticas', scrollTo: 'estadisticas', isAnchor: true, sectionKey: null },
 ];
 
 export default function Navbar() {

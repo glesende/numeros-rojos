@@ -32,7 +32,9 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
     // Stats (BeSoccer proxy)
     $router->get('standings', 'StatsController@standings');
     $router->get('player/{id}/stats', 'StatsController@playerStats');
+    $router->get('player/{id}/matches', 'StatsController@playerMatches');
     $router->get('league/stats', 'StatsController@leagueStats');
+    $router->get('team', 'StatsController@team');
 
     // Admin (protected)
     $router->group(['middleware' => 'jwt.auth', 'prefix' => 'admin'], function () use ($router) {

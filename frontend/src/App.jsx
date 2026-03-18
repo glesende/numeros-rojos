@@ -20,6 +20,7 @@ import AdminSettings from './pages/AdminSettings';
 import AdminStadiumPage from './pages/AdminStadiumPage';
 import AdminMatchFormPage from './pages/AdminMatchFormPage';
 import StadiumPage from './pages/StadiumPage';
+import StatsPage from './pages/StatsPage';
 import Loader from './components/common/Loader';
 
 function ProtectedRoute({ children }) {
@@ -41,6 +42,7 @@ export default function App() {
         <Route path="/contratos/:id" element={<ContractDetailPage />} />
         <Route path="/balances" element={<BalancesPage />} />
         <Route path="/balances/:id" element={<BalanceDetailPage />} />
+        <Route path="/estadisticas" element={<StatsPage />} />
         <Route path="/estadio" element={<StadiumPage />} />
 
         {/* Auth */}
