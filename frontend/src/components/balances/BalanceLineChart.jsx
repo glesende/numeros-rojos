@@ -97,8 +97,6 @@ export default function BalanceLineChart({ compact = false, showLink = false, se
         const ids = d.series.map((s) => s.id);
         if (selectedItems) {
           setActiveItems(selectedItems.filter((id) => ids.includes(id)));
-        } else if (compact) {
-          setActiveItems(ids.slice(0, 5));
         } else {
           // Use default_active configured by admin (fallback: all active)
           setActiveItems(d.series.filter((s) => s.default_active !== false).map((s) => s.id));
@@ -166,8 +164,8 @@ export default function BalanceLineChart({ compact = false, showLink = false, se
             </Link>
           )}
 
-          {/* Item selector dropdown (only in non-compact mode) */}
-          {!compact && data.series.length > 0 && (
+          {/* Item selector dropdown */}
+          {data.series.length > 0 && (
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen((prev) => !prev)}
