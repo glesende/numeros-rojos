@@ -14,6 +14,7 @@ $app = new Laravel\Lumen\Application(
 
 $app->withFacades(true, [
     'Illuminate\Support\Facades\Storage' => 'Storage',
+    'Illuminate\Support\Facades\Mail'    => 'Mail',
 ]);
 $app->withEloquent();
 
@@ -26,6 +27,7 @@ $app->configure('jwt');
 $app->configure('besoccer');
 $app->configure('cors');
 $app->configure('filesystems');
+$app->configure('mail');
 
 // Middleware
 $app->middleware([
@@ -43,6 +45,7 @@ $app->register(App\Providers\AuthServiceProvider::class);
 $app->register(Illuminate\Redis\RedisServiceProvider::class);
 $app->register(Tymon\JWTAuth\Providers\LumenServiceProvider::class);
 $app->register(Illuminate\Filesystem\FilesystemServiceProvider::class);
+$app->register(Illuminate\Mail\MailServiceProvider::class);
 
 $app->singleton(
     Illuminate\Contracts\Debug\ExceptionHandler::class,

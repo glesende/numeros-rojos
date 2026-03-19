@@ -102,16 +102,16 @@ class ContractController extends Controller
             'club_pass_percentage'  => 'required|numeric|min:0|max:100',
             'estimated_salary'      => 'nullable|numeric|min:0',
             'currency'              => 'nullable|in:ARS,USD,EUR',
-            'official'              => 'required|boolean',
             'clauses'              => 'nullable|array',
             'links'                 => 'nullable|array',
-            'links.*'               => 'url',
+            'links.*.url'           => 'required|url',
+            'links.*.official'      => 'required|boolean',
         ]);
 
         $contract = Contract::create($request->only([
             'external_id', 'full_name', 'expiration_date',
             'club_pass_percentage', 'estimated_salary', 'currency',
-            'official', 'clauses', 'links',
+            'clauses', 'links',
         ]));
 
         return response()->json(['data' => $contract], 201);
@@ -128,16 +128,16 @@ class ContractController extends Controller
             'club_pass_percentage'  => 'sometimes|numeric|min:0|max:100',
             'estimated_salary'      => 'nullable|numeric|min:0',
             'currency'              => 'nullable|in:ARS,USD,EUR',
-            'official'              => 'sometimes|boolean',
             'clauses'              => 'nullable|array',
             'links'                 => 'nullable|array',
-            'links.*'               => 'url',
+            'links.*.url'           => 'required|url',
+            'links.*.official'      => 'required|boolean',
         ]);
 
         $contract->update($request->only([
             'external_id', 'full_name', 'expiration_date',
             'club_pass_percentage', 'estimated_salary', 'currency',
-            'official', 'clauses', 'links',
+            'clauses', 'links',
         ]));
 
         return response()->json(['data' => $contract]);

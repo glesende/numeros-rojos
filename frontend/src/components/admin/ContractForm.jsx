@@ -7,10 +7,12 @@ const emptyForm = {
   club_pass_percentage: '',
   estimated_salary: '',
   currency: 'USD',
-  official: false,
   clauses: [],
   links: [],
 };
+
+const normalizeLink = (l) =>
+  typeof l === 'string' ? { url: l, official: false } : { ...l, official: !!l.official };
 
 export default function ContractForm({ initial, onSubmit, loading }) {
   const [form, setForm] = useState(emptyForm);
@@ -28,9 +30,8 @@ export default function ContractForm({ initial, onSubmit, loading }) {
         club_pass_percentage: initial.club_pass_percentage?.toString() || '',
         estimated_salary: initial.estimated_salary?.toString() || '',
         currency: initial.currency || 'USD',
-        official: initial.official ?? false,
         clauses: initial.clauses || [],
-        links: initial.links || [],
+        links: (initial.links || []).map(normalizeLink),
       });
     }
   }, [initial]);
@@ -50,13 +51,17 @@ export default function ContractForm({ initial, onSubmit, loading }) {
 
   const addLink = () => {
     if (linkInput.trim()) {
-      set('links', [...(form.links || []), linkInput.trim()]);
+      set('links', [...(form.links || []), { url: linkInput.trim(), official: false }]);
       setLinkInput('');
     }
   };
 
   const removeLink = (i) => {
     set('links', form.links.filter((_, idx) => idx !== i));
+  };
+
+  const toggleLinkOfficial = (i) => {
+    set('links', form.links.map((l, idx) => idx === i ? { ...l, official: !l.official } : l));
   };
 
   const handleSubmit = (e) => {
@@ -66,7 +71,6 @@ export default function ContractForm({ initial, onSubmit, loading }) {
       club_pass_percentage: parseFloat(form.club_pass_percentage),
       estimated_salary: form.estimated_salary ? parseFloat(form.estimated_salary) : null,
       currency: form.estimated_salary ? form.currency : null,
-      official: !!form.official,
     });
   };
 
@@ -141,18 +145,6 @@ export default function ContractForm({ initial, onSubmit, loading }) {
       </div>
 
       <div>
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={form.official}
-            onChange={(e) => set('official', e.target.checked)}
-            className="rounded border-gray-300 text-rojo focus:ring-rojo"
-          />
-          Dato oficial
-        </label>
-      </div>
-
-      <div>
         <label className="block text-xs font-medium text-gray-500 mb-1">Clausulas</label>
         <div className="flex gap-2">
           <input
@@ -197,9 +189,18 @@ export default function ContractForm({ initial, onSubmit, loading }) {
         {form.links?.length > 0 && (
           <ul className="mt-2 space-y-1">
             {form.links.map((l, i) => (
-              <li key={i} className="flex items-center gap-2 text-sm">
-                <span className="truncate flex-1 text-gray-600">{l}</span>
-                <button type="button" onClick={() => removeLink(i)} className="text-red-500 text-xs">
+              <li key={i} className="flex items-center gap-2 text-sm bg-gray-50 rounded px-2 py-1">
+                <span className="truncate flex-1 text-gray-600">{l.url}</span>
+                <label className="flex items-center gap-1 text-xs text-gray-500 shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={l.official}
+                    onChange={() => toggleLinkOfficial(i)}
+                    className="rounded border-gray-300 text-rojo focus:ring-rojo"
+                  />
+                  Oficial
+                </label>
+                <button type="button" onClick={() => removeLink(i)} className="text-red-500 text-xs shrink-0">
                   Quitar
                 </button>
               </li>

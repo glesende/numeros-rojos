@@ -153,17 +153,17 @@ class EconomyRecordController extends Controller
             'amount'         => 'required|numeric|min:0',
             'currency'       => 'required|in:ARS,USD,EUR',
             'record_date'    => 'required|date',
-            'official'       => 'required|boolean',
             'carried_out'    => 'sometimes|boolean',
             'entity'         => 'nullable|string',
             'comments'       => 'nullable|string',
             'links'          => 'nullable|array',
-            'links.*'        => 'url',
+            'links.*.url'    => 'required|url',
+            'links.*.official' => 'required|boolean',
         ]);
 
         $record = EconomyRecord::create($request->only([
             'description', 'type', 'amount', 'currency',
-            'record_date', 'official', 'carried_out', 'entity', 'comments', 'links',
+            'record_date', 'carried_out', 'entity', 'comments', 'links',
         ]));
 
         return response()->json(['data' => $record], 201);
@@ -179,17 +179,17 @@ class EconomyRecordController extends Controller
             'amount'        => 'sometimes|numeric|min:0',
             'currency'      => 'sometimes|in:ARS,USD,EUR',
             'record_date'   => 'sometimes|date',
-            'official'      => 'sometimes|boolean',
             'carried_out'   => 'sometimes|boolean',
             'entity'        => 'nullable|string',
             'comments'      => 'nullable|string',
             'links'         => 'nullable|array',
-            'links.*'       => 'url',
+            'links.*.url'   => 'required|url',
+            'links.*.official' => 'required|boolean',
         ]);
 
         $record->update($request->only([
             'description', 'type', 'amount', 'currency',
-            'record_date', 'official', 'carried_out', 'entity', 'comments', 'links',
+            'record_date', 'carried_out', 'entity', 'comments', 'links',
         ]));
 
         return response()->json(['data' => $record]);

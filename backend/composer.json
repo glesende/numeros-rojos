@@ -5,6 +5,7 @@
     "require": {
         "php": "^8.2",
         "guzzlehttp/guzzle": "^7.0",
+        "illuminate/mail": "^10.0",
         "illuminate/redis": "^10.0",
         "laravel/lumen-framework": "^10.0",
         "league/csv": "^9.0",

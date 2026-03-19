@@ -19,14 +19,12 @@ class EconomyRecord extends Model
         'amount',
         'currency',
         'record_date',
-        'official',
         'carried_out',
         'links',
     ];
 
     protected $casts = [
         'amount'      => 'decimal:2',
-        'official'    => 'boolean',
         'carried_out' => 'boolean',
         'links'       => 'array',
         'record_date' => 'date',
@@ -37,7 +35,10 @@ class EconomyRecord extends Model
         if ($official === null) {
             return $query;
         }
-        return $query->where('official', $official);
+        if ($official) {
+            return $query->whereJsonContains('links', ['official' => true]);
+        }
+        return $query->whereRaw("(links IS NULL OR NOT JSON_CONTAINS(COALESCE(links, '[]'), '{\"official\":true}'))");
     }
 
     public function scopeType($query, ?string $type): mixed

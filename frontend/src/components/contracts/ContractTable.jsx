@@ -44,7 +44,7 @@ export default function ContractTable({ contracts }) {
                 >
                   {c.full_name}
                 </Link>
-                {c.official ? (
+                {c.links?.some((l) => l.official) ? (
                   <OfficialBadge />
                 ) : (
                   <span className="text-gray-400 text-xs shrink-0">No oficial</span>
@@ -103,7 +103,7 @@ export default function ContractTable({ contracts }) {
                     {formatSalary(c.estimated_salary, c.currency)}
                   </td>
                   <td className="py-3">
-                    {c.official ? (
+                    {c.links?.some((l) => l.official) ? (
                       <OfficialBadge />
                     ) : (
                       <span className="text-gray-400 text-xs">No</span>

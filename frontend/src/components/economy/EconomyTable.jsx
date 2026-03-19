@@ -42,14 +42,6 @@ export default function EconomyTable({ records }) {
             </p>
             <div className="flex items-center justify-between text-xs text-gray-500">
               <span>{formatDate(r.record_date)}</span>
-              <span>
-                Oficial:{' '}
-                {r.official ? (
-                  <OfficialBadge />
-                ) : (
-                  <span className="text-gray-400">No</span>
-                )}
-              </span>
             </div>
           </div>
         ))}
@@ -65,7 +57,6 @@ export default function EconomyTable({ records }) {
               <th className="pb-3 pr-4">Entidad</th>
               <th className="pb-3 pr-4">Tipo</th>
               <th className="pb-3 pr-4 text-right">Monto</th>
-              <th className="pb-3 pr-4">Oficial</th>
               <th className="pb-3">Efectuado</th>
               <th className="pb-3">Fuentes</th>
             </tr>
@@ -93,13 +84,6 @@ export default function EconomyTable({ records }) {
                   {formatMoney(r.amount, r.currency)}
                 </td>
                 <td className="py-3">
-                  {r.official ? (
-                    <OfficialBadge />
-                  ) : (
-                    <span className="text-gray-400 text-xs">No</span>
-                  )}
-                </td>
-                <td className="py-3">
                   {r.carried_out ? (
                     <span className="text-green-600 text-xs font-semibold">Si</span>
                   ) : (
@@ -110,14 +94,15 @@ export default function EconomyTable({ records }) {
                   {Array.isArray(r.links) && r.links.length > 0 ? (
                     <ul className="text-xs text-gray-600 space-y-0.5">
                       {r.links.slice(0, 2).map((link, i) => {
-                        let label = link;
+                        let label = link.url;
                         try {
-                          const url = new URL(link);
-                          label = url.hostname.replace('www.', '');
+                          const u = new URL(link.url);
+                          label = u.hostname.replace('www.', '');
                         } catch {}
                         return (
-                          <li key={i}>
-                            <a href={link} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline truncate block">
+                          <li key={i} className="flex items-center gap-1">
+                            {link.official && <OfficialBadge />}
+                            <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline truncate block">
                               {label}
                             </a>
                           </li>

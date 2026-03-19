@@ -58,6 +58,9 @@ export const updateStadiumSector = (id, data) => client.put(`/admin/stadium/sect
 export const deleteStadiumSector = (id) => client.delete(`/admin/stadium/sectors/${id}`);
 
 
+// Contact
+export const sendContact = (data) => client.post('/contact', data);
+
 // Auth
 export const login = (credentials) => client.post('/auth/login', credentials);
 export const getMe = () => client.get('/admin/me');

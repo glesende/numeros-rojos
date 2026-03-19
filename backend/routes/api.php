@@ -29,6 +29,9 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
     // Stadium (public)
     $router->get('stadium', 'StadiumController@index');
 
+    // Contact
+    $router->post('contact', 'ContactController@send');
+
     // Stats (BeSoccer proxy)
     $router->get('standings', 'StatsController@standings');
     $router->get('player/{id}/stats', 'StatsController@playerStats');

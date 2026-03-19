@@ -42,7 +42,7 @@ export default function ContractDetailPage() {
 
       <div className="card">
         <div className="flex items-center gap-3 mb-2">
-          {contract.official && <OfficialBadge />}
+          {contract.links?.some((l) => l.official) && <OfficialBadge />}
           {vencido && <span className="text-xs font-semibold text-red-600">Vencido</span>}
         </div>
 
@@ -87,10 +87,11 @@ export default function ContractDetailPage() {
             <p className="text-gray-500 text-sm mb-2">Fuentes</p>
             <ul className="space-y-1">
               {contract.links.map((link, i) => (
-                <li key={i}>
-                  <a href={link} target="_blank" rel="noopener noreferrer" className="text-rojo text-sm hover:underline break-all">
-                    {link}
+                <li key={i} className="flex items-center gap-2">
+                  <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-rojo text-sm hover:underline break-all">
+                    {link.url}
                   </a>
+                  {link.official && <OfficialBadge />}
                 </li>
               ))}
             </ul>

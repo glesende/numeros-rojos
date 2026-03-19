@@ -34,7 +34,7 @@ export default function EconomyDetailPage() {
           <span className={record.type === 'cobro' ? 'badge-cobro' : 'badge-pago'}>
             {record.type}
           </span>
-          {record.official && <OfficialBadge />}
+          {record.links?.some((l) => l.official) && <OfficialBadge />}
           {record.carried_out && <span className="text-xs font-semibold text-blue-600">Efectuado</span>}
         </div>
 
@@ -76,14 +76,15 @@ export default function EconomyDetailPage() {
             <p className="text-gray-500 text-sm mb-2">Fuentes</p>
             <ul className="space-y-1">
               {record.links.map((link, i) => (
-                <li key={i}>
+                <li key={i} className="flex items-center gap-2">
+                  {link.official && <OfficialBadge />}
                   <a
-                    href={link}
+                    href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-rojo text-sm hover:underline break-all"
                   >
-                    {link}
+                    {link.url}
                   </a>
                 </li>
               ))}

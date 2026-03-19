@@ -18,7 +18,6 @@ class Contract extends Model
         'club_pass_percentage',
         'estimated_salary',
         'currency',
-        'official',
         'clauses',
         'links',
     ];
@@ -26,7 +25,6 @@ class Contract extends Model
     protected $casts = [
         'club_pass_percentage' => 'decimal:2',
         'estimated_salary'     => 'decimal:2',
-        'official'             => 'boolean',
         'clauses'             => 'array',
         'links'               => 'array',
         'expiration_date'     => 'date',
@@ -37,7 +35,10 @@ class Contract extends Model
         if ($official === null) {
             return $query;
         }
-        return $query->where('official', $official);
+        if ($official) {
+            return $query->whereJsonContains('links', ['official' => true]);
+        }
+        return $query->whereRaw("(links IS NULL OR NOT JSON_CONTAINS(COALESCE(links, '[]'), '{\"official\":true}'))");
     }
 
     public function scopeDateFrom($query, ?string $from): mixed

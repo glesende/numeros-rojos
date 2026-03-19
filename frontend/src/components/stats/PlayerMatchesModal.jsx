@@ -135,9 +135,13 @@ export default function PlayerMatchesModal({ player, onClose }) {
             />
             <div>
               <p className="font-bold text-sm leading-tight">{player.nick}</p>
-              <p className="text-xs text-gray-500">
-                #{player.squadNumber} · {ROLE_LABELS[player.role] || ''}
-              </p>
+              {(player.squadNumber || player.role) && (
+                <p className="text-xs text-gray-500">
+                  {player.squadNumber ? `#${player.squadNumber}` : ''}
+                  {player.squadNumber && player.role ? ' · ' : ''}
+                  {ROLE_LABELS[player.role] || ''}
+                </p>
+              )}
             </div>
           </div>
           <button

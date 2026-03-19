@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { getContracts, getStadium } from '../api/endpoints';
+import { getContracts, getStadium, sendContact } from '../api/endpoints';
+import PlayerMatchesModal from '../components/stats/PlayerMatchesModal';
 import Loader from '../components/common/Loader';
 import MonthlyBarChart from '../components/economy/MonthlyBarChart';
 import BalanceLineChart from '../components/balances/BalanceLineChart';
@@ -30,14 +31,16 @@ function getDaysUntil(dateStr) {
   return Math.round((expiry - today) / (1000 * 60 * 60 * 24));
 }
 
-function ContractCard({ contract }) {
+function ContractCard({ contract, onClick }) {
   const days = getDaysUntil(contract.expiration_date);
   const expired = days < 0;
   const soon = days >= 0 && days <= 60;
+  const clickable = !!contract.external_id && !!onClick;
 
   return (
     <div
-      className="flex-shrink-0 w-60 snap-start card p-4 hover:shadow-md hover:border-rojo/20 transition-all duration-200 flex flex-col gap-3"
+      className={`flex-shrink-0 w-60 snap-start card p-4 hover:shadow-md hover:border-rojo/20 transition-all duration-200 flex flex-col gap-3 ${clickable ? 'cursor-pointer' : ''}`}
+      onClick={clickable ? onClick : undefined}
     >
       <div className="flex items-center gap-3">
         {contract.player_avatar ? (
@@ -103,21 +106,19 @@ function ContractCard({ contract }) {
 
       {Array.isArray(contract.links) && contract.links.length > 0 && (
         <div className="pt-1 border-t border-gray-100">
-          <p className="text-xs text-gray-400 mb-1">
-            Fuentes {contract.official && <OfficialBadge className="inline-block align-middle" />}
-          </p>
+          <p className="text-xs text-gray-400 mb-1">Fuentes</p>
           <ul className="text-xs text-gray-600 space-y-0.5">
             {contract.links.slice(0, 2).map((link, i) => {
-              let label = link;
+              let label = link.url;
               try {
-                const url = new URL(link);
-                label = url.hostname.replace('www.', '');
+                label = new URL(link.url).hostname.replace('www.', '');
               } catch {}
               return (
-                <li key={i}>
-                  <a href={link} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline truncate block">
+                <li key={i} className="flex items-center gap-1">
+                  <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline truncate">
                     {label}
                   </a>
+                  {link.official && <OfficialBadge />}
                 </li>
               );
             })}
@@ -198,11 +199,67 @@ function StadiumBlock() {
   );
 }
 
+function ContactForm() {
+  const [message, setMessage] = useState('');
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState(null); // null | 'sending' | 'ok' | 'error'
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus('sending');
+    try {
+      await sendContact({ message, email: email || undefined });
+      setStatus('ok');
+      setMessage('');
+      setEmail('');
+    } catch {
+      setStatus('error');
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-3 mt-2">
+      <p className="text-sm text-gray-500">
+        ¿Tenés información, una corrección o un comentario? Envialo acá.
+      </p>
+      <textarea
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        required
+        minLength={10}
+        maxLength={2000}
+        rows={4}
+        placeholder="Tu mensaje..."
+        className="w-full text-sm border border-gray-200 rounded p-2 resize-none focus:outline-none focus:ring-1 focus:ring-red-400"
+      />
+      <input
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="Tu email (opcional)"
+        className="w-full text-sm border border-gray-200 rounded p-2 focus:outline-none focus:ring-1 focus:ring-red-400"
+      />
+      <div className="flex items-center gap-3">
+        <button
+          type="submit"
+          disabled={status === 'sending'}
+          className="text-sm font-medium px-4 py-1.5 rounded bg-red-700 text-white hover:bg-red-800 disabled:opacity-50"
+        >
+          {status === 'sending' ? 'Enviando...' : 'Enviar'}
+        </button>
+        {status === 'ok' && <span className="text-sm text-green-600">¡Mensaje enviado!</span>}
+        {status === 'error' && <span className="text-sm text-red-600">No se pudo enviar. Intentá más tarde.</span>}
+      </div>
+    </form>
+  );
+}
+
 export default function HomePage() {
   const [vigencia, setVigencia] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [contracts, setContracts] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [selectedContractPlayer, setSelectedContractPlayer] = useState(null);
   const { sections } = useSectionSettings();
 
   const fetchContracts = useCallback(() => {
@@ -264,6 +321,8 @@ export default function HomePage() {
   };
 
   return (
+    <>
+    <PlayerMatchesModal player={selectedContractPlayer} onClose={() => setSelectedContractPlayer(null)} />
     <div>
       {/* Hero */}
       <section className="bg-rojo text-white py-10 md:py-16">
@@ -340,7 +399,11 @@ export default function HomePage() {
             <p className="text-sm text-gray-500 mb-3">{filteredContracts.length} contratos encontrados</p>
             <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
               {filteredContracts.map((c) => (
-                <ContractCard key={c.id} contract={c} />
+                <ContractCard
+                  key={c.id}
+                  contract={c}
+                  onClick={c.external_id ? () => setSelectedContractPlayer({ id: c.external_id, nick: c.full_name, image: c.player_avatar }) : undefined}
+                />
               ))}
             </div>
           </>
@@ -418,9 +481,10 @@ export default function HomePage() {
 
         <section className="card">
           <h3 className="text-lg font-bold mb-3">Actualización</h3>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600 mb-4">
             Los datos se actualizan manualmente de forma humana, con la ayuda de agentes de inteligencia artificial.
           </p>
+          <ContactForm />
         </section>
 
         <section className="card border border-red-200">
@@ -442,5 +506,6 @@ export default function HomePage() {
 
       </section>
     </div>
+    </>
   );
 }

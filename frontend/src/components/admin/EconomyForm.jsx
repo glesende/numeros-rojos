@@ -8,10 +8,12 @@ const emptyForm = {
   amount: '',
   currency: 'ARS',
   record_date: '',
-  official: false,
   carried_out: false,
   links: [],
 };
+
+const normalizeLink = (l) =>
+  typeof l === 'string' ? { url: l, official: false } : { ...l, official: !!l.official };
 
 export default function EconomyForm({ initial, onSubmit, loading }) {
   const normalizeDate = (date) => {
@@ -26,7 +28,7 @@ export default function EconomyForm({ initial, onSubmit, loading }) {
     ...initial,
     record_date: normalizeDate(initial?.record_date),
     amount: initial?.amount ?? '',
-    links: Array.isArray(initial?.links) ? initial.links : [],
+    links: Array.isArray(initial?.links) ? initial.links.map(normalizeLink) : [],
   });
   const [linkInput, setLinkInput] = useState('');
 
@@ -34,9 +36,13 @@ export default function EconomyForm({ initial, onSubmit, loading }) {
 
   const addLink = () => {
     if (linkInput.trim()) {
-      set('links', [...(form.links || []), linkInput.trim()]);
+      set('links', [...(form.links || []), { url: linkInput.trim(), official: false }]);
       setLinkInput('');
     }
+  };
+
+  const toggleLinkOfficial = (i) => {
+    set('links', form.links.map((l, idx) => idx === i ? { ...l, official: !l.official } : l));
   };
 
   const removeLink = (i) => {
@@ -45,7 +51,7 @@ export default function EconomyForm({ initial, onSubmit, loading }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit({ ...form, amount: parseFloat(form.amount), official: !!form.official, carried_out: !!form.carried_out });
+    onSubmit({ ...form, amount: parseFloat(form.amount), carried_out: !!form.carried_out });
   };
 
   return (
@@ -130,15 +136,6 @@ export default function EconomyForm({ initial, onSubmit, loading }) {
         <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"
-            checked={form.official}
-            onChange={(e) => set('official', e.target.checked)}
-            className="rounded border-gray-300 text-rojo focus:ring-rojo"
-          />
-          Dato oficial
-        </label>
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
             checked={form.carried_out}
             onChange={(e) => set('carried_out', e.target.checked)}
             className="rounded border-gray-300 text-rojo focus:ring-rojo"
@@ -164,9 +161,18 @@ export default function EconomyForm({ initial, onSubmit, loading }) {
         {form.links?.length > 0 && (
           <ul className="mt-2 space-y-1">
             {form.links?.map((l, i) => (
-              <li key={i} className="flex items-center gap-2 text-sm">
-                <span className="truncate flex-1 text-gray-600">{l}</span>
-                <button type="button" onClick={() => removeLink(i)} className="text-red-500 text-xs">
+              <li key={i} className="flex items-center gap-2 text-sm bg-gray-50 rounded px-2 py-1">
+                <span className="truncate flex-1 text-gray-600">{l.url}</span>
+                <label className="flex items-center gap-1 text-xs text-gray-500 shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={l.official}
+                    onChange={() => toggleLinkOfficial(i)}
+                    className="rounded border-gray-300 text-rojo focus:ring-rojo"
+                  />
+                  Oficial
+                </label>
+                <button type="button" onClick={() => removeLink(i)} className="text-red-500 text-xs shrink-0">
                   Quitar
                 </button>
               </li>
