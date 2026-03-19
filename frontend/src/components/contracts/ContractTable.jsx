@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import OfficialBadge from '../OfficialBadge';
 
 function formatDate(dateStr) {
   if (!dateStr) return '-';
@@ -44,7 +45,7 @@ export default function ContractTable({ contracts }) {
                   {c.full_name}
                 </Link>
                 {c.official ? (
-                  <span className="text-green-600 text-xs font-semibold shrink-0">Oficial</span>
+                  <OfficialBadge />
                 ) : (
                   <span className="text-gray-400 text-xs shrink-0">No oficial</span>
                 )}
@@ -103,7 +104,7 @@ export default function ContractTable({ contracts }) {
                   </td>
                   <td className="py-3">
                     {c.official ? (
-                      <span className="text-green-600 text-xs font-semibold">Si</span>
+                      <OfficialBadge />
                     ) : (
                       <span className="text-gray-400 text-xs">No</span>
                     )}

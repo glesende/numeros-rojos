@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getEconomyRecord } from '../api/endpoints';
 import Loader from '../components/common/Loader';
+import OfficialBadge from '../components/OfficialBadge';
 
 export default function EconomyDetailPage() {
   const { id } = useParams();
@@ -33,7 +34,7 @@ export default function EconomyDetailPage() {
           <span className={record.type === 'cobro' ? 'badge-cobro' : 'badge-pago'}>
             {record.type}
           </span>
-          {record.official && <span className="text-xs font-semibold text-green-600">Oficial</span>}
+          {record.official && <OfficialBadge />}
           {record.carried_out && <span className="text-xs font-semibold text-blue-600">Efectuado</span>}
         </div>
 

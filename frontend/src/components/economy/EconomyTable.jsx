@@ -1,3 +1,5 @@
+import OfficialBadge from '../OfficialBadge';
+
 function formatDate(dateStr) {
   if (!dateStr) return '-';
   const d = new Date(dateStr);
@@ -45,7 +47,7 @@ export default function EconomyTable({ records }) {
               <span>
                 Oficial:{' '}
                 {r.official ? (
-                  <span className="text-green-600 font-semibold">Sí</span>
+                  <OfficialBadge />
                 ) : (
                   <span className="text-gray-400">No</span>
                 )}
@@ -94,7 +96,7 @@ export default function EconomyTable({ records }) {
                 </td>
                 <td className="py-3">
                   {r.official ? (
-                    <span className="text-green-600 text-xs font-semibold">Si</span>
+                    <OfficialBadge />
                   ) : (
                     <span className="text-gray-400 text-xs">No</span>
                   )}

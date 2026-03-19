@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getContract } from '../api/endpoints';
 import Loader from '../components/common/Loader';
+import OfficialBadge from '../components/OfficialBadge';
 
 function formatDate(dateStr) {
   if (!dateStr) return '-';
@@ -41,7 +42,7 @@ export default function ContractDetailPage() {
 
       <div className="card">
         <div className="flex items-center gap-3 mb-2">
-          {contract.official && <span className="text-xs font-semibold text-green-600">Oficial</span>}
+          {contract.official && <OfficialBadge />}
           {vencido && <span className="text-xs font-semibold text-red-600">Vencido</span>}
         </div>
 

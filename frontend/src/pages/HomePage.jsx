@@ -6,6 +6,7 @@ import MonthlyBarChart from '../components/economy/MonthlyBarChart';
 import BalanceLineChart from '../components/balances/BalanceLineChart';
 import StatsWidget from '../components/stats/StatsWidget';
 import useSectionSettings from '../hooks/useSectionSettings';
+import OfficialBadge from '../components/OfficialBadge';
 
 const VIGENCIA_OPTIONS = [
   { value: '6m', label: 'Vence en 6 meses', days: 180 },
@@ -103,7 +104,7 @@ function ContractCard({ contract }) {
       {Array.isArray(contract.links) && contract.links.length > 0 && (
         <div className="pt-1 border-t border-gray-100">
           <p className="text-xs text-gray-400 mb-1">
-            Fuentes {contract.official && <span className="text-green-600 font-semibold">Oficial</span>}
+            Fuentes {contract.official && <OfficialBadge className="inline-block align-middle" />}
           </p>
           <ul className="text-xs text-gray-600 space-y-0.5">
             {contract.links.slice(0, 2).map((link, i) => {
@@ -187,7 +188,7 @@ function StadiumBlock() {
             {(() => { try { return new URL(stadium.link).hostname.replace('www.', ''); } catch { return stadium.link; } })()}
           </a>
           {stadium.link_official ? (
-            <span className="text-green-600 font-semibold">Oficial</span>
+            <OfficialBadge />
           ) : (
             <span className="text-gray-400 italic">No oficial</span>
           )}
@@ -390,9 +391,11 @@ export default function HomePage() {
         </section>
 
         <section className="card">
-          <h3 className="text-lg font-bold mb-3">Marca "Oficial"</h3>
+          <h3 className="text-lg font-bold mb-3 flex items-center gap-2">
+            Marca Oficial <OfficialBadge className="w-5 h-5" />
+          </h3>
           <p className="text-sm text-gray-600">
-            Los registros marcados como "Oficial" indican que la información fue confirmada
+            Los registros marcados con el ícono <OfficialBadge className="inline-block align-middle w-4 h-4" /> indican que la información fue confirmada
             directamente por el Club Atlético Independiente o proviene de documentos oficiales.
             Los datos que no poseen esa marca tienen como fuente diversas publicaciones periodísticas.
           </p>
