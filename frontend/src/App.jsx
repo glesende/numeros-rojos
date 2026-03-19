@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+import { usePageTracking } from './hooks/usePageTracking';
 import Layout from './components/layout/Layout';
 import HomePage from './pages/HomePage';
 import EconomyPage from './pages/EconomyPage';
@@ -30,6 +31,7 @@ function ProtectedRoute({ children }) {
 }
 
 export default function App() {
+  usePageTracking();
   return (
     <Layout>
       <Routes>
