@@ -295,13 +295,11 @@ class BalanceController extends Controller
     {
         $items = BalanceLine::whereNotNull('normalized_name')
             ->whereNotNull('amount')
-            ->select('normalized_name', 'name')
-            ->distinct()
-            ->orderBy('name')
+            ->selectRaw('normalized_name, MIN(name) as name, COUNT(DISTINCT balance_id) as balance_count')
+            ->groupBy('normalized_name')
+            ->orderByRaw('MIN(name)')
             ->get()
-            ->unique('normalized_name')
-            ->values()
-            ->map(fn($l) => ['id' => $l->normalized_name, 'name' => $l->name]);
+            ->map(fn($l) => ['id' => $l->normalized_name, 'name' => $l->name, 'balance_count' => (int) $l->balance_count]);
 
         return response()->json(['data' => $items]);
     }

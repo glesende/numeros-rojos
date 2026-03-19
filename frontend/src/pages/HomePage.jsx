@@ -379,11 +379,13 @@ export default function HomePage() {
       <section id="metodologia" className="max-w-3xl mx-auto px-4 py-12">
         <h2 className="text-xl font-bold mb-4">Metodología y Fuentes</h2>
 
+        <div className="space-y-4">
         <section className="card">
           <p className="text-sm text-gray-600">
-            Números Rojos es un proyecto independiente de datos abiertos. No es una publicación
-            oficial del Club Atlético Independiente. El objetivo es mantener un punto centralizado
-            de datos, recopilando publicaciones oficiales y extraoficiales relacionadas con el club.
+            Números Rojos es un proyecto independiente de datos abiertos. No es un sitio
+            oficial del Club Atlético Independiente. No genera contenido propio.
+            El objetivo es mantener un punto centralizado de datos, recopilando publicaciones
+            oficiales y extraoficiales relacionadas con el club.
           </p>
         </section>
 
@@ -414,7 +416,7 @@ export default function HomePage() {
         <section className="card">
           <h3 className="text-lg font-bold mb-3">Actualización</h3>
           <p className="text-sm text-gray-600">
-            Los datos se actualizan manualmente de forma humana, con la ayuda de agentes de IA.
+            Los datos se actualizan manualmente de forma humana, con la ayuda de agentes de inteligencia artificial.
           </p>
         </section>
 
@@ -433,6 +435,7 @@ export default function HomePage() {
             Ver repositorio en GitHub →
           </a>
         </section>
+        </div>
 
       </section>
     </div>

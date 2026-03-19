@@ -57,7 +57,12 @@ function ItemCheckboxList({ items, selected, onToggle, colorIndexMap = null }) {
               checked={active}
               onChange={() => onToggle(item.id)}
             />
-            <span className="text-sm text-gray-700">{item.name}</span>
+            <span className="text-sm text-gray-700">
+              {item.name}
+              {item.balance_count != null && (
+                <span className="text-gray-400 ml-1">({item.balance_count})</span>
+              )}
+            </span>
           </label>
         );
       })}
