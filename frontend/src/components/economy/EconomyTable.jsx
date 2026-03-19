@@ -38,9 +38,7 @@ export default function EconomyTable({ records }) {
               </span>
             </div>
             <p className="text-sm font-medium text-gray-800 mb-2 leading-snug">
-              {r.description
-                ? (r.description.length > 80 ? r.description.slice(0, 80) + '...' : r.description)
-                : '-'}
+              {r.description || '-'}
             </p>
             <div className="flex items-center justify-between text-xs text-gray-500">
               <span>{formatDate(r.record_date)}</span>

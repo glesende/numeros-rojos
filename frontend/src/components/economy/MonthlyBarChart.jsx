@@ -297,7 +297,7 @@ export default function MonthlyBarChart() {
                   <tr key={r.id} className="border-b border-gray-50 hover:bg-gray-50">
                     <td className="py-2 pr-4 whitespace-nowrap text-gray-500 text-xs">{formatDate(r.record_date)}</td>
                     <td className="py-2 pr-4">
-                      <span className="font-medium line-clamp-1">
+                      <span className="font-medium">
                         {r.description || '-'}
                       </span>
                     </td>
@@ -322,7 +322,7 @@ export default function MonthlyBarChart() {
         <div className="mt-6 border-t border-gray-100 pt-5">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide">
-              Pendientes de confirmación
+              Pago/cobro no confirmado
             </h3>
             <Link to="/economia" className="text-xs text-rojo hover:underline font-medium">
               Ver todos →
@@ -343,7 +343,7 @@ export default function MonthlyBarChart() {
                   <tr key={r.id} className="border-b border-gray-50 hover:bg-gray-50">
                     <td className="py-2 pr-4 whitespace-nowrap text-gray-500 text-xs">{formatDate(r.record_date)}</td>
                     <td className="py-2 pr-4">
-                      <span className="font-medium line-clamp-1">
+                      <span className="font-medium">
                         {r.description || '-'}
                       </span>
                     </td>
