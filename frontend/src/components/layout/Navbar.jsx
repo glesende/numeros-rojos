@@ -4,12 +4,12 @@ import { useAuth } from '../../context/AuthContext';
 import useSectionSettings from '../../hooks/useSectionSettings';
 
 const ALL_NAV_LINKS = [
-  { to: '#compromisos-economicos', label: 'Economia', scrollTo: 'compromisos-economicos', isAnchor: true, sectionKey: 'section_economia_enabled' },
-  { to: '#contratos', label: 'Contratos', scrollTo: 'contratos', isAnchor: true, sectionKey: 'section_contratos_enabled' },
-  { to: '#balances', label: 'Balances', scrollTo: 'balances', isAnchor: true, sectionKey: 'section_balances_enabled' },
-  { to: '#estadisticas', label: 'Estadísticas', scrollTo: 'estadisticas', isAnchor: true, sectionKey: null },
-  { to: '#estadio', label: 'Estadio', scrollTo: 'estadio', isAnchor: true, sectionKey: 'section_estadio_enabled' },
-  { to: '#metodologia', label: 'Metodologia', scrollTo: 'metodologia', isAnchor: true, sectionKey: null },
+  { to: '/#compromisos-economicos', label: 'Economia', scrollTo: 'compromisos-economicos', isAnchor: true, sectionKey: 'section_economia_enabled' },
+  { to: '/#contratos', label: 'Contratos', scrollTo: 'contratos', isAnchor: true, sectionKey: 'section_contratos_enabled' },
+  { to: '/#balances', label: 'Balances', scrollTo: 'balances', isAnchor: true, sectionKey: 'section_balances_enabled' },
+  { to: '/#estadisticas', label: 'Estadísticas', scrollTo: 'estadisticas', isAnchor: true, sectionKey: null },
+  { to: '/#estadio', label: 'Estadio', scrollTo: 'estadio', isAnchor: true, sectionKey: 'section_estadio_enabled' },
+  { to: '/#metodologia', label: 'Metodologia', scrollTo: 'metodologia', isAnchor: true, sectionKey: null },
 ];
 
 export default function Navbar() {
