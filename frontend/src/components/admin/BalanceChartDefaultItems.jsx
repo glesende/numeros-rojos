@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getBalancesEvolution, getSettings, updateSettings } from '../../api/endpoints';
+import { getBalanceAllItems, getSettings, updateSettings } from '../../api/endpoints';
 import Loader from '../common/Loader';
 
 const LINE_COLORS = [
@@ -15,48 +15,113 @@ const LINE_COLORS = [
   '#6b7280',
 ];
 
+function ItemCheckboxList({ items, selected, onToggle, colorIndexMap = null }) {
+  return (
+    <div className="grid sm:grid-cols-2 gap-1">
+      {items.map((item, idx) => {
+        const colorIdx = colorIndexMap ? (colorIndexMap[item.id] ?? idx) : idx;
+        const color = LINE_COLORS[colorIdx % LINE_COLORS.length];
+        const active = selected.includes(item.id);
+        return (
+          <label
+            key={item.id}
+            className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer select-none"
+          >
+            <div
+              className="w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors"
+              style={
+                active
+                  ? { backgroundColor: color, borderColor: color }
+                  : { borderColor: '#d1d5db' }
+              }
+            >
+              {active && (
+                <svg
+                  className="w-2.5 h-2.5 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={3}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              )}
+            </div>
+            <input
+              type="checkbox"
+              className="sr-only"
+              checked={active}
+              onChange={() => onToggle(item.id)}
+            />
+            <span className="text-sm text-gray-700">{item.name}</span>
+          </label>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function BalanceChartDefaultItems() {
-  const [series, setSeries] = useState([]);
+  const [allItems, setAllItems] = useState([]);
+  const [filterItems, setFilterItems] = useState(null);
   const [defaultItems, setDefaultItems] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    Promise.all([getBalancesEvolution(), getSettings()])
-      .then(([evoRes, settingsRes]) => {
-        const evoData = evoRes.data?.data || { series: [] };
+    Promise.all([getBalanceAllItems(), getSettings()])
+      .then(([itemsRes, settingsRes]) => {
+        const items = itemsRes.data?.data || [];
         const settings = settingsRes.data?.data || {};
-        setSeries(evoData.series);
+        setAllItems(items);
 
-        const savedItems = settings.balance_chart_default_items;
-        if (savedItems) {
+        // Load filter items setting
+        const savedFilter = settings.balance_chart_filter_items;
+        if (savedFilter) {
           try {
-            setDefaultItems(JSON.parse(savedItems));
+            setFilterItems(JSON.parse(savedFilter));
           } catch {
-            setDefaultItems(evoData.series.map((s) => s.id));
+            setFilterItems(items.map((i) => i.id));
           }
         } else {
-          setDefaultItems(evoData.series.map((s) => s.id));
+          // Default: all items
+          setFilterItems(items.map((i) => i.id));
+        }
+
+        // Load default items setting
+        const savedDefaults = settings.balance_chart_default_items;
+        if (savedDefaults) {
+          try {
+            setDefaultItems(JSON.parse(savedDefaults));
+          } catch {
+            setDefaultItems(items.map((i) => i.id));
+          }
+        } else {
+          setDefaultItems(items.map((i) => i.id));
         }
       })
       .finally(() => setLoading(false));
   }, []);
 
-  const toggleItem = (id) => {
+  const toggleFilterItem = (id) => {
+    setFilterItems((prev) => {
+      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+      // Remove from defaults if no longer in filter
+      setDefaultItems((prevDefaults) => prevDefaults.filter((x) => next.includes(x)));
+      return next;
+    });
+    setSaved(false);
+  };
+
+  const toggleDefaultItem = (id) => {
     setDefaultItems((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
-    setSaved(false);
-  };
-
-  const selectAll = () => {
-    setDefaultItems(series.map((s) => s.id));
-    setSaved(false);
-  };
-
-  const deselectAll = () => {
-    setDefaultItems([]);
     setSaved(false);
   };
 
@@ -64,6 +129,7 @@ export default function BalanceChartDefaultItems() {
     setSaving(true);
     try {
       await updateSettings({
+        balance_chart_filter_items: JSON.stringify(filterItems),
         balance_chart_default_items: JSON.stringify(defaultItems),
       });
       setSaved(true);
@@ -74,78 +140,112 @@ export default function BalanceChartDefaultItems() {
   };
 
   if (loading) return <div className="card mt-6"><Loader /></div>;
-  if (series.length === 0) return null;
+  if (allItems.length === 0) return null;
 
-  const allSelected = defaultItems?.length === series.length;
+  // Items available for the defaults step (only those in filter selection)
+  const filterableItems = allItems.filter((i) => filterItems?.includes(i.id));
+
+  // Build a color index map based on position in allItems (for consistent colors)
+  const colorIndexMap = Object.fromEntries(allItems.map((item, idx) => [item.id, idx]));
+
+  const allFilterSelected = filterItems?.length === allItems.length;
+  const allDefaultSelected = defaultItems?.length === filterableItems.length;
 
   return (
-    <div className="card mt-6">
-      <h2 className="text-lg font-bold mb-1">Ítems activos por defecto en el gráfico</h2>
-      <p className="text-sm text-gray-500 mb-4">
-        Seleccioná los ítems que se mostrarán activos por defecto cuando los usuarios accedan al gráfico de evolución.
-      </p>
-
-      <div className="flex items-center gap-3 mb-3">
-        <button
-          onClick={selectAll}
-          disabled={allSelected}
-          className="text-sm text-rojo hover:underline disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          Seleccionar todos
-        </button>
-        <span className="text-gray-300">|</span>
-        <button
-          onClick={deselectAll}
-          disabled={defaultItems?.length === 0}
-          className="text-sm text-gray-500 hover:underline disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          Deseleccionar todos
-        </button>
+    <div className="card mt-6 space-y-6">
+      <div>
+        <h2 className="text-lg font-bold mb-1">Configuración del gráfico de evolución</h2>
+        <p className="text-sm text-gray-500">
+          Configurá qué ítems estarán disponibles como filtros y cuáles aparecerán activos por defecto.
+        </p>
       </div>
 
-      <div className="grid sm:grid-cols-2 gap-1 mb-5">
-        {series.map((serie, idx) => {
-          const color = LINE_COLORS[idx % LINE_COLORS.length];
-          const active = defaultItems?.includes(serie.id) ?? true;
-          return (
-            <label
-              key={serie.id}
-              className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer select-none"
-            >
-              <div
-                className="w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors"
-                style={
-                  active
-                    ? { backgroundColor: color, borderColor: color }
-                    : { borderColor: '#d1d5db' }
-                }
+      {/* Step 1: Filter items */}
+      <div>
+        <h3 className="text-base font-semibold text-gray-800 mb-1">
+          Paso 1 — Ítems disponibles como filtros
+        </h3>
+        <p className="text-sm text-gray-500 mb-3">
+          Elegí qué ítems aparecerán como opciones en el selector del gráfico. Podés elegir de todos los ítems, sin importar si son totales.
+        </p>
+        <div className="flex items-center gap-3 mb-3">
+          <button
+            onClick={() => {
+              setFilterItems(allItems.map((i) => i.id));
+              setSaved(false);
+            }}
+            disabled={allFilterSelected}
+            className="text-sm text-rojo hover:underline disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Seleccionar todos
+          </button>
+          <span className="text-gray-300">|</span>
+          <button
+            onClick={() => {
+              setFilterItems([]);
+              setDefaultItems([]);
+              setSaved(false);
+            }}
+            disabled={filterItems?.length === 0}
+            className="text-sm text-gray-500 hover:underline disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Deseleccionar todos
+          </button>
+        </div>
+        <ItemCheckboxList
+          items={allItems}
+          selected={filterItems ?? []}
+          onToggle={toggleFilterItem}
+          colorIndexMap={colorIndexMap}
+        />
+      </div>
+
+      {/* Step 2: Default active items */}
+      <div>
+        <h3 className="text-base font-semibold text-gray-800 mb-1">
+          Paso 2 — Ítems activos por defecto
+        </h3>
+        <p className="text-sm text-gray-500 mb-3">
+          De los ítems seleccionados como filtros, elegí cuáles estarán marcados por defecto al cargar el gráfico.
+        </p>
+
+        {filterableItems.length === 0 ? (
+          <p className="text-sm text-gray-400 italic">
+            Seleccioná al menos un ítem en el paso anterior para configurar los activos por defecto.
+          </p>
+        ) : (
+          <>
+            <div className="flex items-center gap-3 mb-3">
+              <button
+                onClick={() => {
+                  setDefaultItems(filterableItems.map((i) => i.id));
+                  setSaved(false);
+                }}
+                disabled={allDefaultSelected}
+                className="text-sm text-rojo hover:underline disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                {active && (
-                  <svg
-                    className="w-2.5 h-2.5 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={3}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                )}
-              </div>
-              <input
-                type="checkbox"
-                className="sr-only"
-                checked={active}
-                onChange={() => toggleItem(serie.id)}
-              />
-              <span className="text-sm text-gray-700">{serie.name}</span>
-            </label>
-          );
-        })}
+                Seleccionar todos
+              </button>
+              <span className="text-gray-300">|</span>
+              <button
+                onClick={() => {
+                  setDefaultItems([]);
+                  setSaved(false);
+                }}
+                disabled={defaultItems?.length === 0}
+                className="text-sm text-gray-500 hover:underline disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Deseleccionar todos
+              </button>
+            </div>
+            <ItemCheckboxList
+              items={filterableItems}
+              selected={defaultItems ?? []}
+              onToggle={toggleDefaultItem}
+              colorIndexMap={colorIndexMap}
+            />
+          </>
+        )}
       </div>
 
       <button

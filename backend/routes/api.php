@@ -67,6 +67,9 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
         $router->post('balances/{id}/analyze', 'BalanceController@analyze');
         $router->post('balances/{id}/apply-analysis', 'BalanceController@applyAnalysis');
 
+        // Balance items (for admin configuration)
+        $router->get('balances/items', 'BalanceController@allBalanceItems');
+
         // Balance lines CRUD (manual editing)
         $router->post('balances/{balanceId}/lines', 'BalanceController@storeLine');
         $router->put('balances/{balanceId}/lines/{lineId}', 'BalanceController@updateLine');
