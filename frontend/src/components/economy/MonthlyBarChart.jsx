@@ -13,6 +13,7 @@ import {
 } from 'recharts';
 import { getEconomyMonthlySummary, getEconomyRecords } from '../../api/endpoints';
 import Loader from '../common/Loader';
+import OfficialBadge from '../OfficialBadge';
 import { financialColors } from '../../../tailwind.config.js';
 
 const COLORS = {
@@ -289,7 +290,9 @@ export default function MonthlyBarChart() {
                   <th className="pb-2 pr-4">Fecha</th>
                   <th className="pb-2 pr-4">Descripción</th>
                   <th className="pb-2 pr-4">Tipo</th>
-                  <th className="pb-2 text-right">Monto</th>
+                  <th className="pb-2 pr-4 text-right">Monto</th>
+                  <th className="pb-2 pr-4">Oficial</th>
+                  <th className="pb-2">Fuentes</th>
                 </tr>
               </thead>
               <tbody>
@@ -306,8 +309,31 @@ export default function MonthlyBarChart() {
                         {r.type}
                       </span>
                     </td>
-                    <td className="py-2 text-right font-mono whitespace-nowrap text-xs">
+                    <td className="py-2 pr-4 text-right font-mono whitespace-nowrap text-xs">
                       {formatMoney(r.amount, r.currency)}
+                    </td>
+                    <td className="py-2 pr-4">
+                      {r.official ? <OfficialBadge /> : <span className="text-gray-400 text-xs">No</span>}
+                    </td>
+                    <td className="py-2">
+                      {Array.isArray(r.links) && r.links.length > 0 ? (
+                        <ul className="text-xs text-gray-600 space-y-0.5">
+                          {r.links.slice(0, 2).map((link, i) => {
+                            let label = link;
+                            try { label = new URL(link).hostname.replace('www.', ''); } catch {}
+                            return (
+                              <li key={i}>
+                                <a href={link} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline truncate block">
+                                  {label}
+                                </a>
+                              </li>
+                            );
+                          })}
+                          {r.links.length > 2 && <li className="text-gray-400">+{r.links.length - 2} más</li>}
+                        </ul>
+                      ) : (
+                        <span className="text-gray-400 text-xs">-</span>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -335,7 +361,9 @@ export default function MonthlyBarChart() {
                   <th className="pb-2 pr-4">Fecha</th>
                   <th className="pb-2 pr-4">Descripción</th>
                   <th className="pb-2 pr-4">Tipo</th>
-                  <th className="pb-2 text-right">Monto</th>
+                  <th className="pb-2 pr-4 text-right">Monto</th>
+                  <th className="pb-2 pr-4">Oficial</th>
+                  <th className="pb-2">Fuentes</th>
                 </tr>
               </thead>
               <tbody>
@@ -352,8 +380,31 @@ export default function MonthlyBarChart() {
                         {r.type}
                       </span>
                     </td>
-                    <td className="py-2 text-right font-mono whitespace-nowrap text-xs">
+                    <td className="py-2 pr-4 text-right font-mono whitespace-nowrap text-xs">
                       {formatMoney(r.amount, r.currency)}
+                    </td>
+                    <td className="py-2 pr-4">
+                      {r.official ? <OfficialBadge /> : <span className="text-gray-400 text-xs">No</span>}
+                    </td>
+                    <td className="py-2">
+                      {Array.isArray(r.links) && r.links.length > 0 ? (
+                        <ul className="text-xs text-gray-600 space-y-0.5">
+                          {r.links.slice(0, 2).map((link, i) => {
+                            let label = link;
+                            try { label = new URL(link).hostname.replace('www.', ''); } catch {}
+                            return (
+                              <li key={i}>
+                                <a href={link} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline truncate block">
+                                  {label}
+                                </a>
+                              </li>
+                            );
+                          })}
+                          {r.links.length > 2 && <li className="text-gray-400">+{r.links.length - 2} más</li>}
+                        </ul>
+                      ) : (
+                        <span className="text-gray-400 text-xs">-</span>
+                      )}
                     </td>
                   </tr>
                 ))}
