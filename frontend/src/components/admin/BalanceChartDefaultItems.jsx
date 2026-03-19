@@ -1,19 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getBalanceAllItems, getSettings, updateSettings } from '../../api/endpoints';
 import Loader from '../common/Loader';
-
-const LINE_COLORS = [
-  '#b91c1c',
-  '#1d4ed8',
-  '#15803d',
-  '#7c3aed',
-  '#d97706',
-  '#0891b2',
-  '#db2777',
-  '#65a30d',
-  '#ea580c',
-  '#6b7280',
-];
+import { LINE_COLORS } from '../../constants/chartColors';
 
 function ItemCheckboxList({ items, selected, onToggle, colorIndexMap = null }) {
   return (
