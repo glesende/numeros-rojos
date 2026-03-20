@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getContract, getContractStats } from '../api/endpoints';
+import { getContract } from '../api/endpoints';
 import Loader from '../components/common/Loader';
 import OfficialBadge from '../components/OfficialBadge';
-import ContractWidgets from '../components/contracts/ContractWidgets';
 
 function formatDate(dateStr) {
   if (!dateStr) return '-';
@@ -17,15 +16,13 @@ function formatDate(dateStr) {
 export default function ContractDetailPage() {
   const { id } = useParams();
   const [contract, setContract] = useState(null);
-  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([getContract(id), getContractStats()])
-      .then(([contractRes, statsRes]) => {
+    getContract(id)
+      .then((contractRes) => {
         const c = contractRes.data.data;
         setContract(c);
-        setStats(statsRes.data.data);
         if (c) document.title = `Contrato de ${c.full_name} | Números Rojos`;
       })
       .finally(() => setLoading(false));
@@ -44,8 +41,6 @@ export default function ContractDetailPage() {
       <Link to="/contratos" className="text-rojo text-sm hover:underline mb-4 inline-block">
         &larr; Volver a contratos
       </Link>
-
-      <ContractWidgets stats={stats} />
 
       <div className="card">
         <div className="flex items-center gap-3 mb-2">
