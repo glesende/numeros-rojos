@@ -83,4 +83,12 @@ class EconomyRecord extends Model
               ->orWhere('entity', 'like', '%' . $search . '%');
         });
     }
+
+    public function scopeCurrency($query, ?string $currency): mixed
+    {
+        if ($currency === null) {
+            return $query;
+        }
+        return $query->where('currency', $currency);
+    }
 }

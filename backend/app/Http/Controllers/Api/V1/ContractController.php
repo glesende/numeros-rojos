@@ -31,15 +31,17 @@ class ContractController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        $official = $request->has('official') ? filter_var($request->input('official'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : null;
+
         $query = Contract::query()
             ->search($request->input('search'))
+            ->official($official)
             ->dateFrom($request->input('date_from'))
             ->dateTo($request->input('date_to'))
-            ->validity($request->input('validity'));
-
-        if ($request->has('official')) {
-            $query->official(filter_var($request->input('official'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE));
-        }
+            ->validity($request->input('validity'))
+            ->status($request->input('status'))
+            ->loan($request->input('loan'))
+            ->currency($request->input('currency'));
 
         $sortDir = $request->input('sort_dir', 'desc');
         $query->orderBy('expiration_date', $sortDir);
@@ -55,13 +57,13 @@ class ContractController extends Controller
         // Aggregates
         $aggQuery = Contract::query()
             ->search($request->input('search'))
+            ->official($official)
             ->dateFrom($request->input('date_from'))
             ->dateTo($request->input('date_to'))
-            ->validity($request->input('validity'));
-
-        if ($request->has('official')) {
-            $aggQuery->official(filter_var($request->input('official'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE));
-        }
+            ->validity($request->input('validity'))
+            ->status($request->input('status'))
+            ->loan($request->input('loan'))
+            ->currency($request->input('currency'));
 
         $now = Carbon::now();
         $totals = [

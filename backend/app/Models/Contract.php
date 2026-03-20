@@ -52,7 +52,7 @@ class Contract extends Model
         if ($from === null) {
             return $query;
         }
-        return $query->where('expiration_date', '>=', $from);
+        return $query->where('signing_date', '>=', $from);
     }
 
     public function scopeDateTo($query, ?string $to): mixed
@@ -60,7 +60,7 @@ class Contract extends Model
         if ($to === null) {
             return $query;
         }
-        return $query->where('expiration_date', '<=', $to);
+        return $query->where('signing_date', '<=', $to);
     }
 
     public function scopeSearch($query, ?string $search): mixed
@@ -69,6 +69,39 @@ class Contract extends Model
             return $query;
         }
         return $query->where('full_name', 'like', '%' . $search . '%');
+    }
+
+    public function scopeStatus($query, ?string $status): mixed
+    {
+        if ($status === null) {
+            return $query;
+        }
+        $today = now()->startOfDay();
+        return match ($status) {
+            'vigente' => $query->whereRaw('COALESCE(termination_date, expiration_date) >= ?', [$today]),
+            'vencido' => $query->whereRaw('COALESCE(termination_date, expiration_date) < ?', [$today]),
+            default   => $query,
+        };
+    }
+
+    public function scopeLoan($query, ?string $loan): mixed
+    {
+        if ($loan === null) {
+            return $query;
+        }
+        return match ($loan) {
+            '1'     => $query->whereNotNull('loan'),
+            '0'     => $query->whereNull('loan'),
+            default => $query,
+        };
+    }
+
+    public function scopeCurrency($query, ?string $currency): mixed
+    {
+        if ($currency === null) {
+            return $query;
+        }
+        return $query->where('currency', $currency);
     }
 
     public function scopeValidity($query, ?string $validity): mixed
