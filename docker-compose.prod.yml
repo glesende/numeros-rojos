@@ -23,6 +23,7 @@ services:
       - APP_ENV=production
       - APP_DEBUG=false
       - LOG_CHANNEL=stderr
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
     volumes:
       - storage-data:/var/www/html/storage/app
     depends_on:

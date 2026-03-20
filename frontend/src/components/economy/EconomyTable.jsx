@@ -1,3 +1,4 @@
+import EconomyRecordCard from './EconomyRecordCard';
 import OfficialBadge from '../OfficialBadge';
 
 function formatDate(dateStr) {
@@ -28,22 +29,7 @@ export default function EconomyTable({ records }) {
       {/* Vista en tarjetas para móvil */}
       <div className="block md:hidden space-y-3">
         {records.map((r) => (
-          <div key={r.id} className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
-            <div className="flex items-start justify-between gap-2 mb-2">
-              <span className={r.type === 'cobro' ? 'badge-cobro' : 'badge-pago'}>
-                {r.type}
-              </span>
-              <span className="font-mono font-semibold text-sm">
-                {formatMoney(r.amount, r.currency)}
-              </span>
-            </div>
-            <p className="text-sm font-medium text-gray-800 mb-2 leading-snug">
-              {r.description || '-'}
-            </p>
-            <div className="flex items-center justify-between text-xs text-gray-500">
-              <span>{formatDate(r.record_date)}</span>
-            </div>
-          </div>
+          <EconomyRecordCard key={r.id} record={r} />
         ))}
       </div>
 
@@ -101,10 +87,10 @@ export default function EconomyTable({ records }) {
                         } catch {}
                         return (
                           <li key={i} className="flex items-center gap-1">
-                            {link.official && <OfficialBadge />}
                             <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline truncate block">
                               {label}
                             </a>
+                            {link.official && <OfficialBadge />}
                           </li>
                         );
                       })}

@@ -14,6 +14,7 @@ import {
 import { getEconomyMonthlySummary, getEconomyRecords } from '../../api/endpoints';
 import Loader from '../common/Loader';
 import OfficialBadge from '../OfficialBadge';
+import EconomyRecordCard from './EconomyRecordCard';
 import { financialColors } from '../../../tailwind.config.js';
 
 const COLORS = {
@@ -283,7 +284,14 @@ export default function MonthlyBarChart() {
               Ver todos →
             </Link>
           </div>
-          <div className="overflow-x-auto">
+          {/* Vista en tarjetas para móvil */}
+          <div className="block md:hidden space-y-3">
+            {upcoming.map((r) => (
+              <EconomyRecordCard key={r.id} record={r} />
+            ))}
+          </div>
+          {/* Vista en tabla para desktop */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 text-left text-xs text-gray-400 uppercase">
@@ -319,10 +327,10 @@ export default function MonthlyBarChart() {
                             try { label = new URL(link.url).hostname.replace('www.', ''); } catch {}
                             return (
                               <li key={i} className="flex items-center gap-1">
-                                {link.official && <OfficialBadge />}
                                 <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline truncate block">
                                   {label}
                                 </a>
+                                {link.official && <OfficialBadge />}
                               </li>
                             );
                           })}
@@ -351,7 +359,14 @@ export default function MonthlyBarChart() {
               Ver todos →
             </Link>
           </div>
-          <div className="overflow-x-auto">
+          {/* Vista en tarjetas para móvil */}
+          <div className="block md:hidden space-y-3">
+            {pending.map((r) => (
+              <EconomyRecordCard key={r.id} record={r} />
+            ))}
+          </div>
+          {/* Vista en tabla para desktop */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 text-left text-xs text-gray-400 uppercase">
@@ -387,10 +402,10 @@ export default function MonthlyBarChart() {
                             try { label = new URL(link.url).hostname.replace('www.', ''); } catch {}
                             return (
                               <li key={i} className="flex items-center gap-1">
-                                {link.official && <OfficialBadge />}
                                 <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline truncate block">
                                   {label}
                                 </a>
+                                {link.official && <OfficialBadge />}
                               </li>
                             );
                           })}

@@ -10,9 +10,8 @@ class ContractSeeder extends Seeder
     public function run(): void
     {
         $contracts = [
-            // Arqueros
             [
-                'external_id'          => '107979',
+                'external_id'          => '314628',
                 'full_name'            => 'Rodrigo Rey',
                 'expiration_date'      => '2025-12-31',
                 'club_pass_percentage' => 100.00,
@@ -22,7 +21,7 @@ class ContractSeeder extends Seeder
                 'links'                => [],
             ],
             [
-                'external_id'          => '107980',
+                'external_id'          => '3420243',
                 'full_name'            => 'Lucas Rodríguez',
                 'expiration_date'      => '2025-06-30',
                 'club_pass_percentage' => 100.00,
@@ -31,10 +30,8 @@ class ContractSeeder extends Seeder
                 'clauses'              => [],
                 'links'                => [],
             ],
-
-            // Defensores
             [
-                'external_id'          => '107981',
+                'external_id'          => '3246775',
                 'full_name'            => 'Sergio Barreto',
                 'expiration_date'      => '2026-06-30',
                 'club_pass_percentage' => 80.00,
@@ -44,7 +41,6 @@ class ContractSeeder extends Seeder
                 'links'                => [],
             ],
             [
-                'external_id'          => '107982',
                 'full_name'            => 'Emanuel Mammana',
                 'expiration_date'      => '2026-12-31',
                 'club_pass_percentage' => 100.00,
@@ -54,7 +50,6 @@ class ContractSeeder extends Seeder
                 'links'                => [],
             ],
             [
-                'external_id'          => '107983',
                 'full_name'            => 'Alexander Barboza',
                 'expiration_date'      => '2025-06-30',
                 'club_pass_percentage' => 70.00,
@@ -64,7 +59,6 @@ class ContractSeeder extends Seeder
                 'links'                => [],
             ],
             [
-                'external_id'          => '107984',
                 'full_name'            => 'Lucas González',
                 'expiration_date'      => '2024-06-30',
                 'club_pass_percentage' => 60.00,
@@ -74,7 +68,6 @@ class ContractSeeder extends Seeder
                 'links'                => [],
             ],
             [
-                'external_id'          => '107985',
                 'full_name'            => 'Gastón Togni',
                 'expiration_date'      => '2025-06-30',
                 'club_pass_percentage' => 100.00,
@@ -84,7 +77,6 @@ class ContractSeeder extends Seeder
                 'links'                => [],
             ],
             [
-                'external_id'          => '107986',
                 'full_name'            => 'Fabricio Bustos',
                 'expiration_date'      => '2026-06-30',
                 'club_pass_percentage' => 100.00,
@@ -93,10 +85,7 @@ class ContractSeeder extends Seeder
                 'clauses'              => ['Cláusula de rescisión: USD 3M'],
                 'links'                => [],
             ],
-
-            // Mediocampistas
             [
-                'external_id'          => '107987',
                 'full_name'            => 'Iván Marcone',
                 'expiration_date'      => '2025-06-30',
                 'club_pass_percentage' => 50.00,
@@ -106,7 +95,6 @@ class ContractSeeder extends Seeder
                 'links'                => [],
             ],
             [
-                'external_id'          => '107988',
                 'full_name'            => 'Alan Soñora',
                 'expiration_date'      => '2026-12-31',
                 'club_pass_percentage' => 90.00,
@@ -116,7 +104,6 @@ class ContractSeeder extends Seeder
                 'links'                => [],
             ],
             [
-                'external_id'          => '107989',
                 'full_name'            => 'Javier Altamirano',
                 'expiration_date'      => '2024-12-31',
                 'club_pass_percentage' => 80.00,
@@ -126,7 +113,6 @@ class ContractSeeder extends Seeder
                 'links'                => [],
             ],
             [
-                'external_id'          => '107990',
                 'full_name'            => 'Carlos Briasco',
                 'expiration_date'      => '2026-06-30',
                 'club_pass_percentage' => 100.00,
@@ -136,7 +122,6 @@ class ContractSeeder extends Seeder
                 'links'                => [],
             ],
             [
-                'external_id'          => '107991',
                 'full_name'            => 'Lucas Romero',
                 'expiration_date'      => '2025-12-31',
                 'club_pass_percentage' => 100.00,
@@ -146,7 +131,6 @@ class ContractSeeder extends Seeder
                 'links'                => [],
             ],
             [
-                'external_id'          => '107992',
                 'full_name'            => 'Kevin Lomónaco',
                 'expiration_date'      => '2027-06-30',
                 'club_pass_percentage' => 70.00,
@@ -155,10 +139,7 @@ class ContractSeeder extends Seeder
                 'clauses'              => [],
                 'links'                => [],
             ],
-
-            // Delanteros
             [
-                'external_id'          => '107993',
                 'full_name'            => 'Silvio Romero',
                 'expiration_date'      => '2025-06-30',
                 'club_pass_percentage' => 100.00,
@@ -168,7 +149,6 @@ class ContractSeeder extends Seeder
                 'links'                => [],
             ],
             [
-                'external_id'          => '107994',
                 'full_name'            => 'Leandro Fernández',
                 'expiration_date'      => '2024-06-30',
                 'club_pass_percentage' => 100.00,
@@ -178,41 +158,10 @@ class ContractSeeder extends Seeder
                 'links'                => [],
             ],
             [
-                'external_id'          => '107995',
                 'full_name'            => 'Jonatan Báez',
                 'expiration_date'      => '2024-06-30',
                 'club_pass_percentage' => 90.00,
                 'estimated_salary'     => 22000.00,
-                'currency'             => 'USD',
-                'clauses'              => [],
-                'links'                => [],
-            ],
-            [
-                'external_id'          => '107996',
-                'full_name'            => 'Joaquín Laso',
-                'expiration_date'      => '2025-12-31',
-                'club_pass_percentage' => 100.00,
-                'estimated_salary'     => 10000.00,
-                'currency'             => 'USD',
-                'clauses'              => [],
-                'links'                => [],
-            ],
-            [
-                'external_id'          => '107997',
-                'full_name'            => 'Alexis Canelo',
-                'expiration_date'      => '2027-06-30',
-                'club_pass_percentage' => 60.00,
-                'estimated_salary'     => 12000.00,
-                'currency'             => 'USD',
-                'clauses'              => ['Cláusula de compra por terceros: USD 4M'],
-                'links'                => [],
-            ],
-            [
-                'external_id'          => '107998',
-                'full_name'            => 'Facundo Pumpido',
-                'expiration_date'      => '2026-12-31',
-                'club_pass_percentage' => 100.00,
-                'estimated_salary'     => 9000.00,
                 'currency'             => 'USD',
                 'clauses'              => [],
                 'links'                => [],

@@ -77,15 +77,15 @@ export default function EconomyDetailPage() {
             <ul className="space-y-1">
               {record.links.map((link, i) => (
                 <li key={i} className="flex items-center gap-2">
-                  {link.official && <OfficialBadge />}
                   <a
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-rojo text-sm hover:underline break-all"
-                  >
+                    >
                     {link.url}
                   </a>
+                  {link.official && <OfficialBadge />}
                 </li>
               ))}
             </ul>
