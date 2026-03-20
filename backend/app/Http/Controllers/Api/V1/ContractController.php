@@ -72,8 +72,17 @@ class ContractController extends Controller
             'total_salarios_usd'       => (float) (clone $aggQuery)->where('currency', 'USD')->sum('estimated_salary'),
             'total_salarios_ars'       => (float) (clone $aggQuery)->where('currency', 'ARS')->sum('estimated_salary'),
             'total_salarios_eur'       => (float) (clone $aggQuery)->where('currency', 'EUR')->sum('estimated_salary'),
-            'contratos_vigentes'       => (int) (clone $aggQuery)->where('expiration_date', '>=', Carbon::now())->count(),
-            'contratos_vencidos'       => (int) (clone $aggQuery)->where('expiration_date', '<', Carbon::now())->count(),
+            'contratos_vigentes'       => (int) (clone $aggQuery)->where('expiration_date', '>=', $now)->count(),
+            'contratos_vencidos'       => (int) (clone $aggQuery)->where('expiration_date', '<', $now)->count(),
+            'jugadores_prestamo'       => (int) (clone $aggQuery)->whereNotNull('loan')->count(),
+            'vencen_6_meses'           => (int) (clone $aggQuery)->whereNull('termination_date')
+                                            ->where('expiration_date', '>=', $now)
+                                            ->where('expiration_date', '<=', $now->copy()->addMonths(6))
+                                            ->count(),
+            'vencen_12_meses'          => (int) (clone $aggQuery)->whereNull('termination_date')
+                                            ->where('expiration_date', '>=', $now)
+                                            ->where('expiration_date', '<=', $now->copy()->addMonths(12))
+                                            ->count(),
             'last_updated_at'          => Contract::max('created_at'),
         ];
 
@@ -85,6 +94,26 @@ class ContractController extends Controller
                 'last_page'    => $contracts->lastPage(),
                 'per_page'     => $contracts->perPage(),
                 'total'        => $contracts->total(),
+            ],
+        ]);
+    }
+
+    public function stats(): JsonResponse
+    {
+        $now = Carbon::now();
+
+        return response()->json([
+            'data' => [
+                'total_contratos'    => (int) Contract::count(),
+                'jugadores_prestamo' => (int) Contract::whereNotNull('loan')->count(),
+                'vencen_6_meses'     => (int) Contract::whereNull('termination_date')
+                                            ->where('expiration_date', '>=', $now)
+                                            ->where('expiration_date', '<=', $now->copy()->addMonths(6))
+                                            ->count(),
+                'vencen_12_meses'    => (int) Contract::whereNull('termination_date')
+                                            ->where('expiration_date', '>=', $now)
+                                            ->where('expiration_date', '<=', $now->copy()->addMonths(12))
+                                            ->count(),
             ],
         ]);
     }
