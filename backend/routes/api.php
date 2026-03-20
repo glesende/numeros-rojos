@@ -15,6 +15,7 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
     $router->get('economy/monthly-summary', 'EconomyRecordController@monthlySummary');
     $router->get('economy/{id}', 'EconomyRecordController@show');
     $router->get('contracts', 'ContractController@index');
+    $router->get('contracts/stats', 'ContractController@stats');
     $router->get('contracts/{id}', 'ContractController@show');
 
     // Balances (public)

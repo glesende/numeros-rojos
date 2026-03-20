@@ -10,6 +10,7 @@ export const deleteEconomyRecord = (id) => client.delete(`/admin/economy/${id}`)
 
 // Contracts
 export const getContracts = (params = {}) => client.get('/contracts', { params });
+export const getContractStats = () => client.get('/contracts/stats');
 export const getContract = (id) => client.get(`/contracts/${id}`);
 export const createContract = (data) => client.post('/admin/contracts', data);
 export const updateContract = (id, data) => client.put(`/admin/contracts/${id}`, data);
