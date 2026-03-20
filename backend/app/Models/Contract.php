@@ -15,11 +15,14 @@ class Contract extends Model
         'external_id',
         'full_name',
         'expiration_date',
+        'signing_date',
+        'termination_date',
         'club_pass_percentage',
         'estimated_salary',
         'currency',
         'clauses',
         'links',
+        'loan',
     ];
 
     protected $casts = [
@@ -27,7 +30,10 @@ class Contract extends Model
         'estimated_salary'     => 'decimal:2',
         'clauses'             => 'array',
         'links'               => 'array',
+        'loan'                => 'array',
         'expiration_date'     => 'date',
+        'signing_date'        => 'date',
+        'termination_date'    => 'date',
     ];
 
     public function scopeOfficial($query, ?bool $official): mixed
@@ -73,13 +79,14 @@ class Contract extends Model
 
         $today = now()->startOfDay();
 
+        // Use effective end date: termination_date if set, otherwise expiration_date
         return match ($validity) {
-            '6m'  => $query->where('expiration_date', '>=', $today)
-                           ->where('expiration_date', '<=', $today->copy()->addMonths(6)),
-            '12m' => $query->where('expiration_date', '>=', $today)
-                           ->where('expiration_date', '<=', $today->copy()->addMonths(12)),
-            '18m' => $query->where('expiration_date', '>=', $today)
-                           ->where('expiration_date', '<=', $today->copy()->addMonths(18)),
+            '6m'  => $query->whereRaw('COALESCE(termination_date, expiration_date) >= ?', [$today])
+                           ->whereRaw('COALESCE(termination_date, expiration_date) <= ?', [$today->copy()->addMonths(6)]),
+            '12m' => $query->whereRaw('COALESCE(termination_date, expiration_date) >= ?', [$today])
+                           ->whereRaw('COALESCE(termination_date, expiration_date) <= ?', [$today->copy()->addMonths(12)]),
+            '18m' => $query->whereRaw('COALESCE(termination_date, expiration_date) >= ?', [$today])
+                           ->whereRaw('COALESCE(termination_date, expiration_date) <= ?', [$today->copy()->addMonths(18)]),
             default => $query,
         };
     }

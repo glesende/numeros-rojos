@@ -32,9 +32,11 @@ function getDaysUntil(dateStr) {
 }
 
 function ContractCard({ contract, onClick }) {
-  const days = getDaysUntil(contract.expiration_date);
+  const effectiveEnd = contract.termination_date || contract.expiration_date;
+  const days = getDaysUntil(effectiveEnd);
   const expired = days < 0;
   const soon = days >= 0 && days <= 60;
+  const rescindido = !!contract.termination_date;
   const clickable = !!contract.external_id && !!onClick;
 
   return (
@@ -58,16 +60,31 @@ function ContractCard({ contract, onClick }) {
           <p className="font-bold text-gray-900 text-sm leading-tight line-clamp-2">
             {contract.full_name}
           </p>
+          {contract.loan && (
+            <span className="text-xs font-semibold text-blue-600">A préstamo en {contract.loan.club}</span>
+          )}
         </div>
       </div>
 
       <div className="space-y-1.5 text-sm flex-1">
+        {contract.signing_date && (
+          <div className="flex justify-between items-center">
+            <span className="text-gray-500 text-xs">Firma</span>
+            <span className="font-mono text-xs text-gray-700">{formatDate(contract.signing_date)}</span>
+          </div>
+        )}
         <div className="flex justify-between items-center">
-          <span className="text-gray-500 text-xs">Vence</span>
+          <span className="text-gray-500 text-xs">{rescindido ? 'Rescisión' : 'Vence'}</span>
           <span className={`font-mono text-xs ${expired ? 'text-red-600' : soon ? 'text-yellow-600' : 'text-gray-700'}`}>
-            {formatDate(contract.expiration_date)}
+            {formatDate(effectiveEnd)}
           </span>
         </div>
+        {contract.loan?.until && (
+          <div className="flex justify-between items-center">
+            <span className="text-gray-500 text-xs">Préstamo hasta</span>
+            <span className="font-mono text-xs text-blue-600">{formatDate(contract.loan.until)}</span>
+          </div>
+        )}
         {contract.club_pass_percentage !== null && (
           <div className="flex justify-between items-center">
             <span className="text-gray-500 text-xs">% Pase</span>
