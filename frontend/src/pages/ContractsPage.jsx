@@ -4,6 +4,7 @@ import { useFilters } from '../hooks/useFilters';
 import ContractFilters from '../components/contracts/ContractFilters';
 import ContractTable from '../components/contracts/ContractTable';
 import ContractTotals from '../components/contracts/ContractTotals';
+import ContractWidgets from '../components/contracts/ContractWidgets';
 import Pagination from '../components/common/Pagination';
 import Loader from '../components/common/Loader';
 import ErrorMessage from '../components/common/ErrorMessage';
@@ -42,6 +43,8 @@ export default function ContractsPage() {
       {lastUpdated && (
         <p className="text-xs text-gray-400 mb-4">Última actualización: {lastUpdated}</p>
       )}
+
+      <ContractWidgets stats={data.totals} />
 
       <ContractFilters filters={filters} onFilter={updateFilter} onReset={resetFilters} />
 
