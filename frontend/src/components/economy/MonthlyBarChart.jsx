@@ -19,8 +19,8 @@ import { financialColors } from '../../../tailwind.config.js';
 import { CHART_THEME } from '../../constants/chartColors';
 
 const COLORS = {
-  ingresos: financialColors.ingreso,
-  egresos: financialColors.egreso,
+  ingresos: financialColors.ingreso.DEFAULT,
+  egresos: financialColors.egreso.DEFAULT,
   today: CHART_THEME.todayLine,
 };
 

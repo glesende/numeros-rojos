@@ -13,21 +13,17 @@ class EconomyRecordController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
+        $official   = $request->has('official')    ? filter_var($request->input('official'),    FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : null;
+        $carriedOut = $request->has('carried_out') ? filter_var($request->input('carried_out'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : null;
+
         $query = EconomyRecord::query()
             ->search($request->input('search'))
-            ->official($request->boolean('official', null) !== false ? $request->input('official') : null)
+            ->official($official)
             ->type($request->input('type'))
+            ->currency($request->input('currency'))
             ->dateFrom($request->input('date_from'))
             ->dateTo($request->input('date_to'))
-            ->carriedOut($request->boolean('carried_out', null) !== false ? $request->input('carried_out') : null);
-
-        if ($request->has('official')) {
-            $query->official(filter_var($request->input('official'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE));
-        }
-
-        if ($request->has('carried_out')) {
-            $query->carriedOut(filter_var($request->input('carried_out'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE));
-        }
+            ->carriedOut($carriedOut);
 
         $sortDir = $request->input('sort_dir', 'desc');
         $query->orderBy('record_date', $sortDir);
@@ -38,12 +34,10 @@ class EconomyRecordController extends Controller
         // Aggregates
         $aggregateQuery = EconomyRecord::query()
             ->type($request->input('type'))
+            ->currency($request->input('currency'))
             ->dateFrom($request->input('date_from'))
-            ->dateTo($request->input('date_to'));
-
-        if ($request->has('official')) {
-            $aggregateQuery->official(filter_var($request->input('official'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE));
-        }
+            ->dateTo($request->input('date_to'))
+            ->official($official);
 
         $totals = [
             'total_cobros_ars' => (float) (clone $aggregateQuery)->where('type', 'cobro')->where('currency', 'ARS')->sum('amount'),

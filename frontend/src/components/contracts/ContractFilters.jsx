@@ -4,16 +4,25 @@ export default function ContractFilters({ filters, onFilter, onReset }) {
   return (
     <FilterBar onReset={onReset}>
       <div>
-        <label className="block text-xs font-medium text-gray-500 mb-1">Vigencia</label>
+        <label className="block text-xs font-medium text-gray-500 mb-1">Buscar jugador</label>
+        <input
+          type="text"
+          value={filters.search || ''}
+          onChange={(e) => onFilter('search', e.target.value || null)}
+          placeholder="Nombre del jugador"
+          className="input-field"
+        />
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-500 mb-1">Estado</label>
         <select
-          value={filters.validity ?? ''}
-          onChange={(e) => onFilter('validity', e.target.value === '' ? null : e.target.value)}
+          value={filters.status || ''}
+          onChange={(e) => onFilter('status', e.target.value || null)}
           className="input-field"
         >
           <option value="">Todos</option>
-          <option value="6m">Vencen en 6 meses</option>
-          <option value="12m">Vencen en 12 meses</option>
-          <option value="18m">Vencen en 18 meses</option>
+          <option value="vigente">Vigente</option>
+          <option value="vencido">Terminado</option>
         </select>
       </div>
       <div>
@@ -43,6 +52,24 @@ export default function ContractFilters({ filters, onFilter, onReset }) {
           type="date"
           value={filters.date_to || ''}
           onChange={(e) => onFilter('date_to', e.target.value || null)}
+          className="input-field"
+        />
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-500 mb-1">Vence desde</label>
+        <input
+          type="date"
+          value={filters.expire_from || ''}
+          onChange={(e) => onFilter('expire_from', e.target.value || null)}
+          className="input-field"
+        />
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-500 mb-1">Vence hasta</label>
+        <input
+          type="date"
+          value={filters.expire_to || ''}
+          onChange={(e) => onFilter('expire_to', e.target.value || null)}
           className="input-field"
         />
       </div>

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 class Contract extends Model
 {
@@ -52,7 +53,7 @@ class Contract extends Model
         if ($from === null) {
             return $query;
         }
-        return $query->where('expiration_date', '>=', $from);
+        return $query->where('signing_date', '>=', $from);
     }
 
     public function scopeDateTo($query, ?string $to): mixed
@@ -60,7 +61,7 @@ class Contract extends Model
         if ($to === null) {
             return $query;
         }
-        return $query->where('expiration_date', '<=', $to);
+        return $query->where('signing_date', '<=', $to);
     }
 
     public function scopeSearch($query, ?string $search): mixed
@@ -71,13 +72,65 @@ class Contract extends Model
         return $query->where('full_name', 'like', '%' . $search . '%');
     }
 
+    public function scopeStatus($query, ?string $status): mixed
+    {
+        if ($status === null) {
+            return $query;
+        }
+        $today = Carbon::now()->startOfDay();
+        return match ($status) {
+            'vigente' => $query->whereNull('termination_date')->where('expiration_date', '>=', $today),
+            'vencido' => $query->where(function ($q) use ($today) {
+                $q->whereNotNull('termination_date')
+                  ->orWhere('expiration_date', '<', $today);
+            }),
+            default   => $query,
+        };
+    }
+
+    public function scopeExpireFrom($query, ?string $from): mixed
+    {
+        if ($from === null) {
+            return $query;
+        }
+        return $query->where('expiration_date', '>=', $from);
+    }
+
+    public function scopeExpireTo($query, ?string $to): mixed
+    {
+        if ($to === null) {
+            return $query;
+        }
+        return $query->where('expiration_date', '<=', $to);
+    }
+
+    public function scopeLoan($query, ?string $loan): mixed
+    {
+        if ($loan === null) {
+            return $query;
+        }
+        return match ($loan) {
+            '1'     => $query->whereNotNull('loan'),
+            '0'     => $query->whereNull('loan'),
+            default => $query,
+        };
+    }
+
+    public function scopeCurrency($query, ?string $currency): mixed
+    {
+        if ($currency === null) {
+            return $query;
+        }
+        return $query->where('currency', $currency);
+    }
+
     public function scopeValidity($query, ?string $validity): mixed
     {
         if ($validity === null || $validity === '') {
             return $query;
         }
 
-        $today = now()->startOfDay();
+        $today = Carbon::now()->startOfDay();
 
         // Use effective end date: termination_date if set, otherwise expiration_date
         return match ($validity) {

@@ -9,7 +9,7 @@ export default function EconomyFilters({ filters, onFilter, onReset }) {
           type="text"
           value={filters.search || ''}
           onChange={(e) => onFilter('search', e.target.value || null)}
-          placeholder="Descripcion o entidad"
+          placeholder="Descripción o entidad"
           className="input-field"
         />
       </div>
@@ -23,6 +23,31 @@ export default function EconomyFilters({ filters, onFilter, onReset }) {
           <option value="">Todos</option>
           <option value="cobro">Cobro</option>
           <option value="pago">Pago</option>
+        </select>
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-500 mb-1">Moneda</label>
+        <select
+          value={filters.currency || ''}
+          onChange={(e) => onFilter('currency', e.target.value || null)}
+          className="input-field"
+        >
+          <option value="">Todas</option>
+          <option value="ARS">ARS</option>
+          <option value="USD">USD</option>
+          <option value="EUR">EUR</option>
+        </select>
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-500 mb-1">Efectuado</label>
+        <select
+          value={filters.carried_out ?? ''}
+          onChange={(e) => onFilter('carried_out', e.target.value === '' ? null : e.target.value)}
+          className="input-field"
+        >
+          <option value="">Todos</option>
+          <option value="1">Efectuado</option>
+          <option value="0">No efectuado</option>
         </select>
       </div>
       <div>
