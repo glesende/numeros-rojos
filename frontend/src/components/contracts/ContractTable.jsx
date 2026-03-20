@@ -64,8 +64,7 @@ export default function ContractTable({ contracts }) {
           const effectiveEnd = c.termination_date || c.expiration_date;
           const vencido = new Date(effectiveEnd) < new Date();
           const hoy = new Date();
-          const vencimiento = new Date(effectiveEnd);
-          const diasRestantes = Math.ceil((vencimiento - hoy) / (1000 * 60 * 60 * 24));
+          const diasRestantes = Math.ceil((new Date(effectiveEnd) - hoy) / (1000 * 60 * 60 * 24));
           const proximoAVencer = !vencido && diasRestantes <= 90;
 
           return (
@@ -78,14 +77,22 @@ export default function ContractTable({ contracts }) {
                   {c.full_name}
                 </Link>
                 {c.loan && (
-                  <span className="text-xs font-semibold text-blue-600 shrink-0">Préstamo</span>
+                  <span className="text-xs font-semibold text-blue-600 shrink-0">
+                    A préstamo en {c.loan.club}
+                  </span>
                 )}
               </div>
+
+              {c.signing_date && (
+                <div className="text-xs text-gray-500 mb-1">
+                  Firma: <span className="font-medium text-gray-700">{formatDate(c.signing_date)}</span>
+                </div>
+              )}
 
               <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
                 <span className={`font-medium ${vencido ? 'text-red-600' : proximoAVencer ? 'text-amber-600' : 'text-gray-700'}`}>
                   {c.termination_date ? 'Rescindido' : 'Vence'}: {formatDate(effectiveEnd)}
-                  {vencido && <span className="ml-1">(vencido)</span>}
+                  {!c.termination_date && vencido && <span className="ml-1">(vencido)</span>}
                   {proximoAVencer && <span className="ml-1">(próximo)</span>}
                 </span>
               </div>
@@ -115,6 +122,7 @@ export default function ContractTable({ contracts }) {
           <thead>
             <tr className="border-b border-gray-200 text-left text-xs text-gray-500 uppercase">
               <th className="pb-3 pr-4">Jugador</th>
+              <th className="pb-3 pr-4">Firma</th>
               <th className="pb-3 pr-4">Vencimiento</th>
               <th className="pb-3 pr-4 text-right">% Pase</th>
               <th className="pb-3 pr-4 text-right">Salario est.</th>
@@ -128,25 +136,29 @@ export default function ContractTable({ contracts }) {
               return (
                 <tr key={c.id} className="border-b border-gray-100 hover:bg-gray-50">
                   <td className="py-3 pr-4 font-medium">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col gap-0.5">
                       <Link to={`/contratos/${c.id}`} className="text-rojo hover:underline">
                         {c.full_name}
                       </Link>
                       {c.loan && (
-                        <span className="text-xs font-semibold text-blue-600">Préstamo</span>
+                        <span className="text-xs text-blue-600">
+                          A préstamo en {c.loan.club}
+                          {c.loan.until && ` · hasta ${formatDate(c.loan.until)}`}
+                        </span>
                       )}
                     </div>
                   </td>
+                  <td className="py-3 pr-4 whitespace-nowrap text-gray-600">
+                    {formatDate(c.signing_date)}
+                  </td>
                   <td className="py-3 pr-4 whitespace-nowrap">
-                    <span className={vencido ? 'text-red-600' : ''}>
-                      {c.termination_date ? (
-                        <span className="text-red-600">Rescindido: {formatDate(c.termination_date)}</span>
-                      ) : (
-                        formatDate(c.expiration_date)
-                      )}
-                    </span>
-                    {vencido && !c.termination_date && (
-                      <span className="ml-1 text-xs text-red-500">(vencido)</span>
+                    {c.termination_date ? (
+                      <span className="text-red-600">Rescindido: {formatDate(c.termination_date)}</span>
+                    ) : (
+                      <>
+                        <span className={vencido ? 'text-red-600' : ''}>{formatDate(c.expiration_date)}</span>
+                        {vencido && <span className="ml-1 text-xs text-red-500">(vencido)</span>}
+                      </>
                     )}
                   </td>
                   <td className="py-3 pr-4 text-right font-mono">{c.club_pass_percentage}%</td>

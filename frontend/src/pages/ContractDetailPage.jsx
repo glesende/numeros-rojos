@@ -47,14 +47,35 @@ export default function ContractDetailPage() {
           {contract.links?.some((l) => l.official) && <OfficialBadge />}
           {rescindido && <span className="text-xs font-semibold text-red-600">Rescindido</span>}
           {!rescindido && vencido && <span className="text-xs font-semibold text-red-600">Vencido</span>}
-          {contract.loan && (
-            <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
-              A préstamo en {contract.loan.club}
-            </span>
-          )}
         </div>
 
-        <h1 className="text-xl font-bold mb-6">{contract.full_name}</h1>
+        <h1 className="text-xl font-bold mb-4">{contract.full_name}</h1>
+
+        {contract.loan && (
+          <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
+            <p className="text-blue-800 font-semibold text-sm mb-3">
+              Cedido a préstamo en {contract.loan.club}
+            </p>
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              {contract.loan.until && (
+                <div>
+                  <p className="text-gray-500 text-xs">Finalización del préstamo</p>
+                  <p className="font-medium">{formatDate(contract.loan.until)}</p>
+                </div>
+              )}
+            </div>
+            {contract.loan.clauses?.length > 0 && (
+              <div className="mt-3">
+                <p className="text-gray-500 text-xs mb-1">Cláusulas del préstamo</p>
+                <ul className="space-y-1">
+                  {contract.loan.clauses.map((clause, i) => (
+                    <li key={i} className="text-sm bg-white px-3 py-2 rounded border border-blue-100">{clause}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-4 text-sm mb-6">
           {contract.signing_date && (
@@ -94,34 +115,6 @@ export default function ContractDetailPage() {
             </p>
           </div>
         </div>
-
-        {contract.loan && (
-          <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
-            <p className="text-blue-700 font-semibold text-sm mb-2">A préstamo</p>
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <p className="text-gray-500">Club</p>
-                <p className="font-medium">{contract.loan.club}</p>
-              </div>
-              {contract.loan.until && (
-                <div>
-                  <p className="text-gray-500">Hasta</p>
-                  <p className="font-medium">{formatDate(contract.loan.until)}</p>
-                </div>
-              )}
-            </div>
-            {contract.loan.clauses?.length > 0 && (
-              <div className="mt-3">
-                <p className="text-gray-500 text-sm mb-1">Cláusulas del préstamo</p>
-                <ul className="space-y-1">
-                  {contract.loan.clauses.map((c, i) => (
-                    <li key={i} className="text-sm bg-white px-3 py-2 rounded border border-blue-100">{c}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        )}
 
         {contract.clauses && contract.clauses.length > 0 && (
           <div className="mb-6">
