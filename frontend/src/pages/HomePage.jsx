@@ -7,6 +7,7 @@ import MonthlyBarChart from '../components/economy/MonthlyBarChart';
 import BalanceLineChart from '../components/balances/BalanceLineChart';
 import StatsWidget from '../components/stats/StatsWidget';
 import useSectionSettings from '../hooks/useSectionSettings';
+import ContractWidgets from '../components/contracts/ContractWidgets';
 import OfficialBadge from '../components/OfficialBadge';
 
 const VIGENCIA_OPTIONS = [
@@ -283,6 +284,7 @@ export default function HomePage() {
   const [vigencia, setVigencia] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [contracts, setContracts] = useState([]);
+  const [contractTotals, setContractTotals] = useState(null);
   const [loading, setLoading] = useState(false);
   const [selectedContractPlayer, setSelectedContractPlayer] = useState(null);
   const { sections } = useSectionSettings();
@@ -292,6 +294,7 @@ export default function HomePage() {
     getContracts({ per_page: 100, sort_dir: 'asc' })
       .then((res) => {
         setContracts(res.data.data || []);
+        setContractTotals(res.data.totals || null);
       })
       .catch(() => setContracts([]))
       .finally(() => setLoading(false));
@@ -378,6 +381,8 @@ export default function HomePage() {
               Ver todos →
             </Link>
           </div>
+
+          <ContractWidgets stats={contractTotals} />
 
           {/* Search bar */}
           <form onSubmit={(e) => e.preventDefault()} className="flex gap-2 mb-4">
