@@ -12,7 +12,7 @@ import {
 } from 'recharts';
 import { getBalancesEvolution } from '../../api/endpoints';
 import Loader from '../common/Loader';
-import { LINE_COLORS } from '../../constants/chartColors';
+import { LINE_COLORS, CHART_THEME } from '../../constants/chartColors';
 
 function formatAmount(value) {
   if (value === null || value === undefined) return '-';
@@ -220,7 +220,7 @@ export default function BalanceLineChart({ compact = false, showLink = false, se
                             style={
                               active
                                 ? { backgroundColor: color, borderColor: color }
-                                : { borderColor: '#d1d5db' }
+                                : { borderColor: CHART_THEME.checkboxBorder }
                             }
                           >
                             {active && (
@@ -268,21 +268,21 @@ export default function BalanceLineChart({ compact = false, showLink = false, se
               data={chartData}
               margin={{ top: 8, right: 16, left: 8, bottom: 8 }}
             >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_THEME.grid} />
               <XAxis
                 dataKey="exercise"
-                tick={{ fontSize: 12, fill: '#6b7280' }}
+                tick={{ fontSize: 12, fill: CHART_THEME.axisText }}
                 tickLine={false}
-                axisLine={{ stroke: '#e5e7eb' }}
+                axisLine={{ stroke: CHART_THEME.axisLine }}
               />
               <YAxis
                 tickFormatter={(v) => formatAmount(v)}
-                tick={{ fontSize: 10, fill: '#6b7280' }}
+                tick={{ fontSize: 10, fill: CHART_THEME.axisText }}
                 tickLine={false}
                 axisLine={false}
                 width={65}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: CHART_THEME.tooltipCursor }} />
               {!compact && <Legend formatter={(value) => value} />}
               {visibleSeries.map((serie, idx) => {
                 const colorIdx = data.series.findIndex((s) => s.id === serie.id);
