@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 class Contract extends Model
 {
@@ -76,12 +77,31 @@ class Contract extends Model
         if ($status === null) {
             return $query;
         }
-        $today = now()->startOfDay();
+        $today = Carbon::now()->startOfDay();
         return match ($status) {
-            'vigente' => $query->whereRaw('COALESCE(termination_date, expiration_date) >= ?', [$today]),
-            'vencido' => $query->whereRaw('COALESCE(termination_date, expiration_date) < ?', [$today]),
+            'vigente' => $query->whereNull('termination_date')->where('expiration_date', '>=', $today),
+            'vencido' => $query->where(function ($q) use ($today) {
+                $q->whereNotNull('termination_date')
+                  ->orWhere('expiration_date', '<', $today);
+            }),
             default   => $query,
         };
+    }
+
+    public function scopeExpireFrom($query, ?string $from): mixed
+    {
+        if ($from === null) {
+            return $query;
+        }
+        return $query->where('expiration_date', '>=', $from);
+    }
+
+    public function scopeExpireTo($query, ?string $to): mixed
+    {
+        if ($to === null) {
+            return $query;
+        }
+        return $query->where('expiration_date', '<=', $to);
     }
 
     public function scopeLoan($query, ?string $loan): mixed
@@ -110,7 +130,7 @@ class Contract extends Model
             return $query;
         }
 
-        $today = now()->startOfDay();
+        $today = Carbon::now()->startOfDay();
 
         // Use effective end date: termination_date if set, otherwise expiration_date
         return match ($validity) {
