@@ -8,10 +8,19 @@ export default function BalancesPage() {
   const [balances, setBalances] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [lastUpdated, setLastUpdated] = useState(null);
+
   useEffect(() => {
     document.title = 'Números Rojos | Balances oficiales';
     getBalances()
-      .then((res) => setBalances(res.data?.data || []))
+      .then((res) => {
+        const list = res.data?.data || [];
+        setBalances(list);
+        if (list.length > 0) {
+          const latest = list.reduce((max, b) => (b.created_at > max ? b.created_at : max), list[0].created_at);
+          setLastUpdated(new Date(latest).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' }));
+        }
+      })
       .finally(() => setLoading(false));
 
     return () => { document.title = 'Números Rojos'; };
@@ -19,7 +28,10 @@ export default function BalancesPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-extrabold mb-2">Balances oficiales</h1>
+      <h1 className="text-3xl font-extrabold mb-1">Balances oficiales</h1>
+      {lastUpdated && (
+        <p className="text-xs text-gray-400 mb-2">Última actualización: {lastUpdated}</p>
+      )}
       <p className="text-gray-500 text-sm mb-8">
         Documentos e información económica publicada oficialmente por el Club Atlético Independiente.
       </p>
