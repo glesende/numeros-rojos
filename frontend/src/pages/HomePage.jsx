@@ -338,82 +338,87 @@ export default function HomePage() {
 
       {/* Monthly income/expense chart */}
       {sections.section_economia_enabled !== false && (
-        <section id="compromisos-economicos" className="max-w-6xl mx-auto px-4 py-8">
+        <section id="compromisos-economicos" className="max-w-6xl mx-auto px-4 py-4">
           <MonthlyBarChart />
         </section>
       )}
 
       {/* Contracts carousel */}
       {sections.section_contratos_enabled !== false && (
-      <section id="contratos" className="max-w-6xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold">Contratos del plantel</h2>
-        </div>
-
-        {/* Search bar */}
-        <form onSubmit={(e) => e.preventDefault()} className="flex gap-2 mb-4">
-          <input
-            type="text"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Buscar jugador..."
-            className="input-field flex-1"
-          />
-        </form>
-
-        {/* Vigencia buttons */}
-        <div className="flex gap-2 flex-wrap mb-6">
-          {VIGENCIA_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => handleVigenciaClick(opt.value)}
-              className={`px-4 py-2 rounded-full text-sm font-semibold transition-all border ${
-                vigencia === opt.value
-                  ? 'bg-rojo text-white border-rojo'
-                  : 'bg-white text-gray-700 border-gray-200 hover:border-rojo/40 hover:text-rojo'
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-          {(vigencia || searchInput) && (
-            <button
-              onClick={handleClear}
-              className="px-4 py-2 rounded-full text-sm font-semibold bg-gray-100 text-gray-500 hover:bg-gray-200 border border-transparent transition-all"
-            >
-              Limpiar filtros
-            </button>
-          )}
-        </div>
-
-        {loading ? (
-          <div className="py-12">
-            <Loader />
+      <section id="contratos" className="max-w-6xl mx-auto px-4 py-4">
+        <div className="card overflow-hidden">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold">Contratos del plantel</h2>
+            <Link to="/contratos" className="text-sm text-rojo hover:underline font-medium">
+              Ver todos →
+            </Link>
           </div>
-        ) : filteredContracts.length === 0 ? (
-          <div className="card text-center py-12 text-gray-500">
-            No se encontraron contratos con los filtros seleccionados.
+
+          {/* Search bar */}
+          <form onSubmit={(e) => e.preventDefault()} className="flex gap-2 mb-4">
+            <input
+              type="text"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Buscar jugador..."
+              className="input-field flex-1"
+            />
+          </form>
+
+          {/* Vigencia buttons */}
+          <div className="flex gap-2 flex-wrap mb-6">
+            {VIGENCIA_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => handleVigenciaClick(opt.value)}
+                className={`px-4 py-2 rounded-full text-sm font-semibold transition-all border ${
+                  vigencia === opt.value
+                    ? 'bg-rojo text-white border-rojo'
+                    : 'bg-white text-gray-700 border-gray-200 hover:border-rojo/40 hover:text-rojo'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+            {(vigencia || searchInput) && (
+              <button
+                onClick={handleClear}
+                className="px-4 py-2 rounded-full text-sm font-semibold bg-gray-100 text-gray-500 hover:bg-gray-200 border border-transparent transition-all"
+              >
+                Limpiar filtros
+              </button>
+            )}
           </div>
-        ) : (
-          <>
-            <p className="text-sm text-gray-500 mb-3">{filteredContracts.length} contratos encontrados</p>
-            <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
-              {filteredContracts.map((c) => (
-                <ContractCard
-                  key={c.id}
-                  contract={c}
-                  onClick={c.external_id ? () => setSelectedContractPlayer({ id: c.external_id, nick: c.full_name, image: c.player_avatar }) : undefined}
-                />
-              ))}
+
+          {loading ? (
+            <div className="py-12">
+              <Loader />
             </div>
-          </>
+          ) : filteredContracts.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              No se encontraron contratos con los filtros seleccionados.
+            </div>
+          ) : (
+            <>
+              <p className="text-sm text-gray-500 mb-3">{filteredContracts.length} contratos encontrados</p>
+              <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
+                {filteredContracts.map((c) => (
+                  <ContractCard
+                    key={c.id}
+                    contract={c}
+                    onClick={c.external_id ? () => setSelectedContractPlayer({ id: c.external_id, nick: c.full_name, image: c.player_avatar }) : undefined}
+                  />
+                ))}
+              </div>
+            </>
           )}
+        </div>
         </section>
       )}
 
       {/* Balances */}
       {sections.section_balances_enabled !== false && (
-        <section id="balances" className="max-w-6xl mx-auto px-4 py-8">
+        <section id="balances" className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold">Balances oficiales</h2>
             <Link to="/balances" className="text-sm text-rojo hover:underline font-medium">
@@ -425,13 +430,13 @@ export default function HomePage() {
       )}
 
       {/* Stats widget */}
-      <section id="estadisticas" className="max-w-6xl mx-auto px-4 py-8">
+      <section id="estadisticas" className="max-w-6xl mx-auto px-4 py-4">
         <StatsWidget />
       </section>
 
       {/* Estadio */}
       {sections.section_estadio_enabled !== false && (
-        <section id="estadio" className="max-w-6xl mx-auto px-4 py-8">
+        <section id="estadio" className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold">Estadio</h2>
           </div>
@@ -440,7 +445,7 @@ export default function HomePage() {
       )}
 
       {/* Methodology */}
-      <section id="metodologia" className="max-w-3xl mx-auto px-4 py-12">
+      <section id="metodologia" className="max-w-3xl mx-auto px-4 py-8">
         <h2 className="text-xl font-bold mb-4">Metodología y Fuentes</h2>
 
         <div className="space-y-4">
