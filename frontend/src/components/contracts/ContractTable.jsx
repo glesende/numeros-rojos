@@ -77,10 +77,12 @@ export default function ContractTable({ contracts }) {
                   {c.full_name}
                 </Link>
                 {c.loan && (
-                  <p className="text-xs text-blue-600 mt-0.5">
-                    A préstamo en {c.loan.club}
-                    {c.loan.until && ` hasta ${formatDate(c.loan.until)}`}
-                  </p>
+                  <div className="text-xs text-blue-600 mt-0.5">
+                    <p>A préstamo en {c.loan.club}{c.loan.until && ` · hasta ${formatDate(c.loan.until)}`}</p>
+                    {c.loan.clauses?.map((clause, i) => (
+                      <p key={i} className="text-blue-500">— {clause}</p>
+                    ))}
+                  </div>
                 )}
               </div>
 
@@ -142,10 +144,12 @@ export default function ContractTable({ contracts }) {
                         {c.full_name}
                       </Link>
                       {c.loan && (
-                        <span className="text-xs text-blue-600">
-                          A préstamo en {c.loan.club}
-                          {c.loan.until && ` hasta ${formatDate(c.loan.until)}`}
-                        </span>
+                        <div className="text-xs text-blue-600">
+                          <p>A préstamo en {c.loan.club}{c.loan.until && ` · hasta ${formatDate(c.loan.until)}`}</p>
+                          {c.loan.clauses?.map((clause, i) => (
+                            <p key={i} className="text-blue-500">— {clause}</p>
+                          ))}
+                        </div>
                       )}
                     </div>
                   </td>

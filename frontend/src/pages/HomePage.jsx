@@ -73,6 +73,13 @@ function ContractCard({ contract, onClick }) {
             <span className="font-mono text-xs text-blue-600">{formatDate(contract.loan.until)}</span>
           </div>
         )}
+        {contract.loan?.clauses?.length > 0 && (
+          <div className="flex flex-col gap-0.5">
+            {contract.loan.clauses.map((clause, i) => (
+              <span key={i} className="text-xs text-blue-500">— {clause}</span>
+            ))}
+          </div>
+        )}
         {contract.signing_date && (
           <div className="flex justify-between items-center">
             <span className="text-gray-500 text-xs">Firma</span>
