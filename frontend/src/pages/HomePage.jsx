@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { getContracts, getStadium, sendContact } from '../api/endpoints';
-import PlayerMatchesModal from '../components/stats/PlayerMatchesModal';
 import Loader from '../components/common/Loader';
 import MonthlyBarChart from '../components/economy/MonthlyBarChart';
 import BalanceLineChart from '../components/balances/BalanceLineChart';
@@ -31,16 +30,14 @@ function getDaysUntil(dateStr) {
   return Math.round((expiry - today) / (1000 * 60 * 60 * 24));
 }
 
-function ContractCard({ contract, onClick }) {
+function ContractCard({ contract }) {
   const days = getDaysUntil(contract.expiration_date);
   const expired = days < 0;
   const soon = days >= 0 && days <= 60;
-  const clickable = !!contract.external_id && !!onClick;
 
   return (
     <div
-      className={`flex-shrink-0 w-60 snap-start card p-4 hover:shadow-md hover:border-rojo/20 transition-all duration-200 flex flex-col gap-3 ${clickable ? 'cursor-pointer' : ''}`}
-      onClick={clickable ? onClick : undefined}
+      className="flex-shrink-0 w-60 snap-start card p-4 hover:shadow-md hover:border-rojo/20 transition-all duration-200 flex flex-col gap-3"
     >
       <div className="flex items-center gap-3">
         {contract.player_avatar ? (
@@ -259,7 +256,6 @@ export default function HomePage() {
   const [searchInput, setSearchInput] = useState('');
   const [contracts, setContracts] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [selectedContractPlayer, setSelectedContractPlayer] = useState(null);
   const { sections } = useSectionSettings();
 
   const fetchContracts = useCallback(() => {
@@ -322,7 +318,6 @@ export default function HomePage() {
 
   return (
     <>
-    <PlayerMatchesModal player={selectedContractPlayer} onClose={() => setSelectedContractPlayer(null)} />
     <div>
       {/* Hero */}
       <section className="bg-rojo text-white py-10 md:py-16">
@@ -399,11 +394,9 @@ export default function HomePage() {
             <p className="text-sm text-gray-500 mb-3">{filteredContracts.length} contratos encontrados</p>
             <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
               {filteredContracts.map((c) => (
-                <ContractCard
-                  key={c.id}
-                  contract={c}
-                  onClick={c.external_id ? () => setSelectedContractPlayer({ id: c.external_id, nick: c.full_name, image: c.player_avatar }) : undefined}
-                />
+                <Link key={c.id} to={`/contratos/${c.id}`} className="contents">
+                  <ContractCard contract={c} />
+                </Link>
               ))}
             </div>
           </>

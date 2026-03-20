@@ -36,8 +36,8 @@ export default function ContractDetailPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      <Link to="/contratos" className="text-rojo text-sm hover:underline mb-4 inline-block">
-        &larr; Volver a contratos
+      <Link to="/#contratos" className="text-rojo text-sm hover:underline mb-4 inline-block">
+        &larr; Volver al inicio
       </Link>
 
       <div className="card">

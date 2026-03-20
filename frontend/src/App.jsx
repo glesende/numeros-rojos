@@ -5,7 +5,6 @@ import Layout from './components/layout/Layout';
 import HomePage from './pages/HomePage';
 import EconomyPage from './pages/EconomyPage';
 import EconomyDetailPage from './pages/EconomyDetailPage';
-import ContractsPage from './pages/ContractsPage';
 import ContractDetailPage from './pages/ContractDetailPage';
 import BalancesPage from './pages/BalancesPage';
 import BalanceDetailPage from './pages/BalanceDetailPage';
@@ -39,7 +38,7 @@ export default function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/economia" element={<EconomyPage />} />
         <Route path="/economia/:id" element={<EconomyDetailPage />} />
-        <Route path="/contratos" element={<ContractsPage />} />
+        <Route path="/contratos" element={<Navigate to="/" replace />} />
         <Route path="/contratos/:id" element={<ContractDetailPage />} />
         <Route path="/balances" element={<BalancesPage />} />
         <Route path="/balances/:id" element={<BalanceDetailPage />} />
