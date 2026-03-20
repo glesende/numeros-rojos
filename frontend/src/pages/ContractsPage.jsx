@@ -32,9 +32,16 @@ export default function ContractsPage() {
     fetchData();
   }, [fetchData]);
 
+  const lastUpdated = data.totals?.last_updated_at
+    ? new Date(data.totals.last_updated_at).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' })
+    : null;
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-extrabold mb-1">Contratos profesionales</h1>
+      {lastUpdated && (
+        <p className="text-xs text-gray-400 mb-4">Última actualización: {lastUpdated}</p>
+      )}
 
       <ContractFilters filters={filters} onFilter={updateFilter} onReset={resetFilters} />
 

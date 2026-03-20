@@ -71,6 +71,7 @@ class ContractController extends Controller
             'total_salarios_eur'       => (float) (clone $aggQuery)->where('currency', 'EUR')->sum('estimated_salary'),
             'contratos_vigentes'       => (int) (clone $aggQuery)->where('expiration_date', '>=', Carbon::now())->count(),
             'contratos_vencidos'       => (int) (clone $aggQuery)->where('expiration_date', '<', Carbon::now())->count(),
+            'last_updated_at'          => Contract::max('created_at'),
         ];
 
         return response()->json([

@@ -58,9 +58,10 @@ class EconomyRecordController extends Controller
             'cantidad'         => (int) (clone $aggregateQuery)->count(),
         ];
 
-        $totals['balance_ars'] = $totals['total_cobros_ars'] - $totals['total_pagos_ars'];
-        $totals['balance_usd'] = $totals['total_cobros_usd'] - $totals['total_pagos_usd'];
-        $totals['balance_eur'] = $totals['total_cobros_eur'] - $totals['total_pagos_eur'];
+        $totals['balance_ars']     = $totals['total_cobros_ars'] - $totals['total_pagos_ars'];
+        $totals['balance_usd']     = $totals['total_cobros_usd'] - $totals['total_pagos_usd'];
+        $totals['balance_eur']     = $totals['total_cobros_eur'] - $totals['total_pagos_eur'];
+        $totals['last_updated_at'] = EconomyRecord::max('created_at');
 
         return response()->json([
             'data'    => $records->items(),
