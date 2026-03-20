@@ -2,8 +2,16 @@
 
 // Tokens de color semánticos financieros — fuente de verdad única
 export const financialColors = {
-  ingreso: '#16a34a',
-  egreso: '#b91c1c',
+  ingreso: {
+    DEFAULT: '#16a34a',
+    dark: '#14532d',
+    light: '#dcfce7',
+  },
+  egreso: {
+    DEFAULT: '#b91c1c',
+    dark: '#7f1d1d',
+    light: '#fee2e2',
+  },
 };
 
 export default {
