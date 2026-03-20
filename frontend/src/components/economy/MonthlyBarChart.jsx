@@ -16,11 +16,12 @@ import Loader from '../common/Loader';
 import OfficialBadge from '../OfficialBadge';
 import EconomyRecordCard from './EconomyRecordCard';
 import { financialColors } from '../../../tailwind.config.js';
+import { CHART_THEME } from '../../constants/chartColors';
 
 const COLORS = {
   ingresos: financialColors.ingreso,
   egresos: financialColors.egreso,
-  today: '#1d4ed8',
+  today: CHART_THEME.todayLine,
 };
 
 function formatAmount(value, currency) {
@@ -224,26 +225,26 @@ export default function MonthlyBarChart() {
                   barCategoryGap="20%"
                   barGap={2}
                 >
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_THEME.grid} />
                   <XAxis
                     dataKey="month_label"
-                    tick={{ fontSize: 10, fill: '#6b7280' }}
+                    tick={{ fontSize: 10, fill: CHART_THEME.axisText }}
                     angle={-45}
                     textAnchor="end"
                     interval={0}
                     tickLine={false}
-                    axisLine={{ stroke: '#e5e7eb' }}
+                    axisLine={{ stroke: CHART_THEME.axisLine }}
                   />
                   <YAxis
                     tickFormatter={(v) => formatAmount(v, currency)}
-                    tick={{ fontSize: 10, fill: '#6b7280' }}
+                    tick={{ fontSize: 10, fill: CHART_THEME.axisText }}
                     tickLine={false}
                     axisLine={false}
                     width={60}
                   />
                   <Tooltip
                     content={<CustomTooltip currency={currency} />}
-                    cursor={{ fill: 'rgba(0,0,0,0.04)' }}
+                    cursor={{ fill: CHART_THEME.tooltipCursor }}
                   />
                   {/* Reference line for current month */}
                   {data.findIndex((d) => d.month === todayKey) !== -1 && (
