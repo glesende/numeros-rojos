@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://numerosrojos.com.ar/api/sitemap.xml
+Sitemap: https://www.numerosrojos.net/api/sitemap.xml
