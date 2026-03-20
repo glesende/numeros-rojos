@@ -50,9 +50,6 @@ export default function StatsWidget() {
             <h3 className="font-bold text-sm">{competition.cat_name} {competition.year}</h3>
             <span className="text-xs text-gray-400 hidden sm:inline">· Fecha {competition.current_round}</span>
           </div>
-          <Link to="/estadisticas" className="text-xs text-rojo hover:underline font-medium flex-shrink-0">
-            Ver todo →
-          </Link>
         </div>
 
         {/* Stats row */}

@@ -4,11 +4,14 @@ const emptyForm = {
   external_id: '',
   full_name: '',
   expiration_date: '',
+  signing_date: '',
+  termination_date: '',
   club_pass_percentage: '',
   estimated_salary: '',
   currency: 'USD',
   clauses: [],
   links: [],
+  loan: null,
 };
 
 const normalizeLink = (l) =>
@@ -18,20 +21,25 @@ export default function ContractForm({ initial, onSubmit, loading }) {
   const [form, setForm] = useState(emptyForm);
   const [clausulaInput, setClausulaInput] = useState('');
   const [linkInput, setLinkInput] = useState('');
+  const [loanClausulaInput, setLoanClausulaInput] = useState('');
 
   useEffect(() => {
     if (initial) {
-      const expDate = initial.expiration_date;
-      const formattedDate = expDate ? expDate.split('T')[0] : '';
+      const formatDate = (d) => (d ? d.split('T')[0] : '');
       setForm({
         external_id: initial.external_id || '',
         full_name: initial.full_name || '',
-        expiration_date: formattedDate,
+        expiration_date: formatDate(initial.expiration_date),
+        signing_date: formatDate(initial.signing_date),
+        termination_date: formatDate(initial.termination_date),
         club_pass_percentage: initial.club_pass_percentage?.toString() || '',
         estimated_salary: initial.estimated_salary?.toString() || '',
         currency: initial.currency || 'USD',
         clauses: initial.clauses || [],
         links: (initial.links || []).map(normalizeLink),
+        loan: initial.loan
+          ? { ...initial.loan, clauses: initial.loan.clauses || [] }
+          : null,
       });
     }
   }, [initial]);
@@ -64,6 +72,25 @@ export default function ContractForm({ initial, onSubmit, loading }) {
     set('links', form.links.map((l, idx) => idx === i ? { ...l, official: !l.official } : l));
   };
 
+  const toggleLoan = () => {
+    set('loan', form.loan ? null : { club: '', until: '', clauses: [] });
+  };
+
+  const setLoan = (key, value) => {
+    set('loan', { ...form.loan, [key]: value });
+  };
+
+  const addLoanClausula = () => {
+    if (loanClausulaInput.trim()) {
+      setLoan('clauses', [...(form.loan.clauses || []), loanClausulaInput.trim()]);
+      setLoanClausulaInput('');
+    }
+  };
+
+  const removeLoanClausula = (i) => {
+    setLoan('clauses', (form.loan.clauses || []).filter((_, idx) => idx !== i));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit({
@@ -71,6 +98,9 @@ export default function ContractForm({ initial, onSubmit, loading }) {
       club_pass_percentage: parseFloat(form.club_pass_percentage),
       estimated_salary: form.estimated_salary ? parseFloat(form.estimated_salary) : null,
       currency: form.estimated_salary ? form.currency : null,
+      signing_date: form.signing_date || null,
+      termination_date: form.termination_date || null,
+      loan: form.loan?.club ? form.loan : null,
     });
   };
 
@@ -99,6 +129,15 @@ export default function ContractForm({ initial, onSubmit, loading }) {
 
       <div className="grid grid-cols-2 gap-4">
         <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Fecha de firma</label>
+          <input
+            type="date"
+            value={form.signing_date}
+            onChange={(e) => set('signing_date', e.target.value)}
+            className="input-field"
+          />
+        </div>
+        <div>
           <label className="block text-xs font-medium text-gray-500 mb-1">Fecha vencimiento *</label>
           <input
             type="date"
@@ -108,6 +147,17 @@ export default function ContractForm({ initial, onSubmit, loading }) {
             required
           />
         </div>
+      </div>
+
+      <div>
+        <label className="block text-xs font-medium text-gray-500 mb-1">Fecha de rescisión</label>
+        <input
+          type="date"
+          value={form.termination_date}
+          onChange={(e) => set('termination_date', e.target.value)}
+          className="input-field"
+        />
+        <p className="text-xs text-gray-400 mt-1">Solo si el contrato fue rescindido antes de su vencimiento.</p>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
@@ -206,6 +256,73 @@ export default function ContractForm({ initial, onSubmit, loading }) {
               </li>
             ))}
           </ul>
+        )}
+      </div>
+
+      <div className="border border-gray-200 rounded-lg p-4">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={!!form.loan}
+            onChange={toggleLoan}
+            className="rounded border-gray-300 text-rojo focus:ring-rojo"
+          />
+          <span className="text-sm font-medium text-gray-700">Jugador a préstamo</span>
+        </label>
+
+        {form.loan && (
+          <div className="mt-4 space-y-3">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Club *</label>
+                <input
+                  type="text"
+                  value={form.loan.club}
+                  onChange={(e) => setLoan('club', e.target.value)}
+                  className="input-field"
+                  placeholder="Nombre del club"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Hasta</label>
+                <input
+                  type="date"
+                  value={form.loan.until || ''}
+                  onChange={(e) => setLoan('until', e.target.value || null)}
+                  className="input-field"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Cláusulas del préstamo</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={loanClausulaInput}
+                  onChange={(e) => setLoanClausulaInput(e.target.value)}
+                  className="input-field flex-1"
+                  placeholder="Ej: Opción de compra USD 3M"
+                />
+                <button type="button" onClick={addLoanClausula} className="btn-secondary text-sm">
+                  Agregar
+                </button>
+              </div>
+              {form.loan.clauses?.length > 0 && (
+                <ul className="mt-2 space-y-1">
+                  {form.loan.clauses.map((c, i) => (
+                    <li key={i} className="flex items-center gap-2 text-sm bg-blue-50 rounded px-2 py-1">
+                      <span className="flex-1">{c}</span>
+                      <button type="button" onClick={() => removeLoanClausula(i)} className="text-red-500 text-xs">
+                        Quitar
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
         )}
       </div>
 

@@ -130,27 +130,8 @@ export default function StatsPage() {
 
   return (
     <div>
-      {/* Header */}
-      <section className="bg-rojo text-white py-10 md:py-14">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="flex items-center gap-4">
-            <img
-              src={team.shield}
-              alt={team.nameShow}
-              className="w-16 h-16 object-contain flex-shrink-0"
-            />
-            <div>
-              <h1 className="text-2xl md:text-3xl font-extrabold">{team.fullName}</h1>
-              <p className="text-white/70 text-sm mt-1">
-                {team.stadium} · DT: {team.managerNow}
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Competition tabs */}
-      <section className="max-w-6xl mx-auto px-4 py-8">
+      <section className="max-w-6xl mx-auto px-4 py-4">
         <div className="flex gap-2 overflow-x-auto pb-2 mb-6 scrollbar-hide">
           {competitions.map((comp, i) => (
             <button

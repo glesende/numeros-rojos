@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             EconomyRecordSeeder::class,
             ContractSeeder::class,
             StadiumSeeder::class,
+            BalanceSeeder::class,
         ]);
     }
 }

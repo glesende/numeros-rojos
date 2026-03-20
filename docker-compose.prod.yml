@@ -24,6 +24,14 @@ services:
       - APP_DEBUG=false
       - LOG_CHANNEL=stderr
       - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - MAIL_MAILER=${MAIL_MAILER:-smtp}
+      - MAIL_HOST=${MAIL_HOST}
+      - MAIL_PORT=${MAIL_PORT}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - MAIL_ENCRYPTION=${MAIL_ENCRYPTION:-tls}
+      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS}
+      - MAIL_FROM_NAME=${MAIL_FROM_NAME:-"Numeros Rojos"}
     volumes:
       - storage-data:/var/www/html/storage/app
     depends_on:

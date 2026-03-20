@@ -63,6 +63,7 @@ class ContractController extends Controller
             $aggQuery->official(filter_var($request->input('official'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE));
         }
 
+        $now = Carbon::now();
         $totals = [
             'total_contratos'          => (int) (clone $aggQuery)->count(),
             'promedio_porcentaje_pase'  => round((float) (clone $aggQuery)->avg('club_pass_percentage'), 2),
@@ -97,22 +98,28 @@ class ContractController extends Controller
     public function store(Request $request): JsonResponse
     {
         $this->validate($request, [
-            'external_id'          => 'nullable|string|max:255',
-            'full_name'             => 'required|string|max:255',
-            'expiration_date'      => 'required|date',
-            'club_pass_percentage'  => 'required|numeric|min:0|max:100',
-            'estimated_salary'      => 'nullable|numeric|min:0',
-            'currency'              => 'nullable|in:ARS,USD,EUR',
-            'clauses'              => 'nullable|array',
-            'links'                 => 'nullable|array',
-            'links.*.url'           => 'required|url',
-            'links.*.official'      => 'required|boolean',
+            'external_id'            => 'nullable|string|max:255',
+            'full_name'               => 'required|string|max:255',
+            'expiration_date'        => 'required|date',
+            'signing_date'           => 'nullable|date',
+            'termination_date'       => 'nullable|date',
+            'club_pass_percentage'    => 'required|numeric|min:0|max:100',
+            'estimated_salary'        => 'nullable|numeric|min:0',
+            'currency'                => 'nullable|in:ARS,USD,EUR',
+            'clauses'                => 'nullable|array',
+            'links'                   => 'nullable|array',
+            'links.*.url'             => 'required|url',
+            'links.*.official'        => 'required|boolean',
+            'loan'                    => 'nullable|array',
+            'loan.club'               => 'required_with:loan|string|max:255',
+            'loan.until'              => 'nullable|date',
+            'loan.clauses'            => 'nullable|array',
         ]);
 
         $contract = Contract::create($request->only([
-            'external_id', 'full_name', 'expiration_date',
+            'external_id', 'full_name', 'expiration_date', 'signing_date', 'termination_date',
             'club_pass_percentage', 'estimated_salary', 'currency',
-            'clauses', 'links',
+            'clauses', 'links', 'loan',
         ]));
 
         return response()->json(['data' => $contract], 201);
@@ -123,22 +130,28 @@ class ContractController extends Controller
         $contract = Contract::findOrFail($id);
 
         $this->validate($request, [
-            'external_id'          => 'nullable|string|max:255',
-            'full_name'             => 'sometimes|string|max:255',
-            'expiration_date'      => 'sometimes|date',
-            'club_pass_percentage'  => 'sometimes|numeric|min:0|max:100',
-            'estimated_salary'      => 'nullable|numeric|min:0',
-            'currency'              => 'nullable|in:ARS,USD,EUR',
-            'clauses'              => 'nullable|array',
-            'links'                 => 'nullable|array',
-            'links.*.url'           => 'required|url',
-            'links.*.official'      => 'required|boolean',
+            'external_id'            => 'nullable|string|max:255',
+            'full_name'               => 'sometimes|string|max:255',
+            'expiration_date'        => 'sometimes|date',
+            'signing_date'           => 'nullable|date',
+            'termination_date'       => 'nullable|date',
+            'club_pass_percentage'    => 'sometimes|numeric|min:0|max:100',
+            'estimated_salary'        => 'nullable|numeric|min:0',
+            'currency'                => 'nullable|in:ARS,USD,EUR',
+            'clauses'                => 'nullable|array',
+            'links'                   => 'nullable|array',
+            'links.*.url'             => 'required|url',
+            'links.*.official'        => 'required|boolean',
+            'loan'                    => 'nullable|array',
+            'loan.club'               => 'required_with:loan|string|max:255',
+            'loan.until'              => 'nullable|date',
+            'loan.clauses'            => 'nullable|array',
         ]);
 
         $contract->update($request->only([
-            'external_id', 'full_name', 'expiration_date',
+            'external_id', 'full_name', 'expiration_date', 'signing_date', 'termination_date',
             'club_pass_percentage', 'estimated_salary', 'currency',
-            'clauses', 'links',
+            'clauses', 'links', 'loan',
         ]));
 
         return response()->json(['data' => $contract]);

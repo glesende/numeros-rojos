@@ -56,12 +56,11 @@ function PlayerMatchesSection({ player }) {
           </div>
 
           <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
-            <table className="w-full text-sm min-w-[480px]">
+            <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-xs text-gray-400 border-b uppercase tracking-wide">
-                  <th className="pb-2 pr-3">Competición</th>
+                  <th className="pb-2 pr-3"></th>
                   <th className="pb-2 pr-3">Partido</th>
-                  <th className="pb-2 text-center px-2">Res.</th>
                   <th className="pb-2 text-center px-2">Min</th>
                   <th className="pb-2 text-center px-2">G</th>
                   <th className="pb-2 text-center px-2">A</th>
@@ -72,13 +71,6 @@ function PlayerMatchesSection({ player }) {
               <tbody>
                 {matches.map((m) => {
                   const score = `${m.r1}–${m.r2}`;
-                  const resultColor =
-                    m.player_winner === 'w' ? 'text-ingreso' :
-                    m.player_winner === 'l' ? 'text-egreso' :
-                    'text-gray-400';
-                  const resultLabel =
-                    m.player_winner === 'w' ? 'G' :
-                    m.player_winner === 'l' ? 'P' : 'E';
                   const date = new Date(m.shedule);
                   const dateStr = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}`;
 
@@ -87,13 +79,12 @@ function PlayerMatchesSection({ player }) {
                       <td className="py-2 pr-3">
                         <div className="flex items-center gap-1.5">
                           <img src={m.competition_logo} alt="" className="h-4 w-auto flex-shrink-0" />
-                          <span className="text-xs text-gray-400 hidden sm:inline">{dateStr}</span>
+                          <span className="text-xs text-gray-400">{dateStr}</span>
                         </div>
                       </td>
                       <td className="py-2 pr-3 font-mono text-xs whitespace-nowrap">
                         {m.team1_name} <span className="text-gray-400">{score}</span> {m.team2_name}
                       </td>
-                      <td className={`py-2 text-center px-2 font-bold ${resultColor}`}>{resultLabel}</td>
                       <td className="py-2 text-center px-2 text-gray-500">
                         {Number(m.minutes) > 0 ? m.minutes : '–'}
                       </td>

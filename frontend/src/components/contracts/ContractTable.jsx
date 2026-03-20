@@ -19,6 +19,38 @@ function formatSalary(amount, currency) {
   }).format(amount);
 }
 
+function getHostname(url) {
+  try {
+    return new URL(url).hostname.replace('www.', '');
+  } catch {
+    return url;
+  }
+}
+
+function SourcesList({ links }) {
+  if (!links?.length) return <span className="text-gray-400 text-xs">—</span>;
+  return (
+    <div className="flex flex-col gap-0.5">
+      {links.slice(0, 2).map((link, i) => (
+        <div key={i} className="flex items-center gap-1">
+          <a
+            href={link.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-rojo hover:underline text-xs truncate max-w-[110px]"
+          >
+            {getHostname(link.url)}
+          </a>
+          {link.official && <OfficialBadge />}
+        </div>
+      ))}
+      {links.length > 2 && (
+        <span className="text-xs text-gray-400">+{links.length - 2} más</span>
+      )}
+    </div>
+  );
+}
+
 export default function ContractTable({ contracts }) {
   if (!contracts.length) {
     return <p className="text-gray-500 text-center py-8">No hay contratos.</p>;
@@ -29,37 +61,46 @@ export default function ContractTable({ contracts }) {
       {/* Vista en tarjetas para móvil */}
       <div className="block md:hidden space-y-3">
         {contracts.map((c) => {
-          const vencido = new Date(c.expiration_date) < new Date();
+          const effectiveEnd = c.termination_date || c.expiration_date;
+          const vencido = new Date(effectiveEnd) < new Date();
           const hoy = new Date();
-          const vencimiento = new Date(c.expiration_date);
-          const diasRestantes = Math.ceil((vencimiento - hoy) / (1000 * 60 * 60 * 24));
+          const diasRestantes = Math.ceil((new Date(effectiveEnd) - hoy) / (1000 * 60 * 60 * 24));
           const proximoAVencer = !vencido && diasRestantes <= 90;
 
           return (
             <div key={c.id} className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
-              <div className="flex items-start justify-between gap-2 mb-2">
+              <div className="mb-2">
                 <Link
                   to={`/contratos/${c.id}`}
                   className="text-rojo font-semibold text-sm hover:underline leading-snug"
                 >
                   {c.full_name}
                 </Link>
-                {c.links?.some((l) => l.official) ? (
-                  <OfficialBadge />
-                ) : (
-                  <span className="text-gray-400 text-xs shrink-0">No oficial</span>
+                {c.loan && (
+                  <div className="text-xs text-blue-600 mt-0.5">
+                    <p>A préstamo en {c.loan.club}{c.loan.until && ` · hasta ${formatDate(c.loan.until)}`}</p>
+                    {c.loan.clauses?.map((clause, i) => (
+                      <p key={i} className="text-blue-500">— {clause}</p>
+                    ))}
+                  </div>
                 )}
               </div>
 
+              {c.signing_date && (
+                <div className="text-xs text-gray-500 mb-1">
+                  Firma: <span className="font-medium text-gray-700">{formatDate(c.signing_date)}</span>
+                </div>
+              )}
+
               <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
                 <span className={`font-medium ${vencido ? 'text-red-600' : proximoAVencer ? 'text-amber-600' : 'text-gray-700'}`}>
-                  Vence: {formatDate(c.expiration_date)}
-                  {vencido && <span className="ml-1">(vencido)</span>}
+                  {c.termination_date ? 'Rescindido' : 'Vence'}: {formatDate(effectiveEnd)}
+                  {!c.termination_date && vencido && <span className="ml-1">(vencido)</span>}
                   {proximoAVencer && <span className="ml-1">(próximo)</span>}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center justify-between text-xs mb-2">
                 <span className="text-gray-500">
                   % Pase: <span className="font-mono font-medium text-gray-700">{c.club_pass_percentage}%</span>
                 </span>
@@ -67,6 +108,12 @@ export default function ContractTable({ contracts }) {
                   {formatSalary(c.estimated_salary, c.currency)}
                 </span>
               </div>
+
+              {c.links?.length > 0 && (
+                <div className="pt-2 border-t border-gray-100">
+                  <SourcesList links={c.links} />
+                </div>
+              )}
             </div>
           );
         })}
@@ -78,36 +125,53 @@ export default function ContractTable({ contracts }) {
           <thead>
             <tr className="border-b border-gray-200 text-left text-xs text-gray-500 uppercase">
               <th className="pb-3 pr-4">Jugador</th>
+              <th className="pb-3 pr-4">Firma</th>
               <th className="pb-3 pr-4">Vencimiento</th>
               <th className="pb-3 pr-4 text-right">% Pase</th>
               <th className="pb-3 pr-4 text-right">Salario est.</th>
-              <th className="pb-3">Oficial</th>
+              <th className="pb-3">Fuentes</th>
             </tr>
           </thead>
           <tbody>
             {contracts.map((c) => {
-              const vencido = new Date(c.expiration_date) < new Date();
+              const effectiveEnd = c.termination_date || c.expiration_date;
+              const vencido = new Date(effectiveEnd) < new Date();
               return (
                 <tr key={c.id} className="border-b border-gray-100 hover:bg-gray-50">
                   <td className="py-3 pr-4 font-medium">
-                    <Link to={`/contratos/${c.id}`} className="text-rojo hover:underline">
-                      {c.full_name}
-                    </Link>
+                    <div className="flex flex-col gap-0.5">
+                      <Link to={`/contratos/${c.id}`} className="text-rojo hover:underline">
+                        {c.full_name}
+                      </Link>
+                      {c.loan && (
+                        <div className="text-xs text-blue-600">
+                          <p>A préstamo en {c.loan.club}{c.loan.until && ` · hasta ${formatDate(c.loan.until)}`}</p>
+                          {c.loan.clauses?.map((clause, i) => (
+                            <p key={i} className="text-blue-500">— {clause}</p>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                  <td className="py-3 pr-4 whitespace-nowrap text-gray-600">
+                    {formatDate(c.signing_date)}
                   </td>
                   <td className="py-3 pr-4 whitespace-nowrap">
-                    <span className={vencido ? 'text-red-600' : ''}>{formatDate(c.expiration_date)}</span>
-                    {vencido && <span className="ml-1 text-xs text-red-500">(vencido)</span>}
+                    {c.termination_date ? (
+                      <span className="text-red-600">Rescindido: {formatDate(c.termination_date)}</span>
+                    ) : (
+                      <>
+                        <span className={vencido ? 'text-red-600' : ''}>{formatDate(c.expiration_date)}</span>
+                        {vencido && <span className="ml-1 text-xs text-red-500">(vencido)</span>}
+                      </>
+                    )}
                   </td>
                   <td className="py-3 pr-4 text-right font-mono">{c.club_pass_percentage}%</td>
                   <td className="py-3 pr-4 text-right font-mono whitespace-nowrap">
                     {formatSalary(c.estimated_salary, c.currency)}
                   </td>
                   <td className="py-3">
-                    {c.links?.some((l) => l.official) ? (
-                      <OfficialBadge />
-                    ) : (
-                      <span className="text-gray-400 text-xs">No</span>
-                    )}
+                    <SourcesList links={c.links} />
                   </td>
                 </tr>
               );
