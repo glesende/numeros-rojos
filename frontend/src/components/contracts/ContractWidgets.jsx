@@ -7,8 +7,9 @@ export default function ContractWidgets({ stats }) {
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
       <StatCard
         label="Total contratos"
-        value={stats.total_contratos} />
+        value={stats.total_contratos}
         sub="futbolístas"
+      />
       <StatCard
         label="A préstamo"
         value={stats.jugadores_prestamo}
