@@ -67,6 +67,12 @@ function ContractCard({ contract, onClick }) {
       </div>
 
       <div className="space-y-1.5 text-sm flex-1">
+        {contract.loan?.until && (
+          <div className="flex justify-between items-center">
+            <span className="text-gray-500 text-xs">A préstamo hasta</span>
+            <span className="font-mono text-xs text-blue-600">{formatDate(contract.loan.until)}</span>
+          </div>
+        )}
         {contract.signing_date && (
           <div className="flex justify-between items-center">
             <span className="text-gray-500 text-xs">Firma</span>
@@ -79,12 +85,6 @@ function ContractCard({ contract, onClick }) {
             {formatDate(effectiveEnd)}
           </span>
         </div>
-        {contract.loan?.until && (
-          <div className="flex justify-between items-center">
-            <span className="text-gray-500 text-xs">Préstamo hasta</span>
-            <span className="font-mono text-xs text-blue-600">{formatDate(contract.loan.until)}</span>
-          </div>
-        )}
         {contract.club_pass_percentage !== null && (
           <div className="flex justify-between items-center">
             <span className="text-gray-500 text-xs">% Pase</span>

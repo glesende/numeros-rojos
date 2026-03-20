@@ -69,7 +69,7 @@ export default function ContractTable({ contracts }) {
 
           return (
             <div key={c.id} className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
-              <div className="flex items-start justify-between gap-2 mb-2">
+              <div className="mb-2">
                 <Link
                   to={`/contratos/${c.id}`}
                   className="text-rojo font-semibold text-sm hover:underline leading-snug"
@@ -77,9 +77,10 @@ export default function ContractTable({ contracts }) {
                   {c.full_name}
                 </Link>
                 {c.loan && (
-                  <span className="text-xs font-semibold text-blue-600 shrink-0">
+                  <p className="text-xs text-blue-600 mt-0.5">
                     A préstamo en {c.loan.club}
-                  </span>
+                    {c.loan.until && ` hasta ${formatDate(c.loan.until)}`}
+                  </p>
                 )}
               </div>
 
@@ -143,7 +144,7 @@ export default function ContractTable({ contracts }) {
                       {c.loan && (
                         <span className="text-xs text-blue-600">
                           A préstamo en {c.loan.club}
-                          {c.loan.until && ` · hasta ${formatDate(c.loan.until)}`}
+                          {c.loan.until && ` hasta ${formatDate(c.loan.until)}`}
                         </span>
                       )}
                     </div>

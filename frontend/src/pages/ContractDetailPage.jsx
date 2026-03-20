@@ -116,16 +116,22 @@ export default function ContractDetailPage() {
           </div>
         </div>
 
-        {contract.clauses && contract.clauses.length > 0 && (
-          <div className="mb-6">
-            <p className="text-gray-500 text-sm mb-2">Clausulas</p>
-            <ul className="space-y-1">
-              {contract.clauses.map((c, i) => (
-                <li key={i} className="text-sm bg-gray-50 px-3 py-2 rounded">{c}</li>
-              ))}
-            </ul>
-          </div>
-        )}
+        {(() => {
+          const allClauses = [
+            ...(contract.clauses || []),
+            ...(contract.loan?.clauses || []),
+          ];
+          return allClauses.length > 0 ? (
+            <div className="mb-6">
+              <p className="text-gray-500 text-sm mb-2">Clausulas</p>
+              <ul className="space-y-1">
+                {allClauses.map((c, i) => (
+                  <li key={i} className="text-sm bg-gray-50 px-3 py-2 rounded">{c}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null;
+        })()}
 
         {contract.links && contract.links.length > 0 && (
           <div>
