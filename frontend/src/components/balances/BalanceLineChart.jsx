@@ -283,7 +283,7 @@ export default function BalanceLineChart({ compact = false, showLink = false, se
                 width={65}
               />
               <Tooltip content={<CustomTooltip />} cursor={{ fill: CHART_THEME.tooltipCursor }} />
-              {!compact && <Legend formatter={(value) => value} />}
+              <Legend formatter={(value) => value} />
               {visibleSeries.map((serie, idx) => {
                 const colorIdx = data.series.findIndex((s) => s.id === serie.id);
                 const color = LINE_COLORS[colorIdx % LINE_COLORS.length];
