@@ -4,7 +4,7 @@ export default function FilterBar({ children, onReset }) {
       <div className="flex flex-wrap items-end gap-4">
         {children}
         {onReset && (
-          <button onClick={onReset} className="btn-secondary text-sm">
+          <button onClick={onReset} className="btn-secondary text-sm w-full sm:w-auto">
             Limpiar
           </button>
         )}

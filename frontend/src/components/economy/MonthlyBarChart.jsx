@@ -108,6 +108,8 @@ export default function MonthlyBarChart() {
   const scrollRef = useRef(null);
   const [upcoming, setUpcoming] = useState([]);
   const [pending, setPending] = useState([]);
+  const [upcomingOpen, setUpcomingOpen] = useState(false);
+  const [pendingOpen, setPendingOpen] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -276,150 +278,174 @@ export default function MonthlyBarChart() {
       {/* Upcoming commitments */}
       {upcoming.length > 0 && (
         <div className="mt-6 border-t border-gray-100 pt-5">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide">
+          <button
+            onClick={() => setUpcomingOpen((v) => !v)}
+            className="flex items-center justify-between w-full mb-3 text-left"
+          >
+            <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide flex items-center gap-2">
               Próximos compromisos
+              <span className="text-gray-400 font-normal normal-case tracking-normal">({upcoming.length})</span>
             </h3>
-            <Link to="/economia" className="text-xs text-rojo hover:underline font-medium">
-              Ver todos →
-            </Link>
-          </div>
-          {/* Vista en tarjetas para móvil */}
-          <div className="block md:hidden space-y-3">
-            {upcoming.map((r) => (
-              <EconomyRecordCard key={r.id} record={r} />
-            ))}
-          </div>
-          {/* Vista en tabla para desktop */}
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100 text-left text-xs text-gray-400 uppercase">
-                  <th className="pb-2 pr-4">Fecha</th>
-                  <th className="pb-2 pr-4">Descripción</th>
-                  <th className="pb-2 pr-4">Tipo</th>
-                  <th className="pb-2 pr-4 text-right">Monto</th>
-                  <th className="pb-2">Fuentes</th>
-                </tr>
-              </thead>
-              <tbody>
+            <span className="text-gray-400 text-xs">{upcomingOpen ? '▲' : '▼'}</span>
+          </button>
+          {upcomingOpen && (
+            <div className="flex justify-end mb-3">
+              <Link to="/economia" className="text-xs text-rojo hover:underline font-medium">
+                Ver todos →
+              </Link>
+            </div>
+          )}
+          {upcomingOpen && (
+            <>
+              {/* Vista en tarjetas para móvil */}
+              <div className="block md:hidden space-y-3">
                 {upcoming.map((r) => (
-                  <tr key={r.id} className="border-b border-gray-50 hover:bg-gray-50">
-                    <td className="py-2 pr-4 whitespace-nowrap text-gray-500 text-xs">{formatDate(r.record_date)}</td>
-                    <td className="py-2 pr-4">
-                      <span className="font-medium">
-                        {r.description || '-'}
-                      </span>
-                    </td>
-                    <td className="py-2 pr-4">
-                      <span className={r.type === 'cobro' ? 'badge-cobro' : 'badge-pago'}>
-                        {r.type}
-                      </span>
-                    </td>
-                    <td className="py-2 pr-4 text-right font-mono whitespace-nowrap text-xs">
-                      {formatMoney(r.amount, r.currency)}
-                    </td>
-                    <td className="py-2">
-                      {Array.isArray(r.links) && r.links.length > 0 ? (
-                        <ul className="text-xs text-gray-600 space-y-0.5">
-                          {r.links.slice(0, 2).map((link, i) => {
-                            let label = link.url;
-                            try { label = new URL(link.url).hostname.replace('www.', ''); } catch {}
-                            return (
-                              <li key={i} className="flex items-center gap-1">
-                                <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline truncate block">
-                                  {label}
-                                </a>
-                                {link.official && <OfficialBadge />}
-                              </li>
-                            );
-                          })}
-                          {r.links.length > 2 && <li className="text-gray-400">+{r.links.length - 2} más</li>}
-                        </ul>
-                      ) : (
-                        <span className="text-gray-400 text-xs">-</span>
-                      )}
-                    </td>
-                  </tr>
+                  <EconomyRecordCard key={r.id} record={r} />
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </div>
+              {/* Vista en tabla para desktop */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100 text-left text-xs text-gray-400 uppercase">
+                      <th className="pb-2 pr-4">Fecha</th>
+                      <th className="pb-2 pr-4">Descripción</th>
+                      <th className="pb-2 pr-4">Tipo</th>
+                      <th className="pb-2 pr-4 text-right">Monto</th>
+                      <th className="pb-2">Fuentes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {upcoming.map((r) => (
+                      <tr key={r.id} className="border-b border-gray-50 hover:bg-gray-50">
+                        <td className="py-2 pr-4 whitespace-nowrap text-gray-500 text-xs">{formatDate(r.record_date)}</td>
+                        <td className="py-2 pr-4">
+                          <span className="font-medium">
+                            {r.description || '-'}
+                          </span>
+                        </td>
+                        <td className="py-2 pr-4">
+                          <span className={r.type === 'cobro' ? 'badge-cobro' : 'badge-pago'}>
+                            {r.type}
+                          </span>
+                        </td>
+                        <td className="py-2 pr-4 text-right font-mono whitespace-nowrap text-xs">
+                          {formatMoney(r.amount, r.currency)}
+                        </td>
+                        <td className="py-2">
+                          {Array.isArray(r.links) && r.links.length > 0 ? (
+                            <ul className="text-xs text-gray-600 space-y-0.5">
+                              {r.links.slice(0, 2).map((link, i) => {
+                                let label = link.url;
+                                try { label = new URL(link.url).hostname.replace('www.', ''); } catch {}
+                                return (
+                                  <li key={i} className="flex items-center gap-1">
+                                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline truncate block">
+                                      {label}
+                                    </a>
+                                    {link.official && <OfficialBadge />}
+                                  </li>
+                                );
+                              })}
+                              {r.links.length > 2 && <li className="text-gray-400">+{r.links.length - 2} más</li>}
+                            </ul>
+                          ) : (
+                            <span className="text-gray-400 text-xs">-</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
         </div>
       )}
 
       {/* Pending confirmation */}
       {pending.length > 0 && (
         <div className="mt-6 border-t border-gray-100 pt-5">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide">
+          <button
+            onClick={() => setPendingOpen((v) => !v)}
+            className="flex items-center justify-between w-full mb-3 text-left"
+          >
+            <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide flex items-center gap-2">
               Pago/cobro no confirmado
+              <span className="text-gray-400 font-normal normal-case tracking-normal">({pending.length})</span>
             </h3>
-            <Link to="/economia" className="text-xs text-rojo hover:underline font-medium">
-              Ver todos →
-            </Link>
-          </div>
-          {/* Vista en tarjetas para móvil */}
-          <div className="block md:hidden space-y-3">
-            {pending.map((r) => (
-              <EconomyRecordCard key={r.id} record={r} />
-            ))}
-          </div>
-          {/* Vista en tabla para desktop */}
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100 text-left text-xs text-gray-400 uppercase">
-                  <th className="pb-2 pr-4">Fecha</th>
-                  <th className="pb-2 pr-4">Descripción</th>
-                  <th className="pb-2 pr-4">Tipo</th>
-                  <th className="pb-2 pr-4 text-right">Monto</th>
-                  <th className="pb-2">Fuentes</th>
-                </tr>
-              </thead>
-              <tbody>
+            <span className="text-gray-400 text-xs">{pendingOpen ? '▲' : '▼'}</span>
+          </button>
+          {pendingOpen && (
+            <>
+              <div className="flex justify-end mb-3">
+                <Link to="/economia" className="text-xs text-rojo hover:underline font-medium">
+                  Ver todos →
+                </Link>
+              </div>
+              {/* Vista en tarjetas para móvil */}
+              <div className="block md:hidden space-y-3">
                 {pending.map((r) => (
-                  <tr key={r.id} className="border-b border-gray-50 hover:bg-gray-50">
-                    <td className="py-2 pr-4 whitespace-nowrap text-gray-500 text-xs">{formatDate(r.record_date)}</td>
-                    <td className="py-2 pr-4">
-                      <span className="font-medium">
-                        {r.description || '-'}
-                      </span>
-                    </td>
-                    <td className="py-2 pr-4">
-                      <span className={r.type === 'cobro' ? 'badge-cobro' : 'badge-pago'}>
-                        {r.type}
-                      </span>
-                    </td>
-                    <td className="py-2 pr-4 text-right font-mono whitespace-nowrap text-xs">
-                      {formatMoney(r.amount, r.currency)}
-                    </td>
-                    <td className="py-2">
-                      {Array.isArray(r.links) && r.links.length > 0 ? (
-                        <ul className="text-xs text-gray-600 space-y-0.5">
-                          {r.links.slice(0, 2).map((link, i) => {
-                            let label = link.url;
-                            try { label = new URL(link.url).hostname.replace('www.', ''); } catch {}
-                            return (
-                              <li key={i} className="flex items-center gap-1">
-                                <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline truncate block">
-                                  {label}
-                                </a>
-                                {link.official && <OfficialBadge />}
-                              </li>
-                            );
-                          })}
-                          {r.links.length > 2 && <li className="text-gray-400">+{r.links.length - 2} más</li>}
-                        </ul>
-                      ) : (
-                        <span className="text-gray-400 text-xs">-</span>
-                      )}
-                    </td>
-                  </tr>
+                  <EconomyRecordCard key={r.id} record={r} />
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </div>
+              {/* Vista en tabla para desktop */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100 text-left text-xs text-gray-400 uppercase">
+                      <th className="pb-2 pr-4">Fecha</th>
+                      <th className="pb-2 pr-4">Descripción</th>
+                      <th className="pb-2 pr-4">Tipo</th>
+                      <th className="pb-2 pr-4 text-right">Monto</th>
+                      <th className="pb-2">Fuentes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pending.map((r) => (
+                      <tr key={r.id} className="border-b border-gray-50 hover:bg-gray-50">
+                        <td className="py-2 pr-4 whitespace-nowrap text-gray-500 text-xs">{formatDate(r.record_date)}</td>
+                        <td className="py-2 pr-4">
+                          <span className="font-medium">
+                            {r.description || '-'}
+                          </span>
+                        </td>
+                        <td className="py-2 pr-4">
+                          <span className={r.type === 'cobro' ? 'badge-cobro' : 'badge-pago'}>
+                            {r.type}
+                          </span>
+                        </td>
+                        <td className="py-2 pr-4 text-right font-mono whitespace-nowrap text-xs">
+                          {formatMoney(r.amount, r.currency)}
+                        </td>
+                        <td className="py-2">
+                          {Array.isArray(r.links) && r.links.length > 0 ? (
+                            <ul className="text-xs text-gray-600 space-y-0.5">
+                              {r.links.slice(0, 2).map((link, i) => {
+                                let label = link.url;
+                                try { label = new URL(link.url).hostname.replace('www.', ''); } catch {}
+                                return (
+                                  <li key={i} className="flex items-center gap-1">
+                                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline truncate block">
+                                      {label}
+                                    </a>
+                                    {link.official && <OfficialBadge />}
+                                  </li>
+                                );
+                              })}
+                              {r.links.length > 2 && <li className="text-gray-400">+{r.links.length - 2} más</li>}
+                            </ul>
+                          ) : (
+                            <span className="text-gray-400 text-xs">-</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>
