@@ -460,6 +460,9 @@ export default function HomePage() {
         <div className="card overflow-hidden">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold">Estadísticas</h2>
+              <Link to="/estadisticas" className="text-sm text-rojo hover:underline font-medium">
+                Ver todo →
+              </Link>
             </div>
             <StatsWidget />
           </div>
