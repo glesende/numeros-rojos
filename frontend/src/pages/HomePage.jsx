@@ -419,33 +419,43 @@ export default function HomePage() {
       {/* Balances */}
       {sections.section_balances_enabled !== false && (
         <section id="balances" className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">Balances oficiales</h2>
-            <Link to="/balances" className="text-sm text-rojo hover:underline font-medium">
-              Ver todos los balances →
-            </Link>
+          <div className="card overflow-hidden">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold">Balances oficiales</h2>
+              <Link to="/balances" className="text-sm text-rojo hover:underline font-medium">
+                Ver todos los balances →
+              </Link>
+            </div>
+            <BalanceLineChart compact={true} showLink={true} />
           </div>
-          <BalanceLineChart compact={true} showLink={true} />
         </section>
       )}
 
       {/* Stats widget */}
       <section id="estadisticas" className="max-w-6xl mx-auto px-4 py-4">
-        <StatsWidget />
+        <div className="card overflow-hidden">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold">Estadísticas</h2>
+            </div>
+            <StatsWidget />
+          </div>
       </section>
 
       {/* Estadio */}
       {sections.section_estadio_enabled !== false && (
         <section id="estadio" className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">Estadio</h2>
+          <div className="card overflow-hidden">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold">Estadio</h2>
+            </div>
+            <StadiumBlock />
           </div>
-          <StadiumBlock />
         </section>
       )}
 
       {/* Methodology */}
-      <section id="metodologia" className="max-w-3xl mx-auto px-4 py-8">
+      <section id="metodologia" className="max-w-6xl mx-auto px-4 py-4">
+        <div className="card overflow-hidden">
         <h2 className="text-xl font-bold mb-4">Metodología y Fuentes</h2>
 
         <div className="space-y-4">
@@ -508,7 +518,7 @@ export default function HomePage() {
           </a>
         </section>
         </div>
-
+        </div>
       </section>
     </div>
     </>
