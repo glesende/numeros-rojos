@@ -11,9 +11,10 @@ import ContractWidgets from '../components/contracts/ContractWidgets';
 import OfficialBadge from '../components/OfficialBadge';
 
 const VIGENCIA_OPTIONS = [
-  { value: '6m', label: 'Vence en 6 meses', days: 180 },
-  { value: '12m', label: 'Vence en 12 meses', days: 365 },
-  { value: '18m', label: 'Vence en 18 meses', days: 540 },
+  { value: '6m', label: '6 meses', days: 180 },
+  { value: '12m', label: '12 meses', days: 365 },
+  { value: '18m', label: '18 meses', days: 540 },
+  { value: '24m', label: '24 meses', days: 730 },
 ];
 
 function formatDate(dateStr) {
@@ -395,7 +396,9 @@ export default function HomePage() {
           </form>
 
           {/* Vigencia buttons */}
-          <div className="flex gap-2 flex-wrap mb-6">
+          <div className="mb-6">
+          <p className="text-xs font-medium text-gray-500 mb-2">Vencimiento</p>
+          <div className="flex gap-2 flex-wrap">
             {VIGENCIA_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
@@ -417,6 +420,7 @@ export default function HomePage() {
                 Limpiar filtros
               </button>
             )}
+          </div>
           </div>
 
           {loading ? (
