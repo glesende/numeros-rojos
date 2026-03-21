@@ -3,7 +3,6 @@ import { getContracts } from '../api/endpoints';
 import { useFilters } from '../hooks/useFilters';
 import ContractFilters from '../components/contracts/ContractFilters';
 import ContractTable from '../components/contracts/ContractTable';
-import ContractTotals from '../components/contracts/ContractTotals';
 import ContractWidgets from '../components/contracts/ContractWidgets';
 import Pagination from '../components/common/Pagination';
 import Loader from '../components/common/Loader';
