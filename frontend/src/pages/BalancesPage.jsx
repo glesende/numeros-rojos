@@ -1,17 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { getBalances } from '../api/endpoints';
 import Loader from '../components/common/Loader';
+import ErrorMessage from '../components/common/ErrorMessage';
 import BalanceLineChart from '../components/balances/BalanceLineChart';
 
 export default function BalancesPage() {
   const [balances, setBalances] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
 
-  useEffect(() => {
-    document.title = 'Números Rojos | Balances oficiales';
+  const fetchBalances = useCallback(() => {
+    setLoading(true);
+    setError(null);
     getBalances()
       .then((res) => {
         const list = res.data?.data || [];
@@ -21,10 +23,15 @@ export default function BalancesPage() {
           setLastUpdated(new Date(latest).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' }));
         }
       })
+      .catch(() => setError('No se pudieron cargar los balances. Intentá de nuevo.'))
       .finally(() => setLoading(false));
-
-    return () => { document.title = 'Números Rojos'; };
   }, []);
+
+  useEffect(() => {
+    document.title = 'Números Rojos | Balances oficiales';
+    fetchBalances();
+    return () => { document.title = 'Números Rojos'; };
+  }, [fetchBalances]);
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -46,6 +53,10 @@ export default function BalancesPage() {
 
       {loading ? (
         <Loader />
+      ) : error ? (
+        <div className="card">
+          <ErrorMessage message={error} onRetry={fetchBalances} />
+        </div>
       ) : balances.length === 0 ? (
         <div className="card text-center py-12 text-gray-400">
           No hay balances publicados aún.
