@@ -6,6 +6,7 @@ import EconomyTable from '../components/economy/EconomyTable';
 import Pagination from '../components/common/Pagination';
 import Loader from '../components/common/Loader';
 import ErrorMessage from '../components/common/ErrorMessage';
+import ShareOnX from '../components/common/ShareOnX';
 
 export default function EconomyPage() {
   const { filters, updateFilter, setPage, resetFilters, cleanParams } = useFilters();
@@ -37,7 +38,13 @@ export default function EconomyPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-extrabold mb-1">Compromisos económicos</h1>
+      <div className="flex items-center gap-3 mb-1">
+        <h1 className="text-2xl font-extrabold">Compromisos económicos</h1>
+        <ShareOnX
+          text="Los compromisos económicos de Independiente, centralizados 👇 #Independiente"
+          url="https://www.numerosrojos.net/economia"
+        />
+      </div>
       {lastUpdated && (
         <p className="text-xs text-gray-400 mb-4">Última actualización: {lastUpdated}</p>
       )}

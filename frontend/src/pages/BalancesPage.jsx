@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { getBalances } from '../api/endpoints';
 import Loader from '../components/common/Loader';
 import BalanceLineChart from '../components/balances/BalanceLineChart';
+import ShareOnX from '../components/common/ShareOnX';
 
 export default function BalancesPage() {
   const [balances, setBalances] = useState([]);
@@ -28,7 +29,13 @@ export default function BalancesPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-extrabold mb-1">Balances oficiales</h1>
+      <div className="flex items-center gap-3 mb-1">
+        <h1 className="text-3xl font-extrabold">Balances oficiales</h1>
+        <ShareOnX
+          text="Los balances oficiales de Independiente, centralizados 👇 #Independiente"
+          url="https://www.numerosrojos.net/balances"
+        />
+      </div>
       {lastUpdated && (
         <p className="text-xs text-gray-400 mb-2">Última actualización: {lastUpdated}</p>
       )}

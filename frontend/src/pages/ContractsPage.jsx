@@ -7,6 +7,7 @@ import ContractWidgets from '../components/contracts/ContractWidgets';
 import Pagination from '../components/common/Pagination';
 import Loader from '../components/common/Loader';
 import ErrorMessage from '../components/common/ErrorMessage';
+import ShareOnX from '../components/common/ShareOnX';
 
 export default function ContractsPage() {
   const { filters, updateFilter, setPage, resetFilters, cleanParams } = useFilters();
@@ -38,7 +39,13 @@ export default function ContractsPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-extrabold mb-1">Contratos profesionales</h1>
+      <div className="flex items-center gap-3 mb-1">
+        <h1 className="text-2xl font-extrabold">Contratos profesionales</h1>
+        <ShareOnX
+          text="Los contratos del plantel de Independiente, centralizados 👇 #Independiente"
+          url="https://www.numerosrojos.net/contratos"
+        />
+      </div>
       {lastUpdated && (
         <p className="text-xs text-gray-400 mb-4">Última actualización: {lastUpdated}</p>
       )}
