@@ -256,20 +256,20 @@ function ContactForm() {
         maxLength={2000}
         rows={4}
         placeholder="Tu mensaje..."
-        className="w-full text-sm border border-gray-200 rounded p-2 resize-none focus:outline-none focus:ring-1 focus:ring-red-400"
+        className="w-full text-sm border border-gray-200 rounded p-2 resize-none focus:outline-none focus:ring-1 focus:ring-rojo"
       />
       <input
         type="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="Tu email (opcional)"
-        className="w-full text-sm border border-gray-200 rounded p-2 focus:outline-none focus:ring-1 focus:ring-red-400"
+        className="w-full text-sm border border-gray-200 rounded p-2 focus:outline-none focus:ring-1 focus:ring-rojo"
       />
       <div className="flex items-center gap-3">
         <button
           type="submit"
           disabled={status === 'sending'}
-          className="text-sm font-medium px-4 py-1.5 rounded bg-red-700 text-white hover:bg-red-800 disabled:opacity-50"
+          className="btn-primary text-sm disabled:opacity-50"
         >
           {status === 'sending' ? 'Enviando...' : 'Enviar'}
         </button>
@@ -538,7 +538,7 @@ export default function HomePage() {
           <ContactForm />
         </section>
 
-        <section className="card border border-red-200">
+        <section className="card border border-rojo/20">
           <h3 className="text-lg font-bold mb-3">Proyecto replicable</h3>
           <p className="text-sm text-gray-600 mb-3">
             Números Rojos es un proyecto de código abierto pensado para ser adaptado a otras
@@ -548,7 +548,7 @@ export default function HomePage() {
             href="https://github.com/glesende/numeros-rojos"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-sm font-medium text-red-700 hover:text-red-900"
+            className="inline-flex items-center gap-2 text-sm font-medium text-rojo hover:text-rojo-dark"
           >
             Ver repositorio en GitHub →
           </a>
