@@ -4,6 +4,7 @@ export function useFilters(defaults = {}) {
   const [filters, setFilters] = useState({
     page: 1,
     per_page: 15,
+    sort_by: 'expiration_date',
     sort_dir: 'desc',
     ...defaults,
   });
@@ -17,7 +18,7 @@ export function useFilters(defaults = {}) {
   }, []);
 
   const resetFilters = useCallback(() => {
-    setFilters({ page: 1, per_page: 15, sort_dir: 'desc', ...defaults });
+    setFilters({ page: 1, per_page: 15, sort_by: 'expiration_date', sort_dir: 'desc', ...defaults });
   }, []);
 
   const cleanParams = useCallback(() => {

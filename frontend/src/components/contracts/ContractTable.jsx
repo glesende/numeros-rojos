@@ -51,7 +51,29 @@ function SourcesList({ links }) {
   );
 }
 
-export default function ContractTable({ contracts }) {
+function SortIcon({ active, dir }) {
+  if (!active) return <span className="ml-1 text-gray-300">↕</span>;
+  return <span className="ml-1 text-rojo">{dir === 'asc' ? '↑' : '↓'}</span>;
+}
+
+function SortableHeader({ label, field, sortBy, sortDir, onSort, className = '' }) {
+  const active = sortBy === field;
+  return (
+    <th className={`pb-3 pr-4 ${className}`}>
+      <button
+        onClick={() => onSort(field)}
+        className={`flex items-center gap-0 uppercase text-xs font-semibold tracking-wide transition-colors ${
+          active ? 'text-rojo' : 'text-gray-500 hover:text-gray-800'
+        } ${className.includes('text-right') ? 'ml-auto' : ''}`}
+      >
+        {label}
+        <SortIcon active={active} dir={sortDir} />
+      </button>
+    </th>
+  );
+}
+
+export default function ContractTable({ contracts, sortBy = 'expiration_date', sortDir = 'desc', onSort }) {
   if (!contracts.length) {
     return <p className="text-gray-500 text-center py-8">No hay contratos.</p>;
   }
@@ -124,12 +146,12 @@ export default function ContractTable({ contracts }) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-200 text-left text-xs text-gray-500 uppercase">
-              <th className="pb-3 pr-4">Jugador</th>
-              <th className="pb-3 pr-4">Firma</th>
-              <th className="pb-3 pr-4">Vencimiento</th>
-              <th className="pb-3 pr-4 text-right">% Pase</th>
-              <th className="pb-3 pr-4 text-right">Salario est.</th>
-              <th className="pb-3">Fuentes</th>
+              <th className="pb-3 pr-4 text-xs font-semibold tracking-wide uppercase text-gray-500">Jugador</th>
+              <SortableHeader label="Firma" field="signing_date" sortBy={sortBy} sortDir={sortDir} onSort={onSort} />
+              <SortableHeader label="Vencimiento" field="expiration_date" sortBy={sortBy} sortDir={sortDir} onSort={onSort} />
+              <th className="pb-3 pr-4 text-xs font-semibold tracking-wide uppercase text-gray-500 text-right">% Pase</th>
+              <SortableHeader label="Salario est." field="estimated_salary" sortBy={sortBy} sortDir={sortDir} onSort={onSort} className="text-right" />
+              <th className="pb-3 text-xs font-semibold tracking-wide uppercase text-gray-500">Fuentes</th>
             </tr>
           </thead>
           <tbody>

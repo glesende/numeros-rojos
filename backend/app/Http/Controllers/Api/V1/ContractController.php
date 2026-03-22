@@ -45,8 +45,14 @@ class ContractController extends Controller
             ->loan($request->input('loan'))
             ->currency($request->input('currency'));
 
-        $sortDir = $request->input('sort_dir', 'desc');
-        $query->orderBy('expiration_date', $sortDir);
+        $allowedSortFields = ['expiration_date', 'signing_date', 'estimated_salary'];
+        $sortBy = in_array($request->input('sort_by'), $allowedSortFields)
+            ? $request->input('sort_by')
+            : 'expiration_date';
+        $sortDir = in_array($request->input('sort_dir'), ['asc', 'desc'])
+            ? $request->input('sort_dir')
+            : 'desc';
+        $query->orderBy($sortBy, $sortDir);
 
         $perPage = min((int) $request->input('per_page', 15), 100);
         $contracts = $query->paginate($perPage);
