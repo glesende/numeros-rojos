@@ -3,7 +3,6 @@ import { getEconomyRecords } from '../api/endpoints';
 import { useFilters } from '../hooks/useFilters';
 import EconomyFilters from '../components/economy/EconomyFilters';
 import EconomyTable from '../components/economy/EconomyTable';
-import EconomyTotals from '../components/economy/EconomyTotals';
 import Pagination from '../components/common/Pagination';
 import Loader from '../components/common/Loader';
 import ErrorMessage from '../components/common/ErrorMessage';

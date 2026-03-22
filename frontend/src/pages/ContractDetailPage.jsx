@@ -20,8 +20,8 @@ export default function ContractDetailPage() {
 
   useEffect(() => {
     getContract(id)
-      .then((res) => {
-        const c = res.data.data;
+      .then((contractRes) => {
+        const c = contractRes.data.data;
         setContract(c);
         if (c) document.title = `Contrato de ${c.full_name} | Números Rojos`;
       })
