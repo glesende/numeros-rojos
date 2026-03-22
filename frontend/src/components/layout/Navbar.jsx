@@ -27,7 +27,9 @@ export default function Navbar() {
       e.preventDefault();
       const element = document.getElementById(link.scrollTo);
       if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
+        const navbarHeight = 56; // h-14
+        const top = element.getBoundingClientRect().top + window.scrollY - navbarHeight;
+        window.scrollTo({ top, behavior: 'smooth' });
       }
       setOpen(false);
     }
