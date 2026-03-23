@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { balanceLineLabel } from '../../utils/balanceLabels';
 
 /**
  * BalanceLinesTree
@@ -46,7 +47,7 @@ function LineRow({ node, level = 0 }) {
             )}
             {!hasChildren && <span className="w-3 flex-shrink-0" />}
             <span className={level === 0 ? 'font-semibold text-gray-800' : level === 1 ? 'text-gray-700' : 'text-gray-600 text-sm'}>
-              {node.name}
+              {balanceLineLabel(node.name)}
             </span>
           </button>
         </td>

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { getBalance } from '../../api/endpoints';
 import Loader from '../common/Loader';
+import { balanceLineLabel } from '../../utils/balanceLabels';
 
 function flattenLines(lines, result = []) {
   for (const line of lines) {
@@ -20,6 +21,98 @@ function formatARS(amount) {
 
 function formatUSD(amount, dollarRef) {
   return 'USD ' + new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 }).format(amount / dollarRef);
+}
+
+// Recursive row: uses structureNode (from the primary balance) and looks up
+// matching lines in the other balances by normalized_name.
+function ComparisonRow({ node, level, selectedIds, cache }) {
+  const [open, setOpen] = useState(level < 2);
+  const hasChildren = node.children?.length > 0;
+
+  const values = selectedIds.map((id) => {
+    const balance = cache[id];
+    if (!balance) return null;
+    const match = flattenLines(balance.lines || []).find(
+      (l) => l.normalized_name && l.normalized_name === node.normalized_name
+    );
+    if (!match) return 'missing';
+    if (match.amount == null) return null;
+    return { amount: match.amount, dollarRef: balance.dollar_reference };
+  });
+
+  const allMissing = values.every((v) => v === 'missing' || v === null);
+
+  return (
+    <>
+      <tr
+        className={`border-b border-gray-100 transition-colors ${
+          node.is_total ? 'bg-gray-50 font-bold' : 'hover:bg-gray-50/70'
+        }`}
+      >
+        <td className="py-1.5 pr-4" style={{ paddingLeft: `${level * 18 + 8}px` }}>
+          <button
+            type="button"
+            onClick={() => hasChildren && setOpen((o) => !o)}
+            className={`flex items-center gap-1 text-left w-full ${
+              hasChildren ? 'cursor-pointer' : 'cursor-default'
+            }`}
+          >
+            {hasChildren ? (
+              <span className="text-gray-400 text-xs w-3 flex-shrink-0">{open ? '▾' : '▸'}</span>
+            ) : (
+              <span className="w-3 flex-shrink-0" />
+            )}
+            <span
+              className={
+                level === 0
+                  ? 'font-semibold text-gray-800'
+                  : level === 1
+                  ? 'text-gray-700'
+                  : 'text-gray-600 text-sm'
+              }
+            >
+              {balanceLineLabel(node.name)}
+            </span>
+          </button>
+        </td>
+
+        {values.map((val, vi) => (
+          <td key={vi} className="py-1.5 px-2 text-right align-top min-w-[130px]">
+            {val === 'missing' || val === null ? (
+              <span className={allMissing ? 'text-gray-200' : 'text-gray-300'}>—</span>
+            ) : (
+              <>
+                <span
+                  className={`block font-mono text-sm ${
+                    val.amount < 0 ? 'text-red-600' : 'text-gray-800'
+                  }`}
+                >
+                  {formatARS(val.amount)}
+                </span>
+                {val.dollarRef > 0 && (
+                  <span className="block text-xs text-gray-400 font-mono">
+                    {formatUSD(val.amount, val.dollarRef)}
+                  </span>
+                )}
+              </>
+            )}
+          </td>
+        ))}
+      </tr>
+
+      {open &&
+        hasChildren &&
+        node.children.map((child) => (
+          <ComparisonRow
+            key={child.id}
+            node={child}
+            level={level + 1}
+            selectedIds={selectedIds}
+            cache={cache}
+          />
+        ))}
+    </>
+  );
 }
 
 export default function BalanceComparisonTable({ allBalances }) {
@@ -65,29 +158,8 @@ export default function BalanceComparisonTable({ allBalances }) {
     setSelectedIds(newIds);
   };
 
-  // Build comparison rows
-  const selectedBalances = selectedIds.map((id) => cache[id]).filter(Boolean);
-  const itemMap = new Map();
-  for (const balance of selectedBalances) {
-    for (const line of flattenLines(balance.lines || [])) {
-      if (!line.normalized_name) continue;
-      if (!itemMap.has(line.normalized_name)) {
-        itemMap.set(line.normalized_name, line.name);
-      }
-    }
-  }
-
-  const rows = Array.from(itemMap.entries()).map(([key, name]) => ({
-    key,
-    name,
-    values: selectedIds.map((id) => {
-      const balance = cache[id];
-      if (!balance) return null;
-      const line = flattenLines(balance.lines || []).find((l) => l.normalized_name === key);
-      if (!line || line.amount == null) return null;
-      return { amount: line.amount, currency: line.currency, dollarRef: balance.dollar_reference };
-    }),
-  }));
+  // The primary balance (first non-null selected with data) provides the tree structure
+  const primaryBalance = selectedIds.map((id) => cache[id]).find(Boolean);
 
   if (allBalances.length < 2) return null;
 
@@ -118,11 +190,9 @@ export default function BalanceComparisonTable({ allBalances }) {
 
       {loading ? (
         <Loader />
-      ) : rows.length === 0 ? (
+      ) : !primaryBalance ? (
         <p className="text-gray-400 text-sm text-center py-8">
-          {selectedBalances.length === 0
-            ? 'Seleccioná al menos un balance para ver la comparativa.'
-            : 'Sin datos para comparar.'}
+          Seleccioná al menos un balance para ver la comparativa.
         </p>
       ) : (
         <div className="overflow-x-auto">
@@ -146,35 +216,14 @@ export default function BalanceComparisonTable({ allBalances }) {
               </tr>
             </thead>
             <tbody>
-              {rows.map((row, ri) => (
-                <tr
-                  key={row.key}
-                  className={`border-b border-gray-100 ${ri % 2 !== 0 ? 'bg-gray-50/50' : ''}`}
-                >
-                  <td className="py-1.5 pr-4 pl-2 text-gray-700">{row.name}</td>
-                  {row.values.map((val, vi) => (
-                    <td key={vi} className="py-1.5 px-2 text-right align-top">
-                      {val === null ? (
-                        <span className="text-gray-300">—</span>
-                      ) : (
-                        <>
-                          <span
-                            className={`block font-mono ${
-                              val.amount < 0 ? 'text-red-600' : 'text-gray-800'
-                            }`}
-                          >
-                            {formatARS(val.amount)}
-                          </span>
-                          {val.dollarRef > 0 && (
-                            <span className="block text-xs text-gray-400 font-mono">
-                              {formatUSD(val.amount, val.dollarRef)}
-                            </span>
-                          )}
-                        </>
-                      )}
-                    </td>
-                  ))}
-                </tr>
+              {(primaryBalance.lines || []).map((node) => (
+                <ComparisonRow
+                  key={node.id}
+                  node={node}
+                  level={0}
+                  selectedIds={selectedIds}
+                  cache={cache}
+                />
               ))}
             </tbody>
           </table>
