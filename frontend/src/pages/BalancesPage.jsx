@@ -4,6 +4,7 @@ import { getBalances } from '../api/endpoints';
 import Loader from '../components/common/Loader';
 import ErrorMessage from '../components/common/ErrorMessage';
 import BalanceLineChart from '../components/balances/BalanceLineChart';
+import BalanceComparisonTable from '../components/balances/BalanceComparisonTable';
 
 export default function BalancesPage() {
   const [balances, setBalances] = useState([]);
@@ -72,6 +73,11 @@ export default function BalancesPage() {
       <div className="mb-8">
         <BalanceLineChart compact={false} showLink={false} />
       </div>
+
+      {/* Comparison table */}
+      {!loading && !error && balances.length >= 2 && (
+        <BalanceComparisonTable allBalances={balances} />
+      )}
 
       {/* Balances list */}
       <h2 className="text-xl font-bold mb-4">Documentos</h2>
