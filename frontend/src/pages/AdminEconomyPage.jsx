@@ -79,7 +79,7 @@ export default function AdminEconomyPage() {
                   </td>
                   <td className="py-2 pr-4">
                     {r.carried_out ? (
-                      <span className="text-green-600 text-xs font-semibold">Si</span>
+                      <span className="text-ingreso text-xs font-semibold">Si</span>
                     ) : (
                       <span className="text-gray-400 text-xs">No</span>
                     )}
