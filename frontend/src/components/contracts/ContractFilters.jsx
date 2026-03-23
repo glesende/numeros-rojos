@@ -38,6 +38,18 @@ export default function ContractFilters({ filters, onFilter, onReset }) {
         </select>
       </div>
       <div>
+        <label className="block text-xs font-medium text-gray-500 mb-1">Préstamo</label>
+        <select
+          value={filters.loan ?? ''}
+          onChange={(e) => onFilter('loan', e.target.value === '' ? null : e.target.value)}
+          className="input-field"
+        >
+          <option value="">Todos</option>
+          <option value="1">En préstamo</option>
+          <option value="0">Sin préstamo</option>
+        </select>
+      </div>
+      <div>
         <label className="block text-xs font-medium text-gray-500 mb-1">Firma desde</label>
         <input
           type="date"
