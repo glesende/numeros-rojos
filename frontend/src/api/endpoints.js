@@ -44,6 +44,7 @@ export const applyBalanceAnalysis = (id, data) => client.post(`/admin/balances/$
 
 // Balance lines CRUD (admin)
 export const createLine = (balanceId, data) => client.post(`/admin/balances/${balanceId}/lines`, data);
+export const reorderLines = (balanceId, items) => client.post(`/admin/balances/${balanceId}/lines/reorder`, { items });
 export const updateLine = (balanceId, lineId, data) => client.put(`/admin/balances/${balanceId}/lines/${lineId}`, data);
 export const deleteLine = (balanceId, lineId) => client.delete(`/admin/balances/${balanceId}/lines/${lineId}`);
 

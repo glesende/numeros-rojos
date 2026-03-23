@@ -9,6 +9,7 @@ import {
   getBalanceDownloadUrl,
   getSettings,
   createLine,
+  reorderLines,
   updateLine,
   deleteLine,
 } from '../api/endpoints';
@@ -64,7 +65,41 @@ function PreviewNode({ node, level = 0 }) {
 
 // ── Editable lines tree ───────────────────────────────────────────────────────
 
-function LineNode({ node, balanceId, level = 0, onDelete, onLineAdded, onLineUpdated }) {
+// Finds the node in the tree by id, swaps its order with the adjacent sibling,
+// and returns { nodes: updatedTree, swapped: [{id, order}, {id, order}] | null }.
+function findAndSwap(nodes, nodeId, direction) {
+  const idx = nodes.findIndex((n) => n.id === nodeId);
+  if (idx !== -1) {
+    const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (targetIdx < 0 || targetIdx >= nodes.length) return { nodes, swapped: null };
+    const arr = [...nodes];
+    const aOrder = arr[idx].order;
+    const bOrder = arr[targetIdx].order;
+    arr[idx]       = { ...arr[idx],       order: bOrder };
+    arr[targetIdx] = { ...arr[targetIdx], order: aOrder };
+    const sorted = [...arr].sort((a, b) => a.order - b.order);
+    return {
+      nodes: sorted,
+      swapped: [
+        { id: arr[idx].id,       order: bOrder },
+        { id: arr[targetIdx].id, order: aOrder },
+      ],
+    };
+  }
+  let swapped = null;
+  const newNodes = nodes.map((n) => {
+    if (swapped) return n;
+    const result = findAndSwap(n.children || [], nodeId, direction);
+    if (result.swapped) {
+      swapped = result.swapped;
+      return { ...n, children: result.nodes };
+    }
+    return n;
+  });
+  return { nodes: newNodes, swapped };
+}
+
+function LineNode({ node, balanceId, level = 0, isFirst, isLast, onDelete, onLineAdded, onLineUpdated, onMoveUp, onMoveDown }) {
   const [addingChild, setAddingChild]   = useState(false);
   const [editingAmount, setEditingAmount] = useState(false);
   const [amountInput, setAmountInput]   = useState(node.amount ?? '');
@@ -132,6 +167,26 @@ function LineNode({ node, balanceId, level = 0, onDelete, onLineAdded, onLineUpd
           )}
 
           <div className="hidden group-hover:flex items-center gap-1">
+            {!isFirst && (
+              <button
+                type="button"
+                onClick={() => onMoveUp(node.id)}
+                title="Subir"
+                className="text-[10px] text-gray-400 hover:text-gray-700 px-0.5"
+              >
+                ▲
+              </button>
+            )}
+            {!isLast && (
+              <button
+                type="button"
+                onClick={() => onMoveDown(node.id)}
+                title="Bajar"
+                className="text-[10px] text-gray-400 hover:text-gray-700 px-0.5"
+              >
+                ▼
+              </button>
+            )}
             <button
               type="button"
               onClick={handleAddChild}
@@ -154,15 +209,19 @@ function LineNode({ node, balanceId, level = 0, onDelete, onLineAdded, onLineUpd
 
       {open && (
         <>
-          {node.children?.map((child) => (
+          {node.children?.map((child, i) => (
             <LineNode
               key={child.id}
               node={child}
               balanceId={balanceId}
               level={level + 1}
+              isFirst={i === 0}
+              isLast={i === node.children.length - 1}
               onDelete={onDelete}
               onLineAdded={onLineAdded}
               onLineUpdated={onLineUpdated}
+              onMoveUp={onMoveUp}
+              onMoveDown={onMoveDown}
             />
           ))}
           {addingChild && (
@@ -396,6 +455,20 @@ export default function AdminBalanceFormPage() {
     removeLineFromTree(lineId);
   };
 
+  const handleMoveUp = async (nodeId) => {
+    const { nodes, swapped } = findAndSwap(lines, nodeId, 'up');
+    if (!swapped) return;
+    setLines(nodes);
+    await reorderLines(id, swapped);
+  };
+
+  const handleMoveDown = async (nodeId) => {
+    const { nodes, swapped } = findAndSwap(lines, nodeId, 'down');
+    if (!swapped) return;
+    setLines(nodes);
+    await reorderLines(id, swapped);
+  };
+
   // Add a root-level line to local tree
   const handleRootLineAdded = (line) => {
     setLines((prev) => [...prev, { ...line, children: [] }]);
@@ -600,15 +673,19 @@ export default function AdminBalanceFormPage() {
               </p>
             ) : (
               <div className="text-sm">
-                {lines.map((line) => (
+                {lines.map((line, i) => (
                   <LineNode
                     key={line.id}
                     node={line}
                     balanceId={id}
                     level={0}
+                    isFirst={i === 0}
+                    isLast={i === lines.length - 1}
                     onDelete={handleDeleteLine}
                     onLineAdded={handleChildLineAdded}
                     onLineUpdated={updateLineInTree}
+                    onMoveUp={handleMoveUp}
+                    onMoveDown={handleMoveDown}
                   />
                 ))}
                 {addingRoot && (

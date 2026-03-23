@@ -287,6 +287,25 @@ class BalanceController extends Controller
         return response()->json(['message' => 'Línea eliminada'], 200);
     }
 
+    public function reorderLines(Request $request, int $balanceId): JsonResponse
+    {
+        Balance::findOrFail($balanceId);
+
+        $this->validate($request, [
+            'items'         => 'required|array',
+            'items.*.id'    => 'required|integer|exists:balance_lines,id',
+            'items.*.order' => 'required|integer|min:0',
+        ]);
+
+        foreach ($request->input('items') as $item) {
+            BalanceLine::where('balance_id', $balanceId)
+                ->where('id', $item['id'])
+                ->update(['order' => $item['order']]);
+        }
+
+        return response()->json(['message' => 'Orden actualizado'], 200);
+    }
+
     // --------------------------------------------------------
     // All balance items for admin selector (admin)
     // --------------------------------------------------------

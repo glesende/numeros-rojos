@@ -76,6 +76,7 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
 
         // Balance lines CRUD (manual editing)
         $router->post('balances/{balanceId}/lines', 'BalanceController@storeLine');
+        $router->post('balances/{balanceId}/lines/reorder', 'BalanceController@reorderLines');
         $router->put('balances/{balanceId}/lines/{lineId}', 'BalanceController@updateLine');
         $router->delete('balances/{balanceId}/lines/{lineId}', 'BalanceController@destroyLine');
 
