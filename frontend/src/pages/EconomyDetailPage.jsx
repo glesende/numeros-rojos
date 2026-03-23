@@ -35,7 +35,7 @@ export default function EconomyDetailPage() {
             {record.type}
           </span>
           {record.links?.some((l) => l.official) && <OfficialBadge />}
-          {record.carried_out && <span className="text-xs font-semibold text-blue-600">Efectuado</span>}
+          {record.carried_out && <span className="text-xs font-semibold text-ingreso">Efectuado</span>}
         </div>
 
         <h1 className="text-xl font-bold mb-4">{record.description}</h1>
