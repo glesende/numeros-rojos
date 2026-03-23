@@ -364,20 +364,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Dato fundamental */}
-      <section className="bg-gray-900 py-10 md:py-14">
-        <div className="max-w-2xl mx-auto px-4 text-center">
-          <div className="w-10 h-1 bg-rojo mx-auto mb-6 rounded-full"></div>
-          <p className="text-xl md:text-2xl lg:text-3xl font-bold text-white leading-snug mb-5">
-            El Club Atlético Independiente es una Asociación Civil gestionada por dirigentes elegidos por los socios.
-          </p>
-          <p className="text-sm md:text-base text-gray-400 italic">
-            Este es el dato más importante de todos los que persisten en este sitio.
-          </p>
-          <div className="w-10 h-1 bg-rojo mx-auto mt-6 rounded-full"></div>
-        </div>
-      </section>
-
       {/* Monthly income/expense chart */}
       {sections.section_economia_enabled !== false && (
         <section id="compromisos-economicos" className="max-w-6xl mx-auto px-4 py-4">
@@ -502,6 +488,20 @@ export default function HomePage() {
           </div>
         </section>
       )}
+
+      {/* Dato fundamental */}
+      <section className="bg-gray-900 py-10 md:py-14">
+        <div className="max-w-2xl mx-auto px-4 text-center">
+          <div className="w-10 h-1 bg-rojo mx-auto mb-6 rounded-full"></div>
+          <p className="text-xl md:text-2xl lg:text-3xl font-bold text-white leading-snug mb-5">
+            El Club Atlético Independiente es una Asociación Civil gestionada por dirigentes elegidos por los socios.
+          </p>
+          <p className="text-sm md:text-base text-gray-400 italic">
+            Este es el dato más importante de todos los que persisten en este sitio.
+          </p>
+          <div className="w-10 h-1 bg-rojo mx-auto mt-6 rounded-full"></div>
+        </div>
+      </section>
 
       {/* Methodology */}
       <section id="metodologia" className="max-w-6xl mx-auto px-4 py-4">
