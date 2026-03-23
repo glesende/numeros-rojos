@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { getBalance } from '../../api/endpoints';
 import Loader from '../common/Loader';
 import { balanceLineLabel } from '../../utils/balanceLabels';
@@ -23,8 +23,55 @@ function formatUSD(amount, dollarRef) {
   return 'USD ' + new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 }).format(amount / dollarRef);
 }
 
-// Recursive row: uses structureNode (from the primary balance) and looks up
-// matching lines in the other balances by normalized_name.
+// Build a merged tree from all selected balances so lines from any balance appear.
+function buildMergedTree(cache, selectedIds) {
+  const nodeMap = new Map(); // normalized_name -> node metadata
+  const childrenMap = new Map(); // parent normalized_name -> ordered children normalized_names
+  const childSet = new Set(); // normalized_names that are children of someone
+
+  function collect(lines, parentNormalizedName) {
+    for (const line of lines) {
+      if (!line.normalized_name) continue;
+      if (!nodeMap.has(line.normalized_name)) {
+        nodeMap.set(line.normalized_name, {
+          normalized_name: line.normalized_name,
+          name: line.name,
+          is_total: line.is_total,
+          level: line.level,
+          order: line.order,
+        });
+      }
+      if (parentNormalizedName) {
+        if (!childrenMap.has(parentNormalizedName)) childrenMap.set(parentNormalizedName, []);
+        const siblings = childrenMap.get(parentNormalizedName);
+        if (!siblings.includes(line.normalized_name)) siblings.push(line.normalized_name);
+        childSet.add(line.normalized_name);
+      }
+      if (line.children?.length) collect(line.children, line.normalized_name);
+    }
+  }
+
+  for (const id of selectedIds) {
+    const balance = cache[id];
+    if (!balance) continue;
+    collect(balance.lines || [], null);
+  }
+
+  function buildNode(normalizedName) {
+    const node = nodeMap.get(normalizedName);
+    const childNames = childrenMap.get(normalizedName) || [];
+    return {
+      ...node,
+      children: childNames.map(buildNode).sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
+    };
+  }
+
+  const roots = [...nodeMap.keys()].filter((name) => !childSet.has(name));
+  return roots.map(buildNode).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+}
+
+// Recursive row: uses structureNode (merged from all balances) and looks up
+// matching lines in each balance by normalized_name.
 function ComparisonRow({ node, level, selectedIds, cache }) {
   const [open, setOpen] = useState(level < 2);
   const hasChildren = node.children?.length > 0;
@@ -104,7 +151,7 @@ function ComparisonRow({ node, level, selectedIds, cache }) {
         hasChildren &&
         node.children.map((child) => (
           <ComparisonRow
-            key={child.id}
+            key={child.normalized_name}
             node={child}
             level={level + 1}
             selectedIds={selectedIds}
@@ -158,8 +205,14 @@ export default function BalanceComparisonTable({ allBalances }) {
     setSelectedIds(newIds);
   };
 
-  // The primary balance (first non-null selected with data) provides the tree structure
-  const primaryBalance = selectedIds.map((id) => cache[id]).find(Boolean);
+  // Build a merged tree from ALL selected balances so every line appears regardless of which balance has it
+  const mergedTree = useMemo(() => {
+    const loadedIds = selectedIds.filter((id) => id != null && cache[id]);
+    if (loadedIds.length === 0) return [];
+    return buildMergedTree(cache, loadedIds);
+  }, [cache, selectedIds]);
+
+  const hasData = mergedTree.length > 0;
 
   if (allBalances.length < 2) return null;
 
@@ -190,7 +243,7 @@ export default function BalanceComparisonTable({ allBalances }) {
 
       {loading ? (
         <Loader />
-      ) : !primaryBalance ? (
+      ) : !hasData ? (
         <p className="text-gray-400 text-sm text-center py-8">
           Seleccioná al menos un balance para ver la comparativa.
         </p>
@@ -216,9 +269,9 @@ export default function BalanceComparisonTable({ allBalances }) {
               </tr>
             </thead>
             <tbody>
-              {(primaryBalance.lines || []).map((node) => (
+              {mergedTree.map((node) => (
                 <ComparisonRow
-                  key={node.id}
+                  key={node.normalized_name}
                   node={node}
                   level={0}
                   selectedIds={selectedIds}
