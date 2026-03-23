@@ -18,21 +18,29 @@ export default function AdminContractsPage() {
   const [data, setData] = useState({ data: [], meta: null });
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
   const navigate = useNavigate();
 
   const fetchData = () => {
     setLoading(true);
-    getContracts({ page, per_page: 20 })
+    const params = { page, per_page: 20 };
+    if (search) params.search = search;
+    getContracts(params)
       .then((res) => setData(res.data))
       .finally(() => setLoading(false));
   };
 
-  useEffect(fetchData, [page]);
+  useEffect(fetchData, [page, search]);
 
   const handleDelete = async (id) => {
     if (!window.confirm('Eliminar este contrato?')) return;
     await deleteContract(id);
     fetchData();
+  };
+
+  const handleSearch = (e) => {
+    setSearch(e.target.value);
+    setPage(1);
   };
 
   return (
@@ -47,6 +55,16 @@ export default function AdminContractsPage() {
         <button onClick={() => navigate('/admin/contratos/nuevo')} className="btn-primary text-sm">
           + Nuevo contrato
         </button>
+      </div>
+
+      <div className="mb-4">
+        <input
+          type="text"
+          value={search}
+          onChange={handleSearch}
+          placeholder="Buscar por nombre de jugador..."
+          className="input-field w-full max-w-sm"
+        />
       </div>
 
       {loading ? (

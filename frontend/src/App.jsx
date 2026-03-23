@@ -1,4 +1,5 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import { useAuth } from './context/AuthContext';
 import { usePageTracking } from './hooks/usePageTracking';
 import Layout from './components/layout/Layout';
@@ -23,6 +24,16 @@ import StadiumPage from './pages/StadiumPage';
 import StatsPage from './pages/StatsPage';
 import Loader from './components/common/Loader';
 
+function ScrollToTop() {
+  const { pathname, state } = useLocation();
+  useEffect(() => {
+    // Skip if navigating to home with a scroll target (Navbar handles that scroll)
+    if (pathname === '/' && state?.scrollTo) return;
+    window.scrollTo(0, 0);
+  }, [pathname, state]);
+  return null;
+}
+
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
   if (loading) return <Loader />;
@@ -34,6 +45,7 @@ export default function App() {
   usePageTracking();
   return (
     <Layout>
+      <ScrollToTop />
       <Routes>
         {/* Public */}
         <Route path="/" element={<HomePage />} />

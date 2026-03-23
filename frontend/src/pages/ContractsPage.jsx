@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { getContracts } from '../api/endpoints';
 import { useFilters } from '../hooks/useFilters';
 import ContractFilters from '../components/contracts/ContractFilters';
@@ -8,8 +9,20 @@ import Pagination from '../components/common/Pagination';
 import Loader from '../components/common/Loader';
 import ErrorMessage from '../components/common/ErrorMessage';
 
+const ALLOWED_SORT_FIELDS = ['expiration_date', 'signing_date', 'estimated_salary'];
+
 export default function ContractsPage() {
-  const { filters, updateFilter, setPage, resetFilters, cleanParams } = useFilters();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const initialSortBy = ALLOWED_SORT_FIELDS.includes(searchParams.get('sort_by'))
+    ? searchParams.get('sort_by')
+    : 'expiration_date';
+  const initialSortDir = searchParams.get('sort_dir') === 'asc' ? 'asc' : 'desc';
+
+  const { filters, updateFilter, setPage, resetFilters, cleanParams } = useFilters({
+    sort_by: initialSortBy,
+    sort_dir: initialSortDir,
+  });
   const [data, setData] = useState({ data: [], totals: null, meta: null });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -18,6 +31,23 @@ export default function ContractsPage() {
     document.title = 'Transparencia Contractual | Números Rojos';
     return () => { document.title = 'Números Rojos'; };
   }, []);
+
+  // Sync sort state to URL for shareability
+  useEffect(() => {
+    const params = {};
+    if (filters.sort_by && filters.sort_by !== 'expiration_date') params.sort_by = filters.sort_by;
+    if (filters.sort_dir && filters.sort_dir !== 'desc') params.sort_dir = filters.sort_dir;
+    setSearchParams(params, { replace: true });
+  }, [filters.sort_by, filters.sort_dir]);
+
+  const handleSort = useCallback((field) => {
+    if (filters.sort_by === field) {
+      updateFilter('sort_dir', filters.sort_dir === 'desc' ? 'asc' : 'desc');
+    } else {
+      updateFilter('sort_by', field);
+      updateFilter('sort_dir', 'desc');
+    }
+  }, [filters.sort_by, filters.sort_dir, updateFilter]);
 
   const fetchData = useCallback(() => {
     setLoading(true);
@@ -45,7 +75,7 @@ export default function ContractsPage() {
       <div className="flex items-center gap-2 mb-4">
         <span className="text-xs text-gray-400">Compartir</span>
         <a
-          href="https://wa.me/?text=Mir%C3%A1%20los%20contratos%20del%20plantel%20de%20Independiente%3A%20https%3A%2F%2Fwww.numerosrojos.net%2Fcontratos"
+          href={`https://wa.me/?text=${encodeURIComponent('Mirá los contratos del plantel de Independiente: ' + window.location.href)}`}
           target="_blank"
           rel="noopener noreferrer"
           className="text-gray-400 hover:text-green-600 transition-colors"
@@ -56,7 +86,7 @@ export default function ContractsPage() {
           </svg>
         </a>
         <a
-          href="https://x.com/intent/tweet?text=Mir%C3%A1%20los%20contratos%20del%20plantel%20de%20Independiente%3A%20https%3A%2F%2Fwww.numerosrojos.net%2Fcontratos"
+          href={`https://x.com/intent/tweet?text=${encodeURIComponent('Mirá los contratos del plantel de Independiente: ' + window.location.href)}`}
           target="_blank"
           rel="noopener noreferrer"
           className="text-gray-400 hover:text-gray-900 transition-colors"
@@ -80,7 +110,12 @@ export default function ContractsPage() {
         </div>
       ) : (
         <div className="card">
-          <ContractTable contracts={data.data} />
+          <ContractTable
+            contracts={data.data}
+            sortBy={filters.sort_by}
+            sortDir={filters.sort_dir}
+            onSort={handleSort}
+          />
           <Pagination meta={data.meta} onPageChange={setPage} />
         </div>
       )}

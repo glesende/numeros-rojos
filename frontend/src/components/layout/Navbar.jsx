@@ -1,20 +1,30 @@
-import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import useSectionSettings from '../../hooks/useSectionSettings';
 
 const ALL_NAV_LINKS = [
-  { to: '/#compromisos-economicos', label: 'Economia', scrollTo: 'compromisos-economicos', isAnchor: true, sectionKey: 'section_economia_enabled' },
-  { to: '/#contratos', label: 'Contratos', scrollTo: 'contratos', isAnchor: true, sectionKey: 'section_contratos_enabled' },
-  { to: '/#balances', label: 'Balances', scrollTo: 'balances', isAnchor: true, sectionKey: 'section_balances_enabled' },
-  { to: '/#estadisticas', label: 'Estadísticas', scrollTo: 'estadisticas', isAnchor: true, sectionKey: null },
-  { to: '/#estadio', label: 'Estadio', scrollTo: 'estadio', isAnchor: true, sectionKey: 'section_estadio_enabled' },
-  { to: '/#metodologia', label: 'Metodologia', scrollTo: 'metodologia', isAnchor: true, sectionKey: null },
+  { to: '/', label: 'Economia', scrollTo: 'compromisos-economicos', isAnchor: true, sectionKey: 'section_economia_enabled' },
+  { to: '/', label: 'Contratos', scrollTo: 'contratos', isAnchor: true, sectionKey: 'section_contratos_enabled' },
+  { to: '/', label: 'Balances', scrollTo: 'balances', isAnchor: true, sectionKey: 'section_balances_enabled' },
+  { to: '/', label: 'Estadísticas', scrollTo: 'estadisticas', isAnchor: true, sectionKey: null },
+  { to: '/', label: 'Estadio', scrollTo: 'estadio', isAnchor: true, sectionKey: 'section_estadio_enabled' },
+  { to: '/', label: 'Metodologia', scrollTo: 'metodologia', isAnchor: true, sectionKey: null },
 ];
+
+const scrollToSection = (scrollToId) => {
+  const element = document.getElementById(scrollToId);
+  if (element) {
+    const navbarHeight = 56; // h-14
+    const top = element.getBoundingClientRect().top + window.scrollY - navbarHeight;
+    window.scrollTo({ top, behavior: 'smooth' });
+  }
+};
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { sections } = useSectionSettings();
 
@@ -22,14 +32,62 @@ export default function Navbar() {
     (link) => link.sectionKey === null || sections[link.sectionKey] !== false
   );
 
+  // Scroll to section after navigating from another route.
+  // Uses ResizeObserver to wait for async sections to finish loading
+  // before measuring position, then scrolls once layout is stable.
+  useEffect(() => {
+    if (location.pathname !== '/' || !location.state?.scrollTo) return;
+
+    const scrollToId = location.state.scrollTo;
+    let scrolled = false;
+    let debounceTimer = null;
+
+    const doScroll = () => {
+      if (scrolled) return;
+      const element = document.getElementById(scrollToId);
+      if (!element) return;
+      scrolled = true;
+      resizeObserver.disconnect();
+      scrollToSection(scrollToId);
+    };
+
+    const resizeObserver = new ResizeObserver(() => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(doScroll, 150);
+    });
+
+    resizeObserver.observe(document.body);
+
+    // Fallback: scroll after 2.5s regardless
+    const fallback = setTimeout(() => {
+      clearTimeout(debounceTimer);
+      resizeObserver.disconnect();
+      doScroll();
+    }, 2500);
+
+    return () => {
+      clearTimeout(debounceTimer);
+      clearTimeout(fallback);
+      resizeObserver.disconnect();
+    };
+  }, [location.state]);
+
   const handleNavClick = (e, link) => {
-    if (link.isAnchor && location.pathname === '/') {
-      e.preventDefault();
-      const element = document.getElementById(link.scrollTo);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
-      setOpen(false);
+    if (!link.isAnchor) return;
+    e.preventDefault();
+    setOpen(false);
+
+    if (location.pathname === '/') {
+      // Already on home: defer scroll until mobile menu closes and layout stabilizes
+      const scrollToId = link.scrollTo;
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          scrollToSection(scrollToId);
+        });
+      });
+    } else {
+      // Navigate to home passing scroll target via state (no hash, avoids browser/router conflicts)
+      navigate('/', { state: { scrollTo: link.scrollTo } });
     }
   };
 
@@ -52,7 +110,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => (
               <Link
-                key={link.to}
+                key={link.scrollTo}
                 to={link.to}
                 onClick={(e) => handleNavClick(e, link)}
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -95,7 +153,7 @@ export default function Navbar() {
           <div className="md:hidden pb-4 space-y-1">
             {navLinks.map((link) => (
               <Link
-                key={link.to}
+                key={link.scrollTo}
                 to={link.to}
                 onClick={(e) => handleNavClick(e, link)}
                 className={`block px-3 py-2 rounded-lg text-sm font-medium ${
