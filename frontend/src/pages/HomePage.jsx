@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { getContracts, getStadium, sendContact } from '../api/endpoints';
+import { getContracts, getStadium, sendContact, getEconomyRecords, getBalances } from '../api/endpoints';
 import PlayerMatchesModal from '../components/stats/PlayerMatchesModal';
 import Loader from '../components/common/Loader';
 import MonthlyBarChart from '../components/economy/MonthlyBarChart';
@@ -287,6 +287,8 @@ export default function HomePage() {
   const [contractTotals, setContractTotals] = useState(null);
   const [loading, setLoading] = useState(false);
   const [selectedContractPlayer, setSelectedContractPlayer] = useState(null);
+  const [economyTotal, setEconomyTotal] = useState(null);
+  const [balancesTotal, setBalancesTotal] = useState(null);
   const { sections } = useSectionSettings();
 
   const fetchContracts = useCallback(() => {
@@ -308,6 +310,15 @@ export default function HomePage() {
   useEffect(() => {
     fetchContracts();
   }, [fetchContracts]);
+
+  useEffect(() => {
+    getEconomyRecords({ per_page: 1 })
+      .then((res) => setEconomyTotal(res.data?.meta?.total ?? null))
+      .catch(() => {});
+    getBalances()
+      .then((res) => setBalancesTotal((res.data?.data || []).length))
+      .catch(() => {});
+  }, []);
 
   const filteredContracts = useMemo(() => {
     let result = contracts;
@@ -361,6 +372,38 @@ export default function HomePage() {
           <p className="text-base md:text-lg text-white/80 max-w-2xl mx-auto">
             Centralizados, simples y concretos.
           </p>
+          {(contractTotals || economyTotal !== null || balancesTotal !== null) && (
+            <div className="mt-6 flex flex-wrap justify-center items-center gap-x-0 gap-y-2">
+              {contractTotals?.total_contratos != null && (
+                <>
+                  <Link to="/contratos" className="group flex flex-col items-center px-5 hover:opacity-80 transition-opacity">
+                    <span className="text-2xl md:text-3xl font-extrabold leading-none">{contractTotals.total_contratos}</span>
+                    <span className="text-xs md:text-sm text-white/70 mt-0.5">contratos</span>
+                  </Link>
+                  {(economyTotal !== null || balancesTotal !== null) && (
+                    <span className="text-white/30 text-2xl font-light select-none">·</span>
+                  )}
+                </>
+              )}
+              {economyTotal !== null && (
+                <>
+                  <Link to="/economia" className="group flex flex-col items-center px-5 hover:opacity-80 transition-opacity">
+                    <span className="text-2xl md:text-3xl font-extrabold leading-none">{economyTotal}</span>
+                    <span className="text-xs md:text-sm text-white/70 mt-0.5">registros económicos</span>
+                  </Link>
+                  {balancesTotal !== null && (
+                    <span className="text-white/30 text-2xl font-light select-none">·</span>
+                  )}
+                </>
+              )}
+              {balancesTotal !== null && (
+                <Link to="/balances" className="group flex flex-col items-center px-5 hover:opacity-80 transition-opacity">
+                  <span className="text-2xl md:text-3xl font-extrabold leading-none">{balancesTotal}</span>
+                  <span className="text-xs md:text-sm text-white/70 mt-0.5">balances</span>
+                </Link>
+              )}
+            </div>
+          )}
         </div>
       </section>
 
