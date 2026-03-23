@@ -25,13 +25,19 @@ export default function Navbar() {
   const handleNavClick = (e, link) => {
     if (link.isAnchor && location.pathname === '/') {
       e.preventDefault();
-      const element = document.getElementById(link.scrollTo);
-      if (element) {
-        const navbarHeight = 56; // h-14
-        const top = element.getBoundingClientRect().top + window.scrollY - navbarHeight;
-        window.scrollTo({ top, behavior: 'smooth' });
-      }
+      const scrollToId = link.scrollTo;
       setOpen(false);
+      // Defer scroll until after the mobile menu closes and layout stabilizes
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const element = document.getElementById(scrollToId);
+          if (element) {
+            const navbarHeight = 56; // h-14
+            const top = element.getBoundingClientRect().top + window.scrollY - navbarHeight;
+            window.scrollTo({ top, behavior: 'smooth' });
+          }
+        });
+      });
     }
   };
 
