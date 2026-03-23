@@ -6,6 +6,7 @@ import EconomyTable from '../components/economy/EconomyTable';
 import Pagination from '../components/common/Pagination';
 import Loader from '../components/common/Loader';
 import ErrorMessage from '../components/common/ErrorMessage';
+import EconomyWidgets from '../components/economy/EconomyWidgets';
 
 export default function EconomyPage() {
   const { filters, updateFilter, setPage, resetFilters, cleanParams } = useFilters();
@@ -66,6 +67,8 @@ export default function EconomyPage() {
           </svg>
         </a>
       </div>
+
+      {!loading && !error && <EconomyWidgets totals={data.totals} />}
 
       <EconomyFilters filters={filters} onFilter={updateFilter} onReset={resetFilters} />
 
