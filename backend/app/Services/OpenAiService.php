@@ -58,6 +58,13 @@ class OpenAiService
             default                        => 4096,
         };
 
+        $existingPaths = BalanceLine::where('balance_id', '!=', $balance->id)
+            ->whereNotNull('path')
+            ->distinct()
+            ->orderBy('path')
+            ->pluck('path')
+            ->toArray();
+
         $systemPrompt = <<<PROMPT
 Sos un parser contable especializado en estados financieros.
 
@@ -121,8 +128,26 @@ Considerar equivalencias:
 
 - Si un nodo tiene children, puede o no tener "amount"
 
+- Algunas páginas pueden estar rotadas (orientación horizontal/landscape). Procesarlas igual, rotando la lectura según corresponda.
+
 Debes responder ÚNICAMENTE con un JSON válido, sin texto adicional.
 PROMPT;
+
+        if (!empty($existingPaths)) {
+            $pathList      = implode("\n", array_map(fn($p) => "- {$p}", $existingPaths));
+            $systemPrompt .= <<<PATHS
+
+
+Paths de referencia (otros balances ya cargados en el sistema):
+{$pathList}
+
+Reglas para usar estos paths:
+- Son una guía de nomenclatura, no una restricción. Pueden aparecer cuentas nuevas que no estén en esta lista: incluirlas normalmente.
+- Antes de crear un nodo con un nombre nuevo, evaluá si semánticamente corresponde a alguno de los paths existentes (puede estar escrito diferente, abreviado, o traducido).
+- Si hay equivalencia clara, usar el nombre exacto del path existente para mantener consistencia entre balances.
+- Si no hay equivalencia, usar el nombre tal como aparece en el documento.
+PATHS;
+        }
 
         $userPrompt = <<<PROMPT
 Analizá el documento adjunto y extraé TODOS los estados financieros presentes.
