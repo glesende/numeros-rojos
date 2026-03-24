@@ -40,11 +40,13 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
     $router->get('league/stats', 'StatsController@leagueStats');
     $router->get('team', 'StatsController@team');
 
+    // Refresh no necesita jwt.auth: acepta tokens expirados por diseño
+    $router->post('admin/auth/refresh', ['uses' => 'Api\V1\AuthController@refresh']);
+
     // Admin (protected)
     $router->group(['middleware' => 'jwt.auth', 'prefix' => 'admin'], function () use ($router) {
         // Auth
         $router->get('me', 'AuthController@me');
-        $router->post('auth/refresh', 'AuthController@refresh');
         $router->post('auth/logout', 'AuthController@logout');
         $router->post('auth/change-password', 'AuthController@changePassword');
 
