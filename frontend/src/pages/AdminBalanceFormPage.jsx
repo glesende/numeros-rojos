@@ -106,7 +106,7 @@ function LineNode({ node, balanceId, level = 0, isFirst, isLast, onDelete, onLin
   const [open, setOpen] = useState(level < 2);
   const hasChildren = node.children?.length > 0;
 
-  const handleAddChild = () => setAddingChild(true);
+  const handleAddChild = () => { setAddingChild(true); setOpen(true); };
 
   const handleAmountSave = async () => {
     try {
