@@ -5,7 +5,10 @@ export default function Footer() {
         <p className="text-xs">
           Los datos que todo socio de Independiente tiene que saber.
         </p>
-        <div className="mt-4">
+        <p className="text-xs mt-4">
+          Proyecto realizado en colaboración con:
+        </p>
+        <div className="mt-2">
           <a href="https://www.orgullorojo.com" target="_blank" rel="noopener noreferrer">
             <img src="/or-horizontal.png" alt="OrgulloRojo.com" className="h-10 mx-auto opacity-50 hover:opacity-80 transition-opacity" />
           </a>
