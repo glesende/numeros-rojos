@@ -1,4 +1,4 @@
-# Numeros Rojos - Portal de Transparencia Deportiva
+# Numeros Rojos - Portal de Transparencia
 
 **Los datos que todo socio de Independiente tiene que saber.**
 

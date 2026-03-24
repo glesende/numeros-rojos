@@ -14,7 +14,7 @@ export default function EconomyPage() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    document.title = 'Transparencia Económica | Números Rojos';
+    document.title = 'Compromisos Económicos | Números Rojos';
     return () => { document.title = 'Números Rojos'; };
   }, []);
 

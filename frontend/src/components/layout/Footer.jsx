@@ -5,9 +5,6 @@ export default function Footer() {
         <p className="text-sm font-semibold text-white mb-1">
           NUMEROS ROJOS
         </p>
-        <p className="text-xs mb-3">
-          Portal de Transparencia - Club Atletico Independiente
-        </p>
         <p className="text-xs">
           Los datos que todo socio de Independiente tiene que saber.
         </p>

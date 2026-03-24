@@ -301,7 +301,7 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    document.title = 'Números Rojos | Portal de transparencia de Independiente';
+    document.title = 'Números Rojos | Portal de Datos del Club Atlético Independiente';
     return () => { document.title = 'Números Rojos'; };
   }, []);
 
