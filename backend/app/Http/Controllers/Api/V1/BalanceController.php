@@ -253,10 +253,11 @@ class BalanceController extends Controller
         $line = BalanceLine::where('balance_id', $balanceId)->findOrFail($lineId);
 
         $this->validate($request, [
-            'name'     => 'sometimes|string|max:255',
-            'amount'   => 'nullable|numeric',
-            'currency' => 'nullable|in:ARS,USD,EUR',
-            'is_total' => 'nullable|boolean',
+            'name'      => 'sometimes|string|max:255',
+            'amount'    => 'nullable|numeric',
+            'currency'  => 'nullable|in:ARS,USD,EUR',
+            'is_total'  => 'nullable|boolean',
+            'parent_id' => 'sometimes|nullable|integer',
         ]);
 
         if ($request->has('name')) {
@@ -272,10 +273,62 @@ class BalanceController extends Controller
         if ($request->has('is_total')) {
             $line->is_total = $request->boolean('is_total');
         }
+        if ($request->has('parent_id')) {
+            $newParentId = $request->input('parent_id');
+
+            if ($newParentId !== null) {
+                $newParentId = (int) $newParentId;
+                // Validate new parent belongs to same balance
+                $newParent = BalanceLine::where('balance_id', $balanceId)->findOrFail($newParentId);
+                // Prevent cycles: new parent cannot be a descendant of the line being moved
+                if (in_array($newParentId, $this->getDescendantIds($line->id, $balanceId))) {
+                    return response()->json(['error' => 'No se puede mover una línea dentro de sus propios hijos'], 422);
+                }
+                $newLevel = $newParent->level + 1;
+            } else {
+                $newLevel = 1;
+            }
+
+            // Place at the end of the new parent's children
+            $maxOrder = BalanceLine::where('balance_id', $balanceId)
+                ->where('parent_id', $newParentId)
+                ->where('id', '!=', $line->id)
+                ->max('order') ?? -1;
+
+            $levelDiff = $newLevel - $line->level;
+            $line->parent_id = $newParentId;
+            $line->level     = $newLevel;
+            $line->order     = $maxOrder + 1;
+
+            if ($levelDiff !== 0) {
+                $this->updateDescendantLevels($line->id, $levelDiff, $balanceId);
+            }
+        }
 
         $line->save();
 
         return response()->json(['data' => $line]);
+    }
+
+    private function getDescendantIds(int $lineId, int $balanceId): array
+    {
+        $ids      = [];
+        $children = BalanceLine::where('balance_id', $balanceId)->where('parent_id', $lineId)->get();
+        foreach ($children as $child) {
+            $ids[] = $child->id;
+            $ids   = array_merge($ids, $this->getDescendantIds($child->id, $balanceId));
+        }
+        return $ids;
+    }
+
+    private function updateDescendantLevels(int $parentId, int $levelDiff, int $balanceId): void
+    {
+        $children = BalanceLine::where('balance_id', $balanceId)->where('parent_id', $parentId)->get();
+        foreach ($children as $child) {
+            $child->level = $child->level + $levelDiff;
+            $child->save();
+            $this->updateDescendantLevels($child->id, $levelDiff, $balanceId);
+        }
     }
 
     public function destroyLine(int $balanceId, int $lineId): JsonResponse

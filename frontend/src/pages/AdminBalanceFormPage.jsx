@@ -65,6 +65,24 @@ function PreviewNode({ node, level = 0 }) {
 
 // ── Editable lines tree ───────────────────────────────────────────────────────
 
+function flattenTree(nodes, depth = 0) {
+  const result = [];
+  for (const n of nodes) {
+    result.push({ id: n.id, name: n.name, depth });
+    if (n.children?.length) result.push(...flattenTree(n.children, depth + 1));
+  }
+  return result;
+}
+
+function getDescendantIds(node) {
+  const ids = [];
+  for (const child of node.children || []) {
+    ids.push(child.id);
+    ids.push(...getDescendantIds(child));
+  }
+  return ids;
+}
+
 // Finds the node in the tree by id, swaps its order with the adjacent sibling,
 // and returns { nodes: updatedTree, swapped: [{id, order}, {id, order}] | null }.
 function findAndSwap(nodes, nodeId, direction) {
@@ -99,12 +117,26 @@ function findAndSwap(nodes, nodeId, direction) {
   return { nodes: newNodes, swapped };
 }
 
-function LineNode({ node, balanceId, level = 0, isFirst, isLast, onDelete, onLineAdded, onLineUpdated, onMoveUp, onMoveDown }) {
+function LineNode({ node, balanceId, level = 0, isFirst, isLast, flatLines, onDelete, onLineAdded, onLineUpdated, onMoveUp, onMoveDown, onReparent }) {
   const [addingChild, setAddingChild]   = useState(false);
   const [editingAmount, setEditingAmount] = useState(false);
   const [amountInput, setAmountInput]   = useState(node.amount ?? '');
   const [open, setOpen] = useState(level < 2);
+  const [reparenting, setReparenting]   = useState(false);
+  const [newParentId, setNewParentId]   = useState('');
   const hasChildren = node.children?.length > 0;
+
+  const descendantIds = new Set(getDescendantIds(node));
+  const availableParents = (flatLines || []).filter(p => p.id !== node.id && !descendantIds.has(p.id));
+
+  const handleReparentSave = async () => {
+    const parentId = newParentId === '' ? null : parseInt(newParentId, 10);
+    try {
+      await onReparent(node.id, parentId);
+    } finally {
+      setReparenting(false);
+    }
+  };
 
   const handleAddChild = () => { setAddingChild(true); setOpen(true); };
 
@@ -137,73 +169,103 @@ function LineNode({ node, balanceId, level = 0, isFirst, isLast, onDelete, onLin
         </button>
 
         <div className="flex items-center gap-2 flex-shrink-0">
-          {editingAmount ? (
+          {reparenting ? (
             <div className="flex items-center gap-1">
-              <input
-                type="number"
-                value={amountInput}
-                onChange={(e) => setAmountInput(e.target.value)}
-                className="input-field text-xs w-28 py-0.5 px-1"
-                step="0.01"
+              <select
+                value={newParentId}
+                onChange={(e) => setNewParentId(e.target.value)}
+                className="input-field text-xs py-0.5 px-1 max-w-52"
                 autoFocus
-              />
-              <button onClick={handleAmountSave} className="text-xs text-green-600 hover:underline">✓</button>
-              <button onClick={() => setEditingAmount(false)} className="text-xs text-gray-400 hover:underline">✕</button>
+              >
+                <option value="">— raíz —</option>
+                {availableParents.map((p) => (
+                  <option key={p.id} value={String(p.id)}>
+                    {'· '.repeat(p.depth)}{p.name}
+                  </option>
+                ))}
+              </select>
+              <button onClick={handleReparentSave} className="text-xs text-green-600 hover:underline">✓</button>
+              <button onClick={() => setReparenting(false)} className="text-xs text-gray-400 hover:underline">✕</button>
             </div>
           ) : (
-            <button
-              type="button"
-              onClick={() => { setAmountInput(node.amount ?? ''); setEditingAmount(true); }}
-              className="text-xs font-mono text-gray-600 hover:text-blue-600"
-            >
-              {node.amount != null ? (
-                <span className={node.amount < 0 ? 'text-red-600' : ''}>
-                  {formatMoney(node.amount, node.currency)}
-                </span>
+            <>
+              {editingAmount ? (
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    value={amountInput}
+                    onChange={(e) => setAmountInput(e.target.value)}
+                    className="input-field text-xs w-28 py-0.5 px-1"
+                    step="0.01"
+                    autoFocus
+                  />
+                  <button onClick={handleAmountSave} className="text-xs text-green-600 hover:underline">✓</button>
+                  <button onClick={() => setEditingAmount(false)} className="text-xs text-gray-400 hover:underline">✕</button>
+                </div>
               ) : (
-                <span className="text-gray-300 text-[10px]">— monto</span>
+                <button
+                  type="button"
+                  onClick={() => { setAmountInput(node.amount ?? ''); setEditingAmount(true); }}
+                  className="text-xs font-mono text-gray-600 hover:text-blue-600"
+                >
+                  {node.amount != null ? (
+                    <span className={node.amount < 0 ? 'text-red-600' : ''}>
+                      {formatMoney(node.amount, node.currency)}
+                    </span>
+                  ) : (
+                    <span className="text-gray-300 text-[10px]">— monto</span>
+                  )}
+                </button>
               )}
-            </button>
-          )}
 
-          <div className="hidden group-hover:flex items-center gap-1">
-            {!isFirst && (
-              <button
-                type="button"
-                onClick={() => onMoveUp(node.id)}
-                title="Subir"
-                className="text-[10px] text-gray-400 hover:text-gray-700 px-0.5"
-              >
-                ▲
-              </button>
-            )}
-            {!isLast && (
-              <button
-                type="button"
-                onClick={() => onMoveDown(node.id)}
-                title="Bajar"
-                className="text-[10px] text-gray-400 hover:text-gray-700 px-0.5"
-              >
-                ▼
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={handleAddChild}
-              title="Agregar sub-línea"
-              className="text-[10px] text-blue-500 hover:underline px-1"
-            >
-              + hijo
-            </button>
-            <button
-              type="button"
-              onClick={() => onDelete(node.id)}
-              title="Eliminar línea y sus hijos"
-              className="text-[10px] text-red-400 hover:underline px-1"
-            >
-              ✕
-            </button>
-          </div>
+              <div className="hidden group-hover:flex items-center gap-1">
+                {!isFirst && (
+                  <button
+                    type="button"
+                    onClick={() => onMoveUp(node.id)}
+                    title="Subir"
+                    className="text-[10px] text-gray-400 hover:text-gray-700 px-0.5"
+                  >
+                    ▲
+                  </button>
+                )}
+                {!isLast && (
+                  <button
+                    type="button"
+                    onClick={() => onMoveDown(node.id)}
+                    title="Bajar"
+                    className="text-[10px] text-gray-400 hover:text-gray-700 px-0.5"
+                  >
+                    ▼
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => { setNewParentId(node.parent_id != null ? String(node.parent_id) : ''); setReparenting(true); }}
+                  title="Cambiar nivel / parent"
+                  className="text-[10px] text-purple-500 hover:underline px-1"
+                >
+                  ↕ mover
+                </button>
+                <button
+                  type="button"
+                  onClick={handleAddChild}
+                  title="Agregar sub-línea"
+                  className="text-[10px] text-blue-500 hover:underline px-1"
+                >
+                  + hijo
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onDelete(node.id)}
+                  title="Eliminar línea y sus hijos"
+                  className="text-[10px] text-red-400 hover:underline px-1"
+                >
+                  ✕
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -217,11 +279,13 @@ function LineNode({ node, balanceId, level = 0, isFirst, isLast, onDelete, onLin
               level={level + 1}
               isFirst={i === 0}
               isLast={i === node.children.length - 1}
+              flatLines={flatLines}
               onDelete={onDelete}
               onLineAdded={onLineAdded}
               onLineUpdated={onLineUpdated}
               onMoveUp={onMoveUp}
               onMoveDown={onMoveDown}
+              onReparent={onReparent}
             />
           ))}
           {addingChild && (
@@ -469,6 +533,11 @@ export default function AdminBalanceFormPage() {
     await reorderLines(id, swapped);
   };
 
+  const handleReparent = async (nodeId, newParentId) => {
+    await updateLine(id, nodeId, { parent_id: newParentId });
+    getBalance(id).then((res) => setLines(res.data?.data?.lines || []));
+  };
+
   // Add a root-level line to local tree
   const handleRootLineAdded = (line) => {
     setLines((prev) => [...prev, { ...line, children: [] }]);
@@ -681,11 +750,13 @@ export default function AdminBalanceFormPage() {
                     level={0}
                     isFirst={i === 0}
                     isLast={i === lines.length - 1}
+                    flatLines={flattenTree(lines)}
                     onDelete={handleDeleteLine}
                     onLineAdded={handleChildLineAdded}
                     onLineUpdated={updateLineInTree}
                     onMoveUp={handleMoveUp}
                     onMoveDown={handleMoveDown}
+                    onReparent={handleReparent}
                   />
                 ))}
                 {addingRoot && (
