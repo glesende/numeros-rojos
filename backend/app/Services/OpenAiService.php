@@ -48,15 +48,44 @@ class OpenAiService
             throw new \RuntimeException('Archivo del balance no encontrado');
         }
 
-        $fileContent    = base64_encode(file_get_contents($filePath));
-        $mimeType       = $this->detectMimeType($filePath);
-        $fileAttachment = $this->buildFileContent($fileContent, $mimeType, $balance->file_original_name);
-
         $maxTokens = match (true) {
             str_contains($model, 'gpt-4o') => 8192,
             $model === 'gpt-4'             => 8192,
             default                        => 4096,
         };
+
+        $mimeType = $this->detectMimeType($filePath);
+
+        if ($mimeType === 'application/pdf') {
+            if ($this->pdfHasTextLayer($filePath)) {
+                // Text-based PDF: send inline — OpenAI extracts text directly
+                $fileContent     = base64_encode(file_get_contents($filePath));
+                $fileAttachments = [[
+                    'type' => 'file',
+                    'file' => [
+                        'filename'  => $balance->file_original_name ?? basename($filePath),
+                        'file_data' => 'data:application/pdf;base64,' . $fileContent,
+                    ],
+                ]];
+                $documentContext = 'el documento adjunto';
+            } else {
+                // Scanned PDF (no text layer): render all pages as images for vision
+                $fileAttachments = $this->pdfToImageAttachments($filePath);
+                $documentContext = 'las imágenes adjuntas (páginas escaneadas del balance)';
+            }
+        } else {
+            // Image or other format
+            $fileContent     = base64_encode(file_get_contents($filePath));
+            $fileAttachments = [$this->buildImageAttachment($fileContent, $mimeType)];
+            $documentContext = 'la imagen adjunta';
+        }
+
+        $existingPaths = BalanceLine::where('balance_id', '!=', $balance->id)
+            ->whereNotNull('path')
+            ->distinct()
+            ->orderBy('path')
+            ->pluck('path')
+            ->toArray();
 
         $systemPrompt = <<<PROMPT
 Sos un parser contable especializado en estados financieros.
@@ -121,18 +150,35 @@ Considerar equivalencias:
 
 - Si un nodo tiene children, puede o no tener "amount"
 
-- NUNCA inventar ni estimar valores que no estén explícitamente en el documento. Si un monto no figura en el documento, omitir el campo "amount" o dejarlo en null. No completar ni deducir cifras.
+- NUNCA inventar ni estimar valores que no estén explícitamente visibles en el documento. Si un monto no aparece claramente, omitir el campo "amount" o dejarlo en null. No completar ni deducir cifras.
+
+- El formato de respuesta debe ser estrictamente arrays de objetos con los campos: "name", "amount" (opcional), "is_total", "children" (array). No usar objetos con claves variables.
 
 Debes responder ÚNICAMENTE con un JSON válido, sin texto adicional.
 PROMPT;
 
-        $userPrompt = <<<PROMPT
-Analizá el documento adjunto y extraé TODOS los estados financieros presentes.
+        if (!empty($existingPaths)) {
+            $pathList      = implode("\n", array_map(fn($p) => "- {$p}", $existingPaths));
+            $systemPrompt .= <<<PATHS
 
-Respondé ÚNICAMENTE con el siguiente JSON (sin texto fuera del JSON):
+
+Paths de referencia (nomenclatura de otros balances ya cargados en el sistema):
+{$pathList}
+
+Reglas para usar estos paths:
+- Son una guía de nomenclatura ÚNICAMENTE. Nunca agregar un nodo cuyo valor no exista en el documento.
+- Proceso: primero extraé todos los nodos del documento. Luego, para cada nodo extraído, evaluá si su nombre es semánticamente equivalente a algún path de la lista (puede estar escrito diferente, abreviado o con otra redacción). Si hay equivalencia clara, usá el nombre exacto del path existente para mantener consistencia entre ejercicios.
+- Si no hay equivalente claro, usá el nombre tal como aparece en el documento.
+- NUNCA agregar un nodo porque aparece en esta lista si no lo encontraste en el documento.
+PATHS;
+        }
+
+        $userPrompt = "Analizá {$documentContext} y extraé TODOS los estados financieros del ejercicio principal.\n\n"
+            . <<<'PROMPT'
+Respondé ÚNICAMENTE con el siguiente JSON. Los valores del ejemplo son ILUSTRATIVOS — reemplazalos completamente con los datos reales del documento:
 
 {
-  "fecha": "2024-06-30",
+  "fecha": "YYYY-MM-DD",
   "moneda": "ARS",
   "data": [
     {
@@ -140,41 +186,126 @@ Respondé ÚNICAMENTE con el siguiente JSON (sin texto fuera del JSON):
       "is_total": false,
       "children": [
         {
-          "name": "Activo",
+          "name": "Nombre del grupo tal como aparece",
           "is_total": false,
-          "children": []
-        }
-      ]
-    },
-    {
-      "name": "resultados",
-      "is_total": false,
-      "children": [
-        {
-          "name": "Ingresos",
-          "is_total": false,
-          "children": []
+          "children": [
+            { "name": "Nombre de la cuenta", "amount": 0, "is_total": false, "children": [] }
+          ]
         }
       ]
     }
   ]
 }
 
-Valores aceptados para "estado": situacion_patrimonial, resultados, estado_flujo, otros
+Cada nodo debe tener exactamente: "name" (string), "amount" (número o null), "is_total" (boolean), "children" (array).
 PROMPT;
+
+        $content = array_merge(
+            [['type' => 'text', 'text' => $userPrompt]],
+            $fileAttachments
+        );
 
         $messages = [
             ['role' => 'system', 'content' => $systemPrompt],
-            [
-                'role'    => 'user',
-                'content' => [
-                    ['type' => 'text', 'text' => $userPrompt],
-                    $fileAttachment,
-                ],
-            ],
+            ['role' => 'user', 'content' => $content],
         ];
 
         return $this->callOpenAi($apiKey, $model, $messages, $maxTokens);
+    }
+
+    /**
+     * Detect whether a PDF has a readable text layer.
+     * Returns false for scanned (image-only) PDFs.
+     */
+    private function pdfHasTextLayer(string $filePath): bool
+    {
+        $output   = [];
+        $exitCode = 0;
+        exec(
+            sprintf('pdftotext %s - 2>/dev/null', escapeshellarg($filePath)),
+            $output,
+            $exitCode
+        );
+
+        if ($exitCode !== 0) {
+            // pdftotext not available — assume scanned to be safe
+            return false;
+        }
+
+        $text = implode('', $output);
+        // Strip form-feed characters (page breaks with no content)
+        $text = str_replace("\f", '', $text);
+
+        // If more than 200 meaningful characters, it has a text layer
+        return mb_strlen(trim($text)) > 200;
+    }
+
+    /**
+     * Convert the first N pages of a scanned PDF to image attachments for vision input.
+     * The main financial statements (Patrimonio, Resultados, Flujo, Situación Patrimonial)
+     * are always within the first pages of Argentine club balance documents.
+     * Keeping the page count low is critical: too many images degrade model attention
+     * and cause hallucinations even when individual pages are readable.
+     */
+    private function pdfToImageAttachments(string $filePath, int $maxPages = 15): array
+    {
+        $tmpPrefix = sys_get_temp_dir() . '/nr_balance_' . uniqid();
+
+        exec(sprintf(
+            'pdftoppm -r 150 -png -f 1 -l %d %s %s 2>/dev/null',
+            $maxPages,
+            escapeshellarg($filePath),
+            escapeshellarg($tmpPrefix)
+        ));
+
+        $files = glob($tmpPrefix . '-*.png');
+
+        if (empty($files)) {
+            // pdftoppm not available — fallback to inline file attachment
+            $fileContent = base64_encode(file_get_contents($filePath));
+            return [[
+                'type' => 'file',
+                'file' => [
+                    'filename'  => basename($filePath),
+                    'file_data' => 'data:application/pdf;base64,' . $fileContent,
+                ],
+            ]];
+        }
+
+        sort($files);
+        $attachments = [];
+
+        foreach ($files as $file) {
+            $b64           = base64_encode(file_get_contents($file));
+            $attachments[] = [
+                'type'      => 'image_url',
+                'image_url' => [
+                    'url'    => 'data:image/png;base64,' . $b64,
+                    'detail' => 'high',
+                ],
+            ];
+            unlink($file);
+        }
+
+        return $attachments;
+    }
+
+    private function buildImageAttachment(string $base64Content, string $mimeType): array
+    {
+        if (str_starts_with($mimeType, 'image/')) {
+            return [
+                'type'      => 'image_url',
+                'image_url' => [
+                    'url'    => "data:{$mimeType};base64,{$base64Content}",
+                    'detail' => 'high',
+                ],
+            ];
+        }
+
+        return [
+            'type' => 'text',
+            'text' => "Contenido del archivo:\n" . base64_decode($base64Content),
+        ];
     }
 
     /**
@@ -245,34 +376,6 @@ PROMPT;
         } catch (GuzzleException $e) {
             throw new \RuntimeException('Error al llamar a OpenAI: ' . $e->getMessage());
         }
-    }
-
-    private function buildFileContent(string $base64Content, string $mimeType, ?string $filename): array
-    {
-        if ($mimeType === 'application/pdf') {
-            return [
-                'type' => 'file',
-                'file' => [
-                    'filename'  => $filename ?? 'balance.pdf',
-                    'file_data' => "data:{$mimeType};base64,{$base64Content}",
-                ],
-            ];
-        }
-
-        if (str_starts_with($mimeType, 'image/')) {
-            return [
-                'type'      => 'image_url',
-                'image_url' => [
-                    'url'    => "data:{$mimeType};base64,{$base64Content}",
-                    'detail' => 'high',
-                ],
-            ];
-        }
-
-        return [
-            'type' => 'text',
-            'text' => "Contenido del archivo:\n" . base64_decode($base64Content),
-        ];
     }
 
     private function detectMimeType(string $filePath): string

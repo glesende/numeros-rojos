@@ -68,6 +68,9 @@ export default function BalancesPage() {
       <p className="text-gray-500 text-sm mb-8">
         Documentos e información económica publicada oficialmente por el Club Atlético Independiente.
       </p>
+      <p className="text-gray-500 text-sm mb-8">
+        Para los cálculos, se utiliza como dólar de referencia el valor oficial promedio del periódo del ejercicio.
+      </p>
 
       {/* Evolution chart */}
       <div className="mb-8">

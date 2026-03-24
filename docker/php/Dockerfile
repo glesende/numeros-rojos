@@ -6,6 +6,7 @@ RUN apk add --no-cache \
     icu-dev \
     nginx \
     supervisor \
+    poppler-utils \
     && docker-php-ext-install \
     pdo_mysql \
     mbstring \
