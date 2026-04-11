@@ -15,10 +15,12 @@ class Right extends Model
         'external_id',
         'full_name',
         'clauses',
+        'links',
     ];
 
     protected $casts = [
         'clauses' => 'array',
+        'links'   => 'array',
     ];
 
     public function scopeSearch($query, ?string $search): mixed

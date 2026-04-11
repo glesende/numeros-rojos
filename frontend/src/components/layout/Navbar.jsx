@@ -6,6 +6,7 @@ import useSectionSettings from '../../hooks/useSectionSettings';
 const ALL_NAV_LINKS = [
   { to: '/', label: 'Economia', scrollTo: 'compromisos-economicos', isAnchor: true, sectionKey: 'section_economia_enabled' },
   { to: '/', label: 'Contratos', scrollTo: 'contratos', isAnchor: true, sectionKey: 'section_contratos_enabled' },
+  { to: '/', label: 'Derechos', scrollTo: 'derechos', isAnchor: true, sectionKey: 'section_derechos_enabled' },
   { to: '/', label: 'Balances', scrollTo: 'balances', isAnchor: true, sectionKey: 'section_balances_enabled' },
   { to: '/', label: 'Estadísticas', scrollTo: 'estadisticas', isAnchor: true, sectionKey: null },
   { to: '/', label: 'Estadio', scrollTo: 'estadio', isAnchor: true, sectionKey: 'section_estadio_enabled' },

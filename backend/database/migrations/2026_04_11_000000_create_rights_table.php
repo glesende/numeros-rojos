@@ -13,6 +13,7 @@ return new class extends Migration
             $table->string('external_id')->nullable();
             $table->string('full_name');
             $table->json('clauses')->nullable();
+            $table->json('links')->nullable();
             $table->timestamps();
 
             $table->index('full_name');

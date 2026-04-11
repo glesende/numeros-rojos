@@ -200,6 +200,29 @@ function RightCard({ right, onClick }) {
           </ul>
         </div>
       )}
+
+      {Array.isArray(right.links) && right.links.length > 0 && (
+        <div className="pt-1 border-t border-gray-100">
+          <p className="text-xs text-gray-400 mb-1">Fuentes</p>
+          <ul className="text-xs text-gray-600 space-y-0.5">
+            {right.links.slice(0, 2).map((link, i) => {
+              let label = link.url;
+              try { label = new URL(link.url).hostname.replace('www.', ''); } catch {}
+              return (
+                <li key={i} className="flex items-center gap-1">
+                  <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline truncate">
+                    {label}
+                  </a>
+                  {link.official && <OfficialBadge />}
+                </li>
+              );
+            })}
+            {right.links.length > 2 && (
+              <li className="text-gray-400">+{right.links.length - 2} más</li>
+            )}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

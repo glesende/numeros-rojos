@@ -61,12 +61,15 @@ class RightController extends Controller
     public function store(Request $request): JsonResponse
     {
         $this->validate($request, [
-            'external_id' => 'nullable|string|max:255',
-            'full_name'   => 'required|string|max:255',
-            'clauses'     => 'nullable|array',
+            'external_id'    => 'nullable|string|max:255',
+            'full_name'      => 'required|string|max:255',
+            'clauses'        => 'nullable|array',
+            'links'          => 'nullable|array',
+            'links.*.url'    => 'required|url',
+            'links.*.official' => 'required|boolean',
         ]);
 
-        $right = Right::create($request->only(['external_id', 'full_name', 'clauses']));
+        $right = Right::create($request->only(['external_id', 'full_name', 'clauses', 'links']));
 
         return response()->json(['data' => $right], 201);
     }
@@ -76,12 +79,15 @@ class RightController extends Controller
         $right = Right::findOrFail($id);
 
         $this->validate($request, [
-            'external_id' => 'nullable|string|max:255',
-            'full_name'   => 'sometimes|string|max:255',
-            'clauses'     => 'nullable|array',
+            'external_id'    => 'nullable|string|max:255',
+            'full_name'      => 'sometimes|string|max:255',
+            'clauses'        => 'nullable|array',
+            'links'          => 'nullable|array',
+            'links.*.url'    => 'required|url',
+            'links.*.official' => 'required|boolean',
         ]);
 
-        $right->update($request->only(['external_id', 'full_name', 'clauses']));
+        $right->update($request->only(['external_id', 'full_name', 'clauses', 'links']));
 
         return response()->json(['data' => $right]);
     }
