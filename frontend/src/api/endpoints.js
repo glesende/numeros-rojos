@@ -16,6 +16,13 @@ export const createContract = (data) => client.post('/admin/contracts', data);
 export const updateContract = (id, data) => client.put(`/admin/contracts/${id}`, data);
 export const deleteContract = (id) => client.delete(`/admin/contracts/${id}`);
 
+// Rights
+export const getRights = (params = {}) => client.get('/rights', { params });
+export const getRight = (id) => client.get(`/rights/${id}`);
+export const createRight = (data) => client.post('/admin/rights', data);
+export const updateRight = (id, data) => client.put(`/admin/rights/${id}`, data);
+export const deleteRight = (id) => client.delete(`/admin/rights/${id}`);
+
 // Stats
 export const getStandings = (params = {}) => client.get('/standings', { params });
 export const getPlayerStats = (id) => client.get(`/player/${id}/stats`);

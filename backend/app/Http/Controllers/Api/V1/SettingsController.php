@@ -12,6 +12,7 @@ class SettingsController extends Controller
     private const SECTION_KEYS = [
         'section_economia_enabled',
         'section_contratos_enabled',
+        'section_derechos_enabled',
         'section_balances_enabled',
         'section_estadio_enabled',
     ];
@@ -44,6 +45,7 @@ class SettingsController extends Controller
             'openai_model'               => 'sometimes|nullable|string|max:100',
             'section_economia_enabled'   => 'sometimes|boolean',
             'section_contratos_enabled'  => 'sometimes|boolean',
+            'section_derechos_enabled'   => 'sometimes|boolean',
             'section_balances_enabled'   => 'sometimes|boolean',
             'section_estadio_enabled'    => 'sometimes|boolean',
             'balance_chart_default_items'  => 'sometimes|nullable|string',
@@ -52,8 +54,9 @@ class SettingsController extends Controller
 
         $allowed = [
             'data_service', 'besoccer_api_key', 'besoccer_team_id', 'openai_api_key', 'openai_model',
-            'section_economia_enabled', 'section_contratos_enabled', 'section_balances_enabled',
-            'section_estadio_enabled', 'balance_chart_default_items', 'balance_chart_filter_items',
+            'section_economia_enabled', 'section_contratos_enabled', 'section_derechos_enabled',
+            'section_balances_enabled', 'section_estadio_enabled',
+            'balance_chart_default_items', 'balance_chart_filter_items',
         ];
 
         foreach ($request->only($allowed) as $key => $value) {
