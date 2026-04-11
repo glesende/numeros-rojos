@@ -119,7 +119,7 @@ function ContractCard({ contract, onClick }) {
           <p className="text-xs text-gray-400 mb-1">Cláusulas</p>
           <ul className="text-xs text-gray-600 space-y-0.5">
             {contract.clauses.slice(0, 2).map((clause, i) => (
-              <li key={i} className="bg-gray-50 px-2 py-1 rounded truncate" title={clause}>
+              <li key={i} className="bg-gray-50 px-2 py-1 rounded break-words">
                 {clause}
               </li>
             ))}
@@ -190,7 +190,7 @@ function RightCard({ right, onClick }) {
           <p className="text-xs text-gray-400 mb-1">Cláusulas</p>
           <ul className="text-xs text-gray-600 space-y-0.5">
             {right.clauses.slice(0, 3).map((clause, i) => (
-              <li key={i} className="bg-gray-50 px-2 py-1 rounded truncate" title={clause}>
+              <li key={i} className="bg-gray-50 px-2 py-1 rounded break-words">
                 {clause}
               </li>
             ))}
