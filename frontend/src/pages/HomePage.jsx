@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { getContracts, getStadium, sendContact } from '../api/endpoints';
+import { getContracts, getRights, getStadium, sendContact } from '../api/endpoints';
 import PlayerMatchesModal from '../components/stats/PlayerMatchesModal';
 import Loader from '../components/common/Loader';
 import MonthlyBarChart from '../components/economy/MonthlyBarChart';
@@ -119,7 +119,7 @@ function ContractCard({ contract, onClick }) {
           <p className="text-xs text-gray-400 mb-1">Cláusulas</p>
           <ul className="text-xs text-gray-600 space-y-0.5">
             {contract.clauses.slice(0, 2).map((clause, i) => (
-              <li key={i} className="bg-gray-50 px-2 py-1 rounded truncate" title={clause}>
+              <li key={i} className="bg-gray-50 px-2 py-1 rounded break-words">
                 {clause}
               </li>
             ))}
@@ -150,6 +150,75 @@ function ContractCard({ contract, onClick }) {
             })}
             {contract.links.length > 2 && (
               <li className="text-gray-400">+{contract.links.length - 2} más</li>
+            )}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function RightCard({ right, onClick }) {
+  const clickable = !!right.external_id && !!onClick;
+
+  return (
+    <div
+      className={`flex-shrink-0 w-60 snap-start card p-4 hover:shadow-md hover:border-rojo/20 transition-all duration-200 flex flex-col gap-3 ${clickable ? 'cursor-pointer' : ''}`}
+      onClick={clickable ? onClick : undefined}
+    >
+      <div className="flex items-center gap-3">
+        {right.player_avatar ? (
+          <img
+            src={right.player_avatar}
+            alt={right.full_name}
+            className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+          />
+        ) : (
+          <div className="w-10 h-10 rounded-full bg-rojo text-white flex items-center justify-center font-bold text-lg flex-shrink-0">
+            {right.full_name.charAt(0).toUpperCase()}
+          </div>
+        )}
+        <div className="overflow-hidden flex-1">
+          <p className="font-bold text-gray-900 text-sm leading-tight line-clamp-2">
+            {right.full_name}
+          </p>
+        </div>
+      </div>
+
+      {Array.isArray(right.clauses) && right.clauses.length > 0 && (
+        <div className="pt-1 border-t border-gray-100 flex-1">
+          <p className="text-xs text-gray-400 mb-1">Cláusulas</p>
+          <ul className="text-xs text-gray-600 space-y-0.5">
+            {right.clauses.slice(0, 3).map((clause, i) => (
+              <li key={i} className="bg-gray-50 px-2 py-1 rounded break-words">
+                {clause}
+              </li>
+            ))}
+            {right.clauses.length > 3 && (
+              <li className="text-gray-400">+{right.clauses.length - 3} más</li>
+            )}
+          </ul>
+        </div>
+      )}
+
+      {Array.isArray(right.links) && right.links.length > 0 && (
+        <div className="pt-1 border-t border-gray-100">
+          <p className="text-xs text-gray-400 mb-1">Fuentes</p>
+          <ul className="text-xs text-gray-600 space-y-0.5">
+            {right.links.slice(0, 2).map((link, i) => {
+              let label = link.url;
+              try { label = new URL(link.url).hostname.replace('www.', ''); } catch {}
+              return (
+                <li key={i} className="flex items-center gap-1">
+                  <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline truncate">
+                    {label}
+                  </a>
+                  {link.official && <OfficialBadge />}
+                </li>
+              );
+            })}
+            {right.links.length > 2 && (
+              <li className="text-gray-400">+{right.links.length - 2} más</li>
             )}
           </ul>
         </div>
@@ -286,6 +355,8 @@ export default function HomePage() {
   const [contracts, setContracts] = useState([]);
   const [contractTotals, setContractTotals] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [rights, setRights] = useState([]);
+  const [rightsLoading, setRightsLoading] = useState(false);
   const [selectedContractPlayer, setSelectedContractPlayer] = useState(null);
   const { sections } = useSectionSettings();
 
@@ -308,6 +379,14 @@ export default function HomePage() {
   useEffect(() => {
     fetchContracts();
   }, [fetchContracts]);
+
+  useEffect(() => {
+    setRightsLoading(true);
+    getRights({ per_page: 100 })
+      .then((res) => setRights(res.data.data || []))
+      .catch(() => setRights([]))
+      .finally(() => setRightsLoading(false));
+  }, []);
 
   const filteredContracts = useMemo(() => {
     let result = contracts;
@@ -447,6 +526,40 @@ export default function HomePage() {
           )}
         </div>
         </section>
+      )}
+
+      {/* Derechos carousel */}
+      {sections.section_derechos_enabled !== false && (
+      <section id="derechos" className="max-w-6xl mx-auto px-4 py-4">
+        <div className="card overflow-hidden">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold">Derechos sobre jugadores</h2>
+          </div>
+
+          {rightsLoading ? (
+            <div className="py-12">
+              <Loader />
+            </div>
+          ) : rights.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              No hay derechos registrados.
+            </div>
+          ) : (
+            <>
+              <p className="text-sm text-gray-500 mb-3">{rights.length} jugadores</p>
+              <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
+                {rights.map((r) => (
+                  <RightCard
+                    key={r.id}
+                    right={r}
+                    onClick={r.external_id ? () => setSelectedContractPlayer({ id: r.external_id, nick: r.full_name, image: r.player_avatar }) : undefined}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      </section>
       )}
 
       {/* Balances */}

@@ -1,8 +1,18 @@
 import { useState, useEffect } from 'react';
-import { getPlayerMatches } from '../../api/endpoints';
+import { getPlayerMatches, getContracts } from '../../api/endpoints';
 import Loader from '../common/Loader';
+import OfficialBadge from '../OfficialBadge';
 
 const ROLE_LABELS = { '1': 'Arqueros', '2': 'Defensores', '3': 'Mediocampistas', '4': 'Delanteros' };
+
+function formatDate(dateStr) {
+  if (!dateStr) return '-';
+  const d = new Date(dateStr);
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const year = d.getUTCFullYear();
+  return `${day}-${month}-${year}`;
+}
 
 function PlayerMatchesSection({ player }) {
   const [matches, setMatches] = useState(null);
@@ -104,7 +114,124 @@ function PlayerMatchesSection({ player }) {
   );
 }
 
+function PlayerContractSection({ player }) {
+  const [contract, setContract] = useState(undefined); // undefined = loading, null = not found
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    setContract(undefined);
+    getContracts({ external_id: player.id, status: 'vigente', per_page: 1 })
+      .then((res) => {
+        const results = res.data?.data || [];
+        setContract(results.length > 0 ? results[0] : null);
+      })
+      .catch(() => setContract(null))
+      .finally(() => setLoading(false));
+  }, [player.id]);
+
+  if (loading) return <div className="py-8"><Loader /></div>;
+
+  if (!contract) {
+    return (
+      <p className="text-sm text-gray-500 py-6 text-center">
+        No existe un contrato activo para este jugador.
+      </p>
+    );
+  }
+
+  const allClauses = [...(contract.clauses || []), ...(contract.loan?.clauses || [])];
+
+  return (
+    <div className="space-y-4 text-sm">
+      {contract.loan && (
+        <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
+          <p className="text-blue-800 font-semibold text-sm mb-2">
+            Cedido a préstamo en {contract.loan.club}
+          </p>
+          {contract.loan.until && (
+            <p className="text-xs text-gray-500">
+              Hasta: <span className="font-medium text-gray-700">{formatDate(contract.loan.until)}</span>
+            </p>
+          )}
+        </div>
+      )}
+
+      <div className="grid grid-cols-2 gap-3">
+        {contract.signing_date && (
+          <div>
+            <p className="text-xs text-gray-500">Fecha de firma</p>
+            <p className="font-medium">{formatDate(contract.signing_date)}</p>
+          </div>
+        )}
+        <div>
+          <p className="text-xs text-gray-500">Vencimiento</p>
+          <p className="font-medium">{formatDate(contract.expiration_date)}</p>
+        </div>
+        <div>
+          <p className="text-xs text-gray-500">% Pase</p>
+          <p className="font-mono font-bold text-base">{contract.club_pass_percentage}%</p>
+        </div>
+        <div>
+          <p className="text-xs text-gray-500">Salario estimado</p>
+          <p className="font-mono font-bold text-base">
+            {contract.estimated_salary
+              ? new Intl.NumberFormat('es-AR', {
+                  style: 'currency',
+                  currency: contract.currency || 'USD',
+                  maximumFractionDigits: 0,
+                }).format(contract.estimated_salary)
+              : 'No disponible'}
+          </p>
+        </div>
+      </div>
+
+      {allClauses.length > 0 && (
+        <div>
+          <p className="text-xs text-gray-500 mb-1">Cláusulas</p>
+          <ul className="space-y-1">
+            {allClauses.map((c, i) => (
+              <li key={i} className="bg-gray-50 px-3 py-2 rounded break-words">{c}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {contract.links?.length > 0 && (
+        <div>
+          <p className="text-xs text-gray-500 mb-1">Fuentes</p>
+          <ul className="space-y-1">
+            {contract.links.map((link, i) => {
+              let label = link.url;
+              try { label = new URL(link.url).hostname.replace('www.', ''); } catch {}
+              return (
+                <li key={i} className="flex items-center gap-1.5">
+                  <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline text-xs">
+                    {label}
+                  </a>
+                  {link.official && <OfficialBadge />}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const TABS = [
+  { key: 'stats', label: 'Estadísticas' },
+  { key: 'contract', label: 'Contrato' },
+];
+
 export default function PlayerMatchesModal({ player, onClose }) {
+  const [tab, setTab] = useState('stats');
+
+  useEffect(() => {
+    setTab('stats');
+  }, [player?.id]);
+
   if (!player) return null;
 
   return (
@@ -116,6 +243,7 @@ export default function PlayerMatchesModal({ player, onClose }) {
         className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Header */}
         <div className="flex items-center justify-between p-4 border-b sticky top-0 bg-white rounded-t-2xl z-10">
           <div className="flex items-center gap-3">
             <img
@@ -145,8 +273,28 @@ export default function PlayerMatchesModal({ player, onClose }) {
             </svg>
           </button>
         </div>
+
+        {/* Tabs */}
+        <div className="flex border-b sticky top-[69px] bg-white z-10">
+          {TABS.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors ${
+                tab === t.key
+                  ? 'border-rojo text-rojo'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Content */}
         <div className="p-4">
-          <PlayerMatchesSection player={player} />
+          {tab === 'stats' && <PlayerMatchesSection player={player} />}
+          {tab === 'contract' && <PlayerContractSection player={player} />}
         </div>
       </div>
     </div>

@@ -64,6 +64,14 @@ class Contract extends Model
         return $query->where('signing_date', '<=', $to);
     }
 
+    public function scopeExternalId($query, ?string $externalId): mixed
+    {
+        if ($externalId === null || $externalId === '') {
+            return $query;
+        }
+        return $query->where('external_id', $externalId);
+    }
+
     public function scopeSearch($query, ?string $search): mixed
     {
         if ($search === null || $search === '') {

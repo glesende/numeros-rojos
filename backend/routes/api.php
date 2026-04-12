@@ -17,6 +17,8 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
     $router->get('contracts', 'ContractController@index');
     $router->get('contracts/stats', 'ContractController@stats');
     $router->get('contracts/{id}', 'ContractController@show');
+    $router->get('rights', 'RightController@index');
+    $router->get('rights/{id}', 'RightController@show');
 
     // Balances (public)
     $router->get('balances', 'BalanceController@index');
@@ -63,6 +65,11 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
         $router->post('contracts', 'ContractController@store');
         $router->put('contracts/{id}', 'ContractController@update');
         $router->delete('contracts/{id}', 'ContractController@destroy');
+
+        // Rights CRUD
+        $router->post('rights', 'RightController@store');
+        $router->put('rights/{id}', 'RightController@update');
+        $router->delete('rights/{id}', 'RightController@destroy');
 
         // Balances CRUD
         $router->post('balances', 'BalanceController@store');

@@ -16,6 +16,8 @@ import AdminEconomyPage from './pages/AdminEconomyPage';
 import AdminEconomyFormPage from './pages/AdminEconomyFormPage';
 import AdminContractsPage from './pages/AdminContractsPage';
 import AdminContractFormPage from './pages/AdminContractFormPage';
+import AdminRightsPage from './pages/AdminRightsPage';
+import AdminRightFormPage from './pages/AdminRightFormPage';
 import AdminBalancesPage from './pages/AdminBalancesPage';
 import AdminBalanceFormPage from './pages/AdminBalanceFormPage';
 import AdminSettings from './pages/AdminSettings';
@@ -69,6 +71,9 @@ export default function App() {
         <Route path="/admin/contratos" element={<ProtectedRoute><AdminContractsPage /></ProtectedRoute>} />
         <Route path="/admin/contratos/nuevo" element={<ProtectedRoute><AdminContractFormPage /></ProtectedRoute>} />
         <Route path="/admin/contratos/:id/editar" element={<ProtectedRoute><AdminContractFormPage /></ProtectedRoute>} />
+        <Route path="/admin/derechos" element={<ProtectedRoute><AdminRightsPage /></ProtectedRoute>} />
+        <Route path="/admin/derechos/nuevo" element={<ProtectedRoute><AdminRightFormPage /></ProtectedRoute>} />
+        <Route path="/admin/derechos/:id/editar" element={<ProtectedRoute><AdminRightFormPage /></ProtectedRoute>} />
         <Route path="/admin/balances" element={<ProtectedRoute><AdminBalancesPage /></ProtectedRoute>} />
         <Route path="/admin/balances/nuevo" element={<ProtectedRoute><AdminBalanceFormPage /></ProtectedRoute>} />
         <Route path="/admin/balances/:id/editar" element={<ProtectedRoute><AdminBalanceFormPage /></ProtectedRoute>} />

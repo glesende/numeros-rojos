@@ -35,6 +35,7 @@ class ContractController extends Controller
 
         $query = Contract::query()
             ->search($request->input('search'))
+            ->externalId($request->input('external_id'))
             ->official($official)
             ->dateFrom($request->input('date_from'))
             ->dateTo($request->input('date_to'))
@@ -65,6 +66,7 @@ class ContractController extends Controller
         // Aggregates
         $aggQuery = Contract::query()
             ->search($request->input('search'))
+            ->externalId($request->input('external_id'))
             ->official($official)
             ->dateFrom($request->input('date_from'))
             ->dateTo($request->input('date_to'))
