@@ -50,6 +50,9 @@ composer-install: ## Install PHP dependencies
 migrate: ## Run database migrations
 	$(COMPOSE) exec api php artisan migrate
 
+migrate-rollback: ## Run database migrations
+	$(COMPOSE) exec api php artisan migrate:rollback
+
 seed: ## Run database seeders
 	$(COMPOSE) exec api php artisan db:seed
 
