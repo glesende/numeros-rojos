@@ -535,6 +535,7 @@ export default function HomePage() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold">Derechos sobre jugadores</h2>
           </div>
+          <p className="text-sm text-gray-500 -mt-2 mb-4">No incluye derechos de formación</p>
 
           {rightsLoading ? (
             <div className="py-12">

@@ -135,7 +135,7 @@ function PlayerContractSection({ player }) {
   if (!contract) {
     return (
       <p className="text-sm text-gray-500 py-6 text-center">
-        No existe un contrato activo para este jugador.
+        No existe un contrato activo con el club.
       </p>
     );
   }
@@ -169,21 +169,21 @@ function PlayerContractSection({ player }) {
           <p className="font-medium">{formatDate(contract.expiration_date)}</p>
         </div>
         <div>
-          <p className="text-xs text-gray-500">% Pase</p>
+          <p className="text-xs text-gray-500">Propiedad</p>
           <p className="font-mono font-bold text-base">{contract.club_pass_percentage}%</p>
         </div>
-        <div>
-          <p className="text-xs text-gray-500">Salario estimado</p>
-          <p className="font-mono font-bold text-base">
-            {contract.estimated_salary
-              ? new Intl.NumberFormat('es-AR', {
-                  style: 'currency',
-                  currency: contract.currency || 'USD',
-                  maximumFractionDigits: 0,
-                }).format(contract.estimated_salary)
-              : 'No disponible'}
-          </p>
-        </div>
+        {contract.estimated_salary && (
+          <div>
+            <p className="text-xs text-gray-500">Salario estimado</p>
+            <p className="font-mono font-bold text-base">
+              {new Intl.NumberFormat('es-AR', {
+                style: 'currency',
+                currency: contract.currency || 'USD',
+                maximumFractionDigits: 0,
+              }).format(contract.estimated_salary)}
+            </p>
+          </div>
+        )}
       </div>
 
       {allClauses.length > 0 && (
