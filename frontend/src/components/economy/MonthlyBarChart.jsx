@@ -15,6 +15,7 @@ import { getEconomyMonthlySummary, getEconomyRecords } from '../../api/endpoints
 import Loader from '../common/Loader';
 import OfficialBadge from '../OfficialBadge';
 import EconomyRecordCard from './EconomyRecordCard';
+import SourceLabel from '../SourceLabel';
 import { financialColors } from '../../../tailwind.config.js';
 import { CHART_THEME } from '../../constants/chartColors';
 
@@ -336,18 +337,14 @@ export default function MonthlyBarChart() {
                         <td className="py-2">
                           {Array.isArray(r.links) && r.links.length > 0 ? (
                             <ul className="text-xs text-gray-600 space-y-0.5">
-                              {r.links.slice(0, 2).map((link, i) => {
-                                let label = link.url;
-                                try { label = new URL(link.url).hostname.replace('www.', ''); } catch {}
-                                return (
-                                  <li key={i} className="flex items-center gap-1">
-                                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline truncate block">
-                                      {label}
-                                    </a>
-                                    {link.official && <OfficialBadge />}
-                                  </li>
-                                );
-                              })}
+                              {r.links.slice(0, 2).map((link, i) => (
+                                <li key={i} className="flex items-center gap-1">
+                                  <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline truncate block">
+                                    <SourceLabel url={link.url} />
+                                  </a>
+                                  {link.official && <OfficialBadge />}
+                                </li>
+                              ))}
                               {r.links.length > 2 && <li className="text-gray-400">+{r.links.length - 2} más</li>}
                             </ul>
                           ) : (
@@ -422,18 +419,14 @@ export default function MonthlyBarChart() {
                         <td className="py-2">
                           {Array.isArray(r.links) && r.links.length > 0 ? (
                             <ul className="text-xs text-gray-600 space-y-0.5">
-                              {r.links.slice(0, 2).map((link, i) => {
-                                let label = link.url;
-                                try { label = new URL(link.url).hostname.replace('www.', ''); } catch {}
-                                return (
-                                  <li key={i} className="flex items-center gap-1">
-                                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline truncate block">
-                                      {label}
-                                    </a>
-                                    {link.official && <OfficialBadge />}
-                                  </li>
-                                );
-                              })}
+                              {r.links.slice(0, 2).map((link, i) => (
+                                <li key={i} className="flex items-center gap-1">
+                                  <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline truncate block">
+                                    <SourceLabel url={link.url} />
+                                  </a>
+                                  {link.official && <OfficialBadge />}
+                                </li>
+                              ))}
                               {r.links.length > 2 && <li className="text-gray-400">+{r.links.length - 2} más</li>}
                             </ul>
                           ) : (

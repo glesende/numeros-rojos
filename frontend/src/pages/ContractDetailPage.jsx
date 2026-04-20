@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { getContract } from '../api/endpoints';
 import Loader from '../components/common/Loader';
 import OfficialBadge from '../components/OfficialBadge';
+import SourceLabel from '../components/SourceLabel';
 
 function formatDate(dateStr) {
   if (!dateStr) return '-';
@@ -183,8 +184,8 @@ export default function ContractDetailPage() {
             <ul className="space-y-1">
               {contract.links.map((link, i) => (
                 <li key={i} className="flex items-center gap-2">
-                  <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-rojo text-sm hover:underline break-all">
-                    {link.url}
+                  <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-rojo text-sm hover:underline">
+                    <SourceLabel url={link.url} />
                   </a>
                   {link.official && <OfficialBadge />}
                 </li>

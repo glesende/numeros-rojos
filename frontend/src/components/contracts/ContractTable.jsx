@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import OfficialBadge from '../OfficialBadge';
+import SourceLabel from '../SourceLabel';
 
 function formatDate(dateStr) {
   if (!dateStr) return '-';
@@ -19,14 +20,6 @@ function formatSalary(amount, currency) {
   }).format(amount);
 }
 
-function getHostname(url) {
-  try {
-    return new URL(url).hostname.replace('www.', '');
-  } catch {
-    return url;
-  }
-}
-
 function SourcesList({ links }) {
   if (!links?.length) return <span className="text-gray-400 text-xs">—</span>;
   return (
@@ -39,7 +32,7 @@ function SourcesList({ links }) {
             rel="noopener noreferrer"
             className="text-rojo hover:underline text-xs truncate max-w-[110px]"
           >
-            {getHostname(link.url)}
+            <SourceLabel url={link.url} />
           </a>
           {link.official && <OfficialBadge />}
         </div>
