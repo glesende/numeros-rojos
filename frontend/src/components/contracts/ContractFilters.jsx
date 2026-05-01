@@ -26,6 +26,19 @@ export default function ContractFilters({ filters, onFilter, onReset }) {
         </select>
       </div>
       <div>
+        <label className="block text-xs font-medium text-gray-500 mb-1">Vigencia</label>
+        <select
+          value={filters.validity || ''}
+          onChange={(e) => onFilter('validity', e.target.value || null)}
+          className="input-field"
+        >
+          <option value="">Todos</option>
+          <option value="6m">Próximos 6 meses</option>
+          <option value="12m">Próximos 12 meses</option>
+          <option value="18m">Próximos 18 meses</option>
+        </select>
+      </div>
+      <div>
         <label className="block text-xs font-medium text-gray-500 mb-1">Oficial</label>
         <select
           value={filters.official ?? ''}
