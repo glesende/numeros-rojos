@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { getEconomyRecord } from '../api/endpoints';
 import Loader from '../components/common/Loader';
 import OfficialBadge from '../components/OfficialBadge';
+import SourceLabel from '../components/SourceLabel';
 
 export default function EconomyDetailPage() {
   const { id } = useParams();
@@ -81,9 +82,9 @@ export default function EconomyDetailPage() {
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-rojo text-sm hover:underline break-all"
-                    >
-                    {link.url}
+                    className="text-rojo text-sm hover:underline"
+                  >
+                    <SourceLabel url={link.url} />
                   </a>
                   {link.official && <OfficialBadge />}
                 </li>

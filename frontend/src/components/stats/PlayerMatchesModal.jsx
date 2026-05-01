@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { getPlayerMatches, getContracts } from '../../api/endpoints';
 import Loader from '../common/Loader';
 import OfficialBadge from '../OfficialBadge';
+import SourceLabel from '../SourceLabel';
 
 const ROLE_LABELS = { '1': 'Arqueros', '2': 'Defensores', '3': 'Mediocampistas', '4': 'Delanteros' };
 
@@ -201,18 +202,14 @@ function PlayerContractSection({ player }) {
         <div>
           <p className="text-xs text-gray-500 mb-1">Fuentes</p>
           <ul className="space-y-1">
-            {contract.links.map((link, i) => {
-              let label = link.url;
-              try { label = new URL(link.url).hostname.replace('www.', ''); } catch {}
-              return (
-                <li key={i} className="flex items-center gap-1.5">
-                  <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline text-xs">
-                    {label}
-                  </a>
-                  {link.official && <OfficialBadge />}
-                </li>
-              );
-            })}
+            {contract.links.map((link, i) => (
+              <li key={i} className="flex items-center gap-1.5">
+                <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline text-xs">
+                  <SourceLabel url={link.url} />
+                </a>
+                {link.official && <OfficialBadge />}
+              </li>
+            ))}
           </ul>
         </div>
       )}

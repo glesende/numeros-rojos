@@ -9,6 +9,7 @@ import StatsWidget from '../components/stats/StatsWidget';
 import useSectionSettings from '../hooks/useSectionSettings';
 import ContractWidgets from '../components/contracts/ContractWidgets';
 import OfficialBadge from '../components/OfficialBadge';
+import SourceLabel from '../components/SourceLabel';
 
 const VIGENCIA_OPTIONS = [
   { value: '6m', label: '6 meses', days: 180 },
@@ -134,20 +135,14 @@ function ContractCard({ contract, onClick }) {
         <div className="pt-1 border-t border-gray-100">
           <p className="text-xs text-gray-400 mb-1">Fuentes</p>
           <ul className="text-xs text-gray-600 space-y-0.5">
-            {contract.links.slice(0, 2).map((link, i) => {
-              let label = link.url;
-              try {
-                label = new URL(link.url).hostname.replace('www.', '');
-              } catch {}
-              return (
-                <li key={i} className="flex items-center gap-1">
-                  <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline truncate">
-                    {label}
-                  </a>
-                  {link.official && <OfficialBadge />}
-                </li>
-              );
-            })}
+            {contract.links.slice(0, 2).map((link, i) => (
+              <li key={i} className="flex items-center gap-1">
+                <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline truncate">
+                  <SourceLabel url={link.url} />
+                </a>
+                {link.official && <OfficialBadge />}
+              </li>
+            ))}
             {contract.links.length > 2 && (
               <li className="text-gray-400">+{contract.links.length - 2} más</li>
             )}
@@ -205,18 +200,14 @@ function RightCard({ right, onClick }) {
         <div className="pt-1 border-t border-gray-100">
           <p className="text-xs text-gray-400 mb-1">Fuentes</p>
           <ul className="text-xs text-gray-600 space-y-0.5">
-            {right.links.slice(0, 2).map((link, i) => {
-              let label = link.url;
-              try { label = new URL(link.url).hostname.replace('www.', ''); } catch {}
-              return (
-                <li key={i} className="flex items-center gap-1">
-                  <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline truncate">
-                    {label}
-                  </a>
-                  {link.official && <OfficialBadge />}
-                </li>
-              );
-            })}
+            {right.links.slice(0, 2).map((link, i) => (
+              <li key={i} className="flex items-center gap-1">
+                <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline truncate">
+                  <SourceLabel url={link.url} />
+                </a>
+                {link.official && <OfficialBadge />}
+              </li>
+            ))}
             {right.links.length > 2 && (
               <li className="text-gray-400">+{right.links.length - 2} más</li>
             )}
@@ -281,7 +272,7 @@ function StadiumBlock() {
         <div className="flex items-center gap-2 text-xs">
           <span className="text-gray-500">Fuente:</span>
           <a href={stadium.link} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline">
-            {(() => { try { return new URL(stadium.link).hostname.replace('www.', ''); } catch { return stadium.link; } })()}
+            <SourceLabel url={stadium.link} />
           </a>
           {stadium.link_official ? (
             <OfficialBadge />
