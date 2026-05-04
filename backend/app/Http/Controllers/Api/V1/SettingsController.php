@@ -17,6 +17,12 @@ class SettingsController extends Controller
         'section_estadio_enabled',
     ];
 
+    private const CHART_SCALE_KEYS = [
+        'chart_scale_usd',
+        'chart_scale_eur',
+        'chart_scale_ars',
+    ];
+
     public function index(): JsonResponse
     {
         $settings = Setting::all()->pluck('value', 'key');
@@ -25,11 +31,16 @@ class SettingsController extends Controller
 
     public function sections(): JsonResponse
     {
-        $settings = Setting::whereIn('key', self::SECTION_KEYS)->pluck('value', 'key');
+        $allKeys = array_merge(self::SECTION_KEYS, self::CHART_SCALE_KEYS);
+        $settings = Setting::whereIn('key', $allKeys)->pluck('value', 'key');
 
         $result = [];
         foreach (self::SECTION_KEYS as $key) {
             $result[$key] = ($settings->get($key, '1') === '1');
+        }
+        foreach (self::CHART_SCALE_KEYS as $key) {
+            $raw = $settings->get($key);
+            $result[$key] = ($raw !== null && $raw !== '') ? (float) $raw : null;
         }
 
         return response()->json(['data' => $result]);
@@ -50,6 +61,9 @@ class SettingsController extends Controller
             'section_estadio_enabled'    => 'sometimes|boolean',
             'balance_chart_default_items'  => 'sometimes|nullable|string',
             'balance_chart_filter_items'   => 'sometimes|nullable|string',
+            'chart_scale_usd'              => 'sometimes|nullable|numeric|min:0.0001',
+            'chart_scale_eur'              => 'sometimes|nullable|numeric|min:0.0001',
+            'chart_scale_ars'              => 'sometimes|nullable|numeric|min:0.0001',
         ]);
 
         $allowed = [
@@ -57,6 +71,7 @@ class SettingsController extends Controller
             'section_economia_enabled', 'section_contratos_enabled', 'section_derechos_enabled',
             'section_balances_enabled', 'section_estadio_enabled',
             'balance_chart_default_items', 'balance_chart_filter_items',
+            'chart_scale_usd', 'chart_scale_eur', 'chart_scale_ars',
         ];
 
         foreach ($request->only($allowed) as $key => $value) {

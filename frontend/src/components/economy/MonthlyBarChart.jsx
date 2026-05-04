@@ -7,23 +7,22 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
-import { getEconomyMonthlySummary, getEconomyRecords } from '../../api/endpoints';
+import { getEconomyMonthlySummary, getEconomyRecords, getSectionSettings } from '../../api/endpoints';
 import Loader from '../common/Loader';
 import OfficialBadge from '../OfficialBadge';
 import EconomyRecordCard from './EconomyRecordCard';
 import SourceLabel from '../SourceLabel';
-import { financialColors } from '../../../tailwind.config.js';
 import { CHART_THEME } from '../../constants/chartColors';
 
-const COLORS = {
-  ingresos: financialColors.ingreso.DEFAULT,
-  egresos: financialColors.egreso.DEFAULT,
-  today: CHART_THEME.todayLine,
+const CURRENCY_COLORS = {
+  usd: '#16a34a',
+  eur: '#7c3aed',
+  ars: '#ea580c',
 };
+
 
 function formatAmount(value, currency) {
   if (value === 0) {
@@ -47,40 +46,48 @@ function formatAmount(value, currency) {
   return `EUR ${formatted}`;
 }
 
-function CustomTooltip({ active, payload, label, currency }) {
+function formatAxisValue(v) {
+  const abs = Math.abs(v);
+  if (abs >= 1_000_000_000) return (v / 1_000_000_000).toFixed(1) + 'B';
+  if (abs >= 1_000_000) return (v / 1_000_000).toFixed(1) + 'M';
+  if (abs >= 1_000) return (v / 1_000).toFixed(0) + 'K';
+  return v.toFixed(0);
+}
+
+
+function CustomTooltip({ active, payload, label, type }) {
   if (!active || !payload || payload.length === 0) return null;
 
-  const ingresos = payload.find((p) => p.dataKey === `ingresos_${currency.toLowerCase()}`);
-  const egresos = payload.find((p) => p.dataKey === `egresos_${currency.toLowerCase()}`);
-  const balance = (ingresos?.value ?? 0) - (egresos?.value ?? 0);
+  const raw = payload[0]?.payload || {};
+  const usdVal = raw[`${type}_usd`] ?? 0;
+  const eurVal = raw[`${type}_eur`] ?? 0;
+  const arsVal = raw[`${type}_ars`] ?? 0;
+
+  const typeLabel = type === 'egresos' ? 'Egresos' : 'Ingresos';
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-sm min-w-[160px]">
-      <p className="font-bold text-gray-800 mb-2 border-b border-gray-100 pb-1">{label}</p>
-      {ingresos && (
+      <p className="font-bold text-gray-800 mb-2 border-b border-gray-100 pb-1">
+        {label} · {typeLabel}
+      </p>
+      {usdVal > 0 && (
         <div className="flex justify-between gap-4">
-          <span className="text-ingreso">Ingresos</span>
-          <span className="font-mono font-semibold text-ingreso">
-            {formatAmount(ingresos.value, currency)}
-          </span>
+          <span style={{ color: CURRENCY_COLORS.usd }}>USD</span>
+          <span className="font-mono font-semibold">{formatAmount(usdVal, 'USD')}</span>
         </div>
       )}
-      {egresos && (
+      {eurVal > 0 && (
         <div className="flex justify-between gap-4">
-          <span className="text-egreso">Egresos</span>
-          <span className="font-mono font-semibold text-egreso">
-            {formatAmount(egresos.value, currency)}
-          </span>
+          <span style={{ color: CURRENCY_COLORS.eur }}>EUR</span>
+          <span className="font-mono font-semibold">{formatAmount(eurVal, 'EUR')}</span>
         </div>
       )}
-      <div className="flex justify-between gap-4 mt-1 pt-1 border-t border-gray-100">
-        <span className="text-gray-600">Balance</span>
-        <span
-          className={`font-mono font-semibold ${balance >= 0 ? 'text-ingreso' : 'text-egreso'}`}
-        >
-          {formatAmount(balance, currency)}
-        </span>
-      </div>
+      {arsVal > 0 && (
+        <div className="flex justify-between gap-4">
+          <span style={{ color: CURRENCY_COLORS.ars }}>ARS</span>
+          <span className="font-mono font-semibold">{formatAmount(arsVal, 'ARS')}</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -106,12 +113,26 @@ export default function MonthlyBarChart() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currency, setCurrency] = useState('USD');
+  const [type, setType] = useState('egresos');
+  const [scales, setScales] = useState({ usd: null, eur: null, ars: null });
   const scrollRef = useRef(null);
   const [upcoming, setUpcoming] = useState([]);
   const [pending, setPending] = useState([]);
   const [upcomingOpen, setUpcomingOpen] = useState(false);
   const [pendingOpen, setPendingOpen] = useState(false);
+
+  useEffect(() => {
+    getSectionSettings()
+      .then((res) => {
+        const d = res.data?.data || {};
+        setScales({
+          usd: d.chart_scale_usd || null,
+          eur: d.chart_scale_eur || null,
+          ars: d.chart_scale_ars || null,
+        });
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -139,7 +160,7 @@ export default function MonthlyBarChart() {
   useEffect(() => {
     if (data.length > 0 && scrollRef.current) {
       const container = scrollRef.current;
-      const barWidth = 52; // approximate px per month
+      const barWidth = 52;
       const todayIndex = 24;
       const scrollTarget = Math.max(0, todayIndex * barWidth - container.clientWidth / 2);
       container.scrollLeft = scrollTarget;
@@ -149,10 +170,18 @@ export default function MonthlyBarChart() {
   const today = new Date();
   const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
 
-  const ingresosKey = `ingresos_${currency.toLowerCase()}`;
-  const egresosKey = `egresos_${currency.toLowerCase()}`;
+  const applyScale = (value, scale) => (scale ? (value || 0) / scale : (value || 0));
 
-  const hasData = data.some((d) => d[ingresosKey] > 0 || d[egresosKey] > 0);
+  const chartData = data.map((d) => ({
+    ...d,
+    [`${type}_usd_display`]: applyScale(d[`${type}_usd`], scales.usd),
+    [`${type}_eur_display`]: applyScale(d[`${type}_eur`], scales.eur),
+    [`${type}_ars_display`]: applyScale(d[`${type}_ars`], scales.ars),
+  }));
+
+  const hasData = chartData.some(
+    (d) => d[`${type}_usd_display`] > 0 || d[`${type}_eur_display`] > 0 || d[`${type}_ars_display`] > 0
+  );
 
   return (
     <div className="card overflow-hidden">
@@ -164,19 +193,19 @@ export default function MonthlyBarChart() {
             Últimos 24 meses · Mes actual · Próximos 24 meses
           </p>
         </div>
-        {/* Currency toggle */}
+        {/* Type toggle */}
         <div className="flex gap-1 bg-gray-100 rounded-lg p-1 self-start sm:self-auto">
-          {['USD', 'EUR', 'ARS'].map((c) => (
+          {['egresos', 'ingresos'].map((t) => (
             <button
-              key={c}
-              onClick={() => setCurrency(c)}
+              key={t}
+              onClick={() => setType(t)}
               className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-all ${
-                currency === c
+                type === t
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              {c}
+              {t.charAt(0).toUpperCase() + t.slice(1)}
             </button>
           ))}
         </div>
@@ -190,20 +219,25 @@ export default function MonthlyBarChart() {
         <div className="py-12 text-center text-gray-400 text-sm">{error}</div>
       ) : !hasData ? (
         <div className="py-12 text-center text-gray-400 text-sm">
-          No hay datos registrados en {currency} para el período seleccionado.
+          No hay datos registrados para el período seleccionado.
         </div>
       ) : (
         <>
           {/* Legend */}
           <div className="flex flex-wrap gap-4 mb-3 text-sm">
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-sm bg-ingreso inline-block" />
-              <span className="text-gray-600">Ingresos</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-sm bg-egreso inline-block" />
-              <span className="text-gray-600">Egresos</span>
-            </div>
+            {[
+              ['usd', 'USD'],
+              ['eur', 'EUR'],
+              ['ars', 'ARS'],
+            ].map(([key, label]) => (
+              <div key={key} className="flex items-center gap-2">
+                <span
+                  className="w-3 h-3 rounded-sm inline-block"
+                  style={{ backgroundColor: CURRENCY_COLORS[key] }}
+                />
+                <span className="text-gray-600">{label}</span>
+              </div>
+            ))}
             <div className="flex items-center gap-2">
               <span className="w-0.5 h-4 bg-blue-700 inline-block" />
               <span className="text-gray-600">Mes actual</span>
@@ -217,11 +251,10 @@ export default function MonthlyBarChart() {
             role="region"
             aria-label="Gráfico de ingresos y egresos mensuales"
           >
-            {/* Fixed minimum width so bars are readable on mobile */}
-            <div style={{ minWidth: `${data.length * 52}px`, height: 320 }}>
+            <div style={{ minWidth: `${chartData.length * 52}px`, height: 320 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={data}
+                  data={chartData}
                   margin={{ top: 8, right: 8, left: 8, bottom: 40 }}
                   barCategoryGap="20%"
                   barGap={2}
@@ -237,39 +270,27 @@ export default function MonthlyBarChart() {
                     axisLine={{ stroke: CHART_THEME.axisLine }}
                   />
                   <YAxis
-                    tickFormatter={(v) => formatAmount(v, currency)}
+                    tickFormatter={formatAxisValue}
                     tick={{ fontSize: 10, fill: CHART_THEME.axisText }}
                     tickLine={false}
                     axisLine={false}
                     width={60}
                   />
                   <Tooltip
-                    content={<CustomTooltip currency={currency} />}
+                    content={<CustomTooltip type={type} />}
                     cursor={{ fill: CHART_THEME.tooltipCursor }}
                   />
-                  {/* Reference line for current month */}
                   {data.findIndex((d) => d.month === todayKey) !== -1 && (
                     <ReferenceLine
                       x={data.find((d) => d.month === todayKey)?.month_label}
-                      stroke={COLORS.today}
+                      stroke="#1d4ed8"
                       strokeWidth={2}
                       strokeDasharray="4 2"
                     />
                   )}
-                  <Bar
-                    dataKey={ingresosKey}
-                    name="Ingresos"
-                    fill={COLORS.ingresos}
-                    radius={[2, 2, 0, 0]}
-                    maxBarSize={24}
-                  />
-                  <Bar
-                    dataKey={egresosKey}
-                    name="Egresos"
-                    fill={COLORS.egresos}
-                    radius={[2, 2, 0, 0]}
-                    maxBarSize={24}
-                  />
+                  <Bar dataKey={`${type}_usd_display`} name="USD" fill={CURRENCY_COLORS.usd} radius={[2, 2, 0, 0]} maxBarSize={24} />
+                  <Bar dataKey={`${type}_eur_display`} name="EUR" fill={CURRENCY_COLORS.eur} radius={[2, 2, 0, 0]} maxBarSize={24} />
+                  <Bar dataKey={`${type}_ars_display`} name="ARS" fill={CURRENCY_COLORS.ars} radius={[2, 2, 0, 0]} maxBarSize={24} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -299,19 +320,18 @@ export default function MonthlyBarChart() {
           )}
           {upcomingOpen && (
             <>
-              {/* Vista en tarjetas para móvil */}
               <div className="block md:hidden space-y-3">
                 {upcoming.map((r) => (
                   <EconomyRecordCard key={r.id} record={r} />
                 ))}
               </div>
-              {/* Vista en tabla para desktop */}
               <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-gray-100 text-left text-xs text-gray-400 uppercase">
                       <th className="pb-2 pr-4">Fecha</th>
                       <th className="pb-2 pr-4">Descripción</th>
+                      <th className="pb-2 pr-4">Entidad</th>
                       <th className="pb-2 pr-4">Tipo</th>
                       <th className="pb-2 pr-4 text-right">Monto</th>
                       <th className="pb-2">Fuentes</th>
@@ -322,10 +342,9 @@ export default function MonthlyBarChart() {
                       <tr key={r.id} className="border-b border-gray-50 hover:bg-gray-50">
                         <td className="py-2 pr-4 whitespace-nowrap text-gray-500 text-xs">{formatDate(r.record_date)}</td>
                         <td className="py-2 pr-4">
-                          <span className="font-medium">
-                            {r.description || '-'}
-                          </span>
+                          <span className="font-medium">{r.description || '-'}</span>
                         </td>
+                        <td className="py-2 pr-4 text-gray-500 text-xs">{r.entidad || '-'}</td>
                         <td className="py-2 pr-4">
                           <span className={r.type === 'cobro' ? 'badge-cobro' : 'badge-pago'}>
                             {r.type}
@@ -381,19 +400,18 @@ export default function MonthlyBarChart() {
                   Ver todos →
                 </Link>
               </div>
-              {/* Vista en tarjetas para móvil */}
               <div className="block md:hidden space-y-3">
                 {pending.map((r) => (
                   <EconomyRecordCard key={r.id} record={r} />
                 ))}
               </div>
-              {/* Vista en tabla para desktop */}
               <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-gray-100 text-left text-xs text-gray-400 uppercase">
                       <th className="pb-2 pr-4">Fecha</th>
                       <th className="pb-2 pr-4">Descripción</th>
+                      <th className="pb-2 pr-4">Entidad</th>
                       <th className="pb-2 pr-4">Tipo</th>
                       <th className="pb-2 pr-4 text-right">Monto</th>
                       <th className="pb-2">Fuentes</th>
@@ -404,10 +422,9 @@ export default function MonthlyBarChart() {
                       <tr key={r.id} className="border-b border-gray-50 hover:bg-gray-50">
                         <td className="py-2 pr-4 whitespace-nowrap text-gray-500 text-xs">{formatDate(r.record_date)}</td>
                         <td className="py-2 pr-4">
-                          <span className="font-medium">
-                            {r.description || '-'}
-                          </span>
+                          <span className="font-medium">{r.description || '-'}</span>
                         </td>
+                        <td className="py-2 pr-4 text-gray-500 text-xs">{r.entidad || '-'}</td>
                         <td className="py-2 pr-4">
                           <span className={r.type === 'cobro' ? 'badge-cobro' : 'badge-pago'}>
                             {r.type}

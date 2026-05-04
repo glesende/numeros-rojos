@@ -66,6 +66,14 @@ class StatsController extends Controller
             return response()->json($data, 502);
         }
 
+        if (isset($data['data']['team']['squad'])) {
+            $defaultAvatar = rtrim(env('FRONTEND_URL', 'https://numerosrojos.com.ar'), '/') . '/default-avatar.svg';
+            $data['data']['team']['squad'] = array_map(function ($player) use ($defaultAvatar) {
+                $player['image'] = $player['image'] ?? $defaultAvatar;
+                return $player;
+            }, $data['data']['team']['squad']);
+        }
+
         return response()->json($data);
     }
 

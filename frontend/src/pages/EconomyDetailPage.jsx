@@ -54,7 +54,7 @@ export default function EconomyDetailPage() {
           </div>
           <div>
             <p className="text-gray-500">Fecha</p>
-            <p className="font-medium">{record.record_date}</p>
+            <p className="font-medium">{record.record_date || 'Sin fecha'}</p>
           </div>
         </div>
 

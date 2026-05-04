@@ -23,7 +23,8 @@ class ContractController extends Controller
         if (!empty($contract['external_id'])) {
             $playerData = $this->besoccerService->getPlayerByExternalId($contract['external_id']);
             if ($playerData['success'] ?? false) {
-                $contract['player_avatar'] = $playerData['data']['player_avatar'] ?? null;
+                $defaultAvatar = rtrim(env('FRONTEND_URL', 'https://numerosrojos.com.ar'), '/') . '/default-avatar.svg';
+                $contract['player_avatar'] = $playerData['data']['player_avatar'] ?? $defaultAvatar;
             }
         }
         return $contract;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getEconomyRecords, deleteEconomyRecord } from '../api/endpoints';
 import Loader from '../components/common/Loader';
@@ -18,16 +18,31 @@ export default function AdminEconomyPage() {
   const [data, setData] = useState({ data: [], meta: null });
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const debounceRef = useRef(null);
   const navigate = useNavigate();
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearch(value);
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setDebouncedSearch(value);
+      setPage(1);
+    }, 400);
+  };
 
   const fetchData = () => {
     setLoading(true);
-    getEconomyRecords({ page, per_page: 20 })
+    const params = { page, per_page: 20 };
+    if (debouncedSearch) params.search = debouncedSearch;
+    getEconomyRecords(params)
       .then((res) => setData(res.data))
       .finally(() => setLoading(false));
   };
 
-  useEffect(fetchData, [page]);
+  useEffect(fetchData, [page, debouncedSearch]);
 
   const handleDelete = async (id) => {
     if (!window.confirm('Eliminar este registro?')) return;
@@ -47,6 +62,16 @@ export default function AdminEconomyPage() {
         <button onClick={() => navigate('/admin/economia/nuevo')} className="btn-primary text-sm">
           + Nuevo registro
         </button>
+      </div>
+
+      <div className="mb-4">
+        <input
+          type="text"
+          value={search}
+          onChange={handleSearchChange}
+          placeholder="Buscar por descripción..."
+          className="w-full sm:w-96 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-rojo"
+        />
       </div>
 
       {loading ? (

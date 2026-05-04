@@ -94,7 +94,7 @@ export default function Navbar() {
 
   const isLinkActive = (link) => {
     if (link.isAnchor) {
-      return location.pathname === '/';
+      return false;
     }
     return location.pathname.startsWith(link.to);
   };
@@ -138,8 +138,9 @@ export default function Navbar() {
             onClick={() => setOpen(!open)}
             className="md:hidden p-2 rounded-lg hover:bg-white/10"
             aria-label="Menu"
+            aria-expanded={open}
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               {open ? (
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               ) : (
