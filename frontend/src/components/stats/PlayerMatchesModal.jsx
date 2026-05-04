@@ -247,7 +247,6 @@ export default function PlayerMatchesModal({ player, onClose }) {
               src={player.image}
               alt={player.nick}
               className="w-9 h-9 rounded-full object-cover bg-gray-100"
-              onError={(e) => { e.target.style.display = 'none'; }}
             />
             <div>
               <p className="font-bold text-sm leading-tight">{player.nick}</p>

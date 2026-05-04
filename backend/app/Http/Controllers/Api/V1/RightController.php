@@ -22,7 +22,8 @@ class RightController extends Controller
         if (!empty($right['external_id'])) {
             $playerData = $this->besoccerService->getPlayerByExternalId($right['external_id']);
             if ($playerData['success'] ?? false) {
-                $right['player_avatar'] = $playerData['data']['player_avatar'] ?? null;
+                $defaultAvatar = rtrim(env('FRONTEND_URL', 'https://numerosrojos.com.ar'), '/') . '/default-avatar.svg';
+                $right['player_avatar'] = $playerData['data']['player_avatar'] ?? $defaultAvatar;
             }
         }
         return $right;

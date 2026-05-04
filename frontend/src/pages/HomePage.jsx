@@ -48,17 +48,11 @@ function ContractCard({ contract, onClick }) {
       onClick={clickable ? onClick : undefined}
     >
       <div className="flex items-center gap-3">
-        {contract.player_avatar ? (
-          <img
+        <img
             src={contract.player_avatar}
             alt={contract.full_name}
             className="w-10 h-10 rounded-full object-cover flex-shrink-0"
           />
-        ) : (
-          <div className="w-10 h-10 rounded-full bg-rojo text-white flex items-center justify-center font-bold text-lg flex-shrink-0">
-            {contract.full_name.charAt(0).toUpperCase()}
-          </div>
-        )}
         <div className="overflow-hidden flex-1">
           <p className="font-bold text-gray-900 text-sm leading-tight line-clamp-2">
             {contract.full_name}
@@ -162,17 +156,11 @@ function RightCard({ right, onClick }) {
       onClick={clickable ? onClick : undefined}
     >
       <div className="flex items-center gap-3">
-        {right.player_avatar ? (
-          <img
+        <img
             src={right.player_avatar}
             alt={right.full_name}
             className="w-10 h-10 rounded-full object-cover flex-shrink-0"
           />
-        ) : (
-          <div className="w-10 h-10 rounded-full bg-rojo text-white flex items-center justify-center font-bold text-lg flex-shrink-0">
-            {right.full_name.charAt(0).toUpperCase()}
-          </div>
-        )}
         <div className="overflow-hidden flex-1">
           <p className="font-bold text-gray-900 text-sm leading-tight line-clamp-2">
             {right.full_name}
