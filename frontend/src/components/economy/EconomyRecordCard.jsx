@@ -32,6 +32,9 @@ export default function EconomyRecordCard({ record: r }) {
       <p className="text-sm font-medium text-gray-800 mb-2 leading-snug">
         {r.description || '-'}
       </p>
+      {r.entidad && (
+        <p className="text-xs text-gray-500 mb-1">{r.entidad}</p>
+      )}
       <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
         <span>{formatDate(r.record_date)}</span>
       </div>

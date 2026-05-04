@@ -331,6 +331,7 @@ export default function MonthlyBarChart() {
                     <tr className="border-b border-gray-100 text-left text-xs text-gray-400 uppercase">
                       <th className="pb-2 pr-4">Fecha</th>
                       <th className="pb-2 pr-4">Descripción</th>
+                      <th className="pb-2 pr-4">Entidad</th>
                       <th className="pb-2 pr-4">Tipo</th>
                       <th className="pb-2 pr-4 text-right">Monto</th>
                       <th className="pb-2">Fuentes</th>
@@ -343,6 +344,7 @@ export default function MonthlyBarChart() {
                         <td className="py-2 pr-4">
                           <span className="font-medium">{r.description || '-'}</span>
                         </td>
+                        <td className="py-2 pr-4 text-gray-500 text-xs">{r.entidad || '-'}</td>
                         <td className="py-2 pr-4">
                           <span className={r.type === 'cobro' ? 'badge-cobro' : 'badge-pago'}>
                             {r.type}
@@ -409,6 +411,7 @@ export default function MonthlyBarChart() {
                     <tr className="border-b border-gray-100 text-left text-xs text-gray-400 uppercase">
                       <th className="pb-2 pr-4">Fecha</th>
                       <th className="pb-2 pr-4">Descripción</th>
+                      <th className="pb-2 pr-4">Entidad</th>
                       <th className="pb-2 pr-4">Tipo</th>
                       <th className="pb-2 pr-4 text-right">Monto</th>
                       <th className="pb-2">Fuentes</th>
@@ -421,6 +424,7 @@ export default function MonthlyBarChart() {
                         <td className="py-2 pr-4">
                           <span className="font-medium">{r.description || '-'}</span>
                         </td>
+                        <td className="py-2 pr-4 text-gray-500 text-xs">{r.entidad || '-'}</td>
                         <td className="py-2 pr-4">
                           <span className={r.type === 'cobro' ? 'badge-cobro' : 'badge-pago'}>
                             {r.type}
