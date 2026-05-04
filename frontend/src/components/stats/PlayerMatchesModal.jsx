@@ -3,6 +3,7 @@ import { getPlayerMatches, getContracts } from '../../api/endpoints';
 import Loader from '../common/Loader';
 import OfficialBadge from '../OfficialBadge';
 import SourceLabel from '../SourceLabel';
+import PlayerAvatar from '../PlayerAvatar';
 
 const ROLE_LABELS = { '1': 'Arqueros', '2': 'Defensores', '3': 'Mediocampistas', '4': 'Delanteros' };
 
@@ -243,11 +244,7 @@ export default function PlayerMatchesModal({ player, onClose }) {
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b sticky top-0 bg-white rounded-t-2xl z-10">
           <div className="flex items-center gap-3">
-            <img
-              src={player.image}
-              alt={player.nick}
-              className="w-9 h-9 rounded-full object-cover bg-gray-100"
-            />
+            <PlayerAvatar src={player.image} alt={player.nick} className="w-9 h-9" />
             <div>
               <p className="font-bold text-sm leading-tight">{player.nick}</p>
               {(player.squadNumber || player.role) && (
