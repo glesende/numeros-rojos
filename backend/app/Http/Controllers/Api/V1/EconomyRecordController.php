@@ -25,8 +25,10 @@ class EconomyRecordController extends Controller
             ->dateTo($request->input('date_to'))
             ->carriedOut($carriedOut);
 
-        $sortDir = $request->input('sort_dir', 'desc');
-        $query->orderBy('record_date', $sortDir);
+        $sortDir = in_array(strtolower($request->input('sort_dir', 'desc')), ['asc', 'desc'])
+            ? strtolower($request->input('sort_dir', 'desc'))
+            : 'desc';
+        $query->orderByRaw("(record_date IS NULL) DESC, record_date {$sortDir}");
 
         $perPage = min((int) $request->input('per_page', 15), 100);
         $records = $query->paginate($perPage);
@@ -147,7 +149,7 @@ class EconomyRecordController extends Controller
             'type'           => 'required|in:cobro,pago',
             'amount'         => 'required|numeric|min:0',
             'currency'       => 'required|in:ARS,USD,EUR',
-            'record_date'    => 'required|date',
+            'record_date'    => 'nullable|date',
             'carried_out'    => 'sometimes|boolean',
             'entity'         => 'nullable|string',
             'comments'       => 'nullable|string',
@@ -173,7 +175,7 @@ class EconomyRecordController extends Controller
             'type'          => 'sometimes|in:cobro,pago',
             'amount'        => 'sometimes|numeric|min:0',
             'currency'      => 'sometimes|in:ARS,USD,EUR',
-            'record_date'   => 'sometimes|date',
+            'record_date'   => 'nullable|date',
             'carried_out'   => 'sometimes|boolean',
             'entity'        => 'nullable|string',
             'comments'      => 'nullable|string',

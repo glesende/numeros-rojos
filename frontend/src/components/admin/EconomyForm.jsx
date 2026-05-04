@@ -51,7 +51,12 @@ export default function EconomyForm({ initial, onSubmit, loading }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit({ ...form, amount: parseFloat(form.amount), carried_out: !!form.carried_out });
+    onSubmit({
+      ...form,
+      amount: parseFloat(form.amount),
+      carried_out: !!form.carried_out,
+      record_date: form.record_date || null,
+    });
   };
 
   return (
@@ -121,13 +126,12 @@ export default function EconomyForm({ initial, onSubmit, loading }) {
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Fecha *</label>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Fecha</label>
           <input
             type="date"
             value={form.record_date}
             onChange={(e) => set('record_date', e.target.value)}
             className="input-field"
-            required
           />
         </div>
       </div>

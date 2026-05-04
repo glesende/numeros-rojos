@@ -62,7 +62,10 @@ class EconomyRecord extends Model
         if ($to === null) {
             return $query;
         }
-        return $query->where('record_date', '<=', $to);
+        return $query->where(function ($q) use ($to) {
+            $q->whereNull('record_date')
+              ->orWhere('record_date', '<=', $to);
+        });
     }
 
     public function scopeCarriedOut($query, ?bool $carriedOut): mixed
