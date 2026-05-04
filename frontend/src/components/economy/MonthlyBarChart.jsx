@@ -344,7 +344,7 @@ export default function MonthlyBarChart() {
                         <td className="py-2 pr-4">
                           <span className="font-medium">{r.description || '-'}</span>
                         </td>
-                        <td className="py-2 pr-4 text-gray-500 text-xs">{r.entidad || '-'}</td>
+                        <td className="py-2 pr-4 text-gray-500 text-xs">{r.entity || '-'}</td>
                         <td className="py-2 pr-4">
                           <span className={r.type === 'cobro' ? 'badge-cobro' : 'badge-pago'}>
                             {r.type}
@@ -424,7 +424,7 @@ export default function MonthlyBarChart() {
                         <td className="py-2 pr-4">
                           <span className="font-medium">{r.description || '-'}</span>
                         </td>
-                        <td className="py-2 pr-4 text-gray-500 text-xs">{r.entidad || '-'}</td>
+                        <td className="py-2 pr-4 text-gray-500 text-xs">{r.entity || '-'}</td>
                         <td className="py-2 pr-4">
                           <span className={r.type === 'cobro' ? 'badge-cobro' : 'badge-pago'}>
                             {r.type}
