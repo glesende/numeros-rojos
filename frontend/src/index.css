@@ -33,6 +33,14 @@
     @apply bg-egreso-light text-egreso-dark text-xs font-semibold uppercase px-2 py-0.5 rounded;
   }
 
+  .badge-local {
+    @apply bg-ingreso-light text-ingreso-dark text-xs font-medium px-2 py-0.5 rounded-full;
+  }
+
+  .badge-visitante {
+    @apply bg-gray-100 text-gray-600 text-xs font-medium px-2 py-0.5 rounded-full;
+  }
+
   .input-field {
     @apply w-full border border-gray-300 rounded-lg px-3 py-2 text-sm
            focus:outline-none focus:ring-2 focus:ring-rojo focus:border-transparent;

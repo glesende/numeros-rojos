@@ -174,9 +174,7 @@ export default function StadiumPage() {
                           {m.is_home ? m.opponent : 'Independiente'}
                         </h3>
                         <span
-                          className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                            m.is_home ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
-                          }`}
+                          className={m.is_home ? 'badge-local' : 'badge-visitante'}
                         >
                           {m.is_home ? 'Local' : 'Visitante'}
                         </span>
