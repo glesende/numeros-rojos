@@ -39,6 +39,7 @@ class EconomyRecordController extends Controller
             ->currency($request->input('currency'))
             ->dateFrom($request->input('date_from'))
             ->dateTo($request->input('date_to'))
+            ->carriedOut($carriedOut)
             ->official($official);
 
         $totals = [

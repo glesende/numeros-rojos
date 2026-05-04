@@ -109,6 +109,19 @@ function formatMoney(amount, currency) {
   }).format(amount);
 }
 
+function formatCompact(amount) {
+  const sign = amount < 0 ? '-' : '';
+  const abs = Math.abs(amount);
+  if (abs >= 1_000_000_000) return sign + (abs / 1_000_000_000).toFixed(1) + 'B';
+  if (abs >= 1_000_000) return sign + (abs / 1_000_000).toFixed(1) + 'M';
+  if (abs >= 1_000) return sign + (abs / 1_000).toFixed(0) + 'K';
+  return sign + abs.toFixed(0);
+}
+
+function formatDecimal(amount) {
+  return new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 }).format(amount);
+}
+
 export default function MonthlyBarChart() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -118,6 +131,7 @@ export default function MonthlyBarChart() {
   const scrollRef = useRef(null);
   const [upcoming, setUpcoming] = useState([]);
   const [pending, setPending] = useState([]);
+  const [pendingTotals, setPendingTotals] = useState(null);
   const [upcomingOpen, setUpcomingOpen] = useState(false);
   const [pendingOpen, setPendingOpen] = useState(false);
 
@@ -152,8 +166,14 @@ export default function MonthlyBarChart() {
   useEffect(() => {
     const today = new Date().toISOString().slice(0, 10);
     getEconomyRecords({ carried_out: false, date_to: today, sort_by: 'record_date', sort_dir: 'desc' })
-      .then((res) => setPending(res.data.data || []))
-      .catch(() => setPending([]));
+      .then((res) => {
+        setPending(res.data.data || []);
+        setPendingTotals(res.data.totals || null);
+      })
+      .catch(() => {
+        setPending([]);
+        setPendingTotals(null);
+      });
   }, []);
 
   // Scroll to the "today" area on mount (month index 24 out of 49)
@@ -380,6 +400,60 @@ export default function MonthlyBarChart() {
         </div>
       )}
 
+      {/* Pending totals summary */}
+      {pendingTotals && pendingTotals.cantidad > 0 && (
+        <div className="mt-6 border-t border-gray-100 pt-5">
+          <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-4">
+            Pagos/Cobros no confirmados
+          </h3>
+          <div className="space-y-4">
+            {[
+              { key: 'usd', label: 'USD', color: CURRENCY_COLORS.usd },
+              { key: 'eur', label: 'EUR', color: CURRENCY_COLORS.eur },
+              { key: 'ars', label: 'ARS', color: CURRENCY_COLORS.ars },
+            ]
+              .filter(({ key }) => pendingTotals[`total_cobros_${key}`] > 0 || pendingTotals[`total_pagos_${key}`] > 0)
+              .map(({ key, label, color }) => {
+                const cobros = pendingTotals[`total_cobros_${key}`] || 0;
+                const pagos = pendingTotals[`total_pagos_${key}`] || 0;
+                const balance = pendingTotals[`balance_${key}`] || 0;
+                const currency = key.toUpperCase();
+                return (
+                  <div key={key}>
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <span className="w-2 h-2 rounded-sm inline-block" style={{ backgroundColor: color }} />
+                      <span className="text-xs font-bold text-gray-600">{label}</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="bg-green-50 border border-green-100 rounded-lg p-2 text-center">
+                        <p className="text-xs text-gray-500 mb-1">Cobros</p>
+                        <p className="font-mono font-semibold text-xs text-green-700 leading-tight">
+                          <span className="md:hidden">{formatCompact(cobros)}</span>
+                          <span className="hidden md:inline">{formatDecimal(cobros)}</span>
+                        </p>
+                      </div>
+                      <div className="bg-red-50 border border-red-100 rounded-lg p-2 text-center">
+                        <p className="text-xs text-gray-500 mb-1">Pagos</p>
+                        <p className="font-mono font-semibold text-xs text-red-700 leading-tight">
+                          <span className="md:hidden">{formatCompact(pagos)}</span>
+                          <span className="hidden md:inline">{formatDecimal(pagos)}</span>
+                        </p>
+                      </div>
+                      <div className={`border rounded-lg p-2 text-center ${balance >= 0 ? 'bg-blue-50 border-blue-100' : 'bg-orange-50 border-orange-100'}`}>
+                        <p className="text-xs text-gray-500 mb-1">Balance</p>
+                        <p className={`font-mono font-semibold text-xs leading-tight ${balance >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>
+                          <span className="md:hidden">{formatCompact(balance)}</span>
+                          <span className="hidden md:inline">{formatDecimal(balance)}</span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+      )}
+
       {/* Pending confirmation */}
       {pending.length > 0 && (
         <div className="mt-6 border-t border-gray-100 pt-5">
@@ -388,7 +462,7 @@ export default function MonthlyBarChart() {
             className="flex items-center justify-between w-full mb-3 text-left"
           >
             <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide flex items-center gap-2">
-              Pago/cobro no confirmado
+              Ver detalle de no confirmados
               <span className="text-gray-400 font-normal normal-case tracking-normal">({pending.length})</span>
             </h3>
             <span className="text-gray-400 text-xs">{pendingOpen ? '▲' : '▼'}</span>
