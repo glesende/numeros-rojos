@@ -34,6 +34,13 @@ export default function AdminSettings() {
   const [openaiSuccess, setOpenaiSuccess] = useState('');
   const [openaiLoading, setOpenaiLoading] = useState(false);
 
+  const [chartScaleUsd, setChartScaleUsd] = useState('');
+  const [chartScaleEur, setChartScaleEur] = useState('');
+  const [chartScaleArs, setChartScaleArs] = useState('');
+  const [chartScaleError, setChartScaleError] = useState('');
+  const [chartScaleSuccess, setChartScaleSuccess] = useState('');
+  const [chartScaleLoading, setChartScaleLoading] = useState(false);
+
   const { logout } = useAuth();
   const navigate = useNavigate();
 
@@ -46,6 +53,9 @@ export default function AdminSettings() {
         setBesoccerTeamId(data.besoccer_team_id || '');
         setOpenaiApiKey(data.openai_api_key || '');
         setOpenaiModel(data.openai_model || 'gpt-4o');
+        setChartScaleUsd(data.chart_scale_usd ?? '');
+        setChartScaleEur(data.chart_scale_eur ?? '');
+        setChartScaleArs(data.chart_scale_ars ?? '');
         setSettingsLoaded(true);
       })
       .catch(() => setSettingsLoaded(true));
@@ -102,6 +112,25 @@ export default function AdminSettings() {
       setServiceError(err.response?.data?.error || 'Error al guardar la configuración');
     } finally {
       setServiceLoading(false);
+    }
+  };
+
+  const handleChartScaleSubmit = async (e) => {
+    e.preventDefault();
+    setChartScaleError('');
+    setChartScaleSuccess('');
+    setChartScaleLoading(true);
+    try {
+      await updateSettings({
+        chart_scale_usd: chartScaleUsd === '' ? null : Number(chartScaleUsd),
+        chart_scale_eur: chartScaleEur === '' ? null : Number(chartScaleEur),
+        chart_scale_ars: chartScaleArs === '' ? null : Number(chartScaleArs),
+      });
+      setChartScaleSuccess('Escalas guardadas correctamente');
+    } catch (err) {
+      setChartScaleError(err.response?.data?.error || 'Error al guardar las escalas');
+    } finally {
+      setChartScaleLoading(false);
     }
   };
 
@@ -244,6 +273,54 @@ export default function AdminSettings() {
               className="btn-primary w-full"
             >
               {openaiLoading ? 'Guardando...' : 'Guardar configuración OpenAI'}
+            </button>
+          </form>
+        )}
+      </div>
+
+      {/* Chart scale settings */}
+      <div className="card mb-6">
+        <h2 className="text-lg font-bold mb-1">Escala del gráfico económico</h2>
+        <p className="text-sm text-gray-500 mb-4">
+          Divisor para normalizar cada moneda en el gráfico de compromisos. Dejá vacío para mostrar el valor sin escalar.
+        </p>
+
+        {!settingsLoaded ? (
+          <p className="text-sm text-gray-500">Cargando...</p>
+        ) : (
+          <form onSubmit={handleChartScaleSubmit} className="space-y-4">
+            {chartScaleError && <ErrorMessage message={chartScaleError} />}
+            {chartScaleSuccess && (
+              <div className="p-3 bg-green-50 text-green-700 rounded-lg text-sm">
+                {chartScaleSuccess}
+              </div>
+            )}
+
+            {[
+              { label: 'Divisor USD', value: chartScaleUsd, setter: setChartScaleUsd, placeholder: 'Sin escala' },
+              { label: 'Divisor EUR', value: chartScaleEur, setter: setChartScaleEur, placeholder: 'Sin escala' },
+              { label: 'Divisor ARS', value: chartScaleArs, setter: setChartScaleArs, placeholder: 'Sin escala' },
+            ].map(({ label, value, setter, placeholder }) => (
+              <div key={label}>
+                <label className="block text-sm font-medium mb-1">{label}</label>
+                <input
+                  type="number"
+                  min="0.0001"
+                  step="any"
+                  value={value}
+                  onChange={(e) => setter(e.target.value)}
+                  className="input-field w-full"
+                  placeholder={placeholder}
+                />
+              </div>
+            ))}
+
+            <button
+              type="submit"
+              disabled={chartScaleLoading}
+              className="btn-primary w-full"
+            >
+              {chartScaleLoading ? 'Guardando...' : 'Guardar escalas'}
             </button>
           </form>
         )}

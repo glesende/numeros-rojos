@@ -10,7 +10,7 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
-import { getEconomyMonthlySummary, getEconomyRecords } from '../../api/endpoints';
+import { getEconomyMonthlySummary, getEconomyRecords, getSectionSettings } from '../../api/endpoints';
 import Loader from '../common/Loader';
 import OfficialBadge from '../OfficialBadge';
 import EconomyRecordCard from './EconomyRecordCard';
@@ -23,8 +23,6 @@ const CURRENCY_COLORS = {
   ars: '#ea580c',
 };
 
-// Divisor para escalar ARS en el gráfico (ajustar según cotización)
-const ARS_SCALE = 1400;
 
 function formatAmount(value, currency) {
   if (value === 0) {
@@ -60,10 +58,10 @@ function formatAxisValue(v) {
 function CustomTooltip({ active, payload, label, type }) {
   if (!active || !payload || payload.length === 0) return null;
 
-  const usdVal = payload.find((p) => p.dataKey === `${type}_usd`)?.value ?? 0;
-  const eurVal = payload.find((p) => p.dataKey === `${type}_eur`)?.value ?? 0;
-  const arsKVal = payload.find((p) => p.dataKey === `${type}_ars_k`)?.value ?? 0;
-  const arsVal = arsKVal * ARS_SCALE;
+  const raw = payload[0]?.payload || {};
+  const usdVal = raw[`${type}_usd`] ?? 0;
+  const eurVal = raw[`${type}_eur`] ?? 0;
+  const arsVal = raw[`${type}_ars`] ?? 0;
 
   const typeLabel = type === 'egresos' ? 'Egresos' : 'Ingresos';
 
@@ -116,11 +114,25 @@ export default function MonthlyBarChart() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [type, setType] = useState('egresos');
+  const [scales, setScales] = useState({ usd: null, eur: null, ars: null });
   const scrollRef = useRef(null);
   const [upcoming, setUpcoming] = useState([]);
   const [pending, setPending] = useState([]);
   const [upcomingOpen, setUpcomingOpen] = useState(false);
   const [pendingOpen, setPendingOpen] = useState(false);
+
+  useEffect(() => {
+    getSectionSettings()
+      .then((res) => {
+        const d = res.data?.data || {};
+        setScales({
+          usd: d.chart_scale_usd || null,
+          eur: d.chart_scale_eur || null,
+          ars: d.chart_scale_ars || null,
+        });
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -158,14 +170,17 @@ export default function MonthlyBarChart() {
   const today = new Date();
   const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
 
-  const arsKKey = `${type}_ars_k`;
+  const applyScale = (value, scale) => (scale ? (value || 0) / scale : (value || 0));
+
   const chartData = data.map((d) => ({
     ...d,
-    [arsKKey]: (d[`${type}_ars`] || 0) / ARS_SCALE,
+    [`${type}_usd_display`]: applyScale(d[`${type}_usd`], scales.usd),
+    [`${type}_eur_display`]: applyScale(d[`${type}_eur`], scales.eur),
+    [`${type}_ars_display`]: applyScale(d[`${type}_ars`], scales.ars),
   }));
 
   const hasData = chartData.some(
-    (d) => d[`${type}_usd`] > 0 || d[`${type}_eur`] > 0 || d[arsKKey] > 0
+    (d) => d[`${type}_usd_display`] > 0 || d[`${type}_eur_display`] > 0 || d[`${type}_ars_display`] > 0
   );
 
   return (
@@ -273,9 +288,9 @@ export default function MonthlyBarChart() {
                       strokeDasharray="4 2"
                     />
                   )}
-                  <Bar dataKey={`${type}_usd`} name="USD" fill={CURRENCY_COLORS.usd} radius={[2, 2, 0, 0]} maxBarSize={24} />
-                  <Bar dataKey={`${type}_eur`} name="EUR" fill={CURRENCY_COLORS.eur} radius={[2, 2, 0, 0]} maxBarSize={24} />
-                  <Bar dataKey={arsKKey} name="ARS" fill={CURRENCY_COLORS.ars} radius={[2, 2, 0, 0]} maxBarSize={24} />
+                  <Bar dataKey={`${type}_usd_display`} name="USD" fill={CURRENCY_COLORS.usd} radius={[2, 2, 0, 0]} maxBarSize={24} />
+                  <Bar dataKey={`${type}_eur_display`} name="EUR" fill={CURRENCY_COLORS.eur} radius={[2, 2, 0, 0]} maxBarSize={24} />
+                  <Bar dataKey={`${type}_ars_display`} name="ARS" fill={CURRENCY_COLORS.ars} radius={[2, 2, 0, 0]} maxBarSize={24} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
