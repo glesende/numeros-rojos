@@ -427,6 +427,10 @@ class BalanceController extends Controller
         $defaultItemsSetting = Setting::get('balance_chart_default_items');
         $defaultItemsArray   = $defaultItemsSetting ? json_decode($defaultItemsSetting, true) : null;
 
+        // Load admin-configured short label overrides
+        $labelOverridesSetting = Setting::get('balance_chart_label_overrides');
+        $labelOverridesMap     = $labelOverridesSetting ? json_decode($labelOverridesSetting, true) : [];
+
         $series = [];
         foreach ($seriesMap as $key => $s) {
             $values = [];
@@ -434,9 +438,11 @@ class BalanceController extends Controller
                 $values[] = round($s['values_by_balance'][$balance->id] ?? 0, 2);
             }
             if (array_sum(array_map('abs', $values)) > 0) {
+                $shortName = !empty($labelOverridesMap[$key]) ? $labelOverridesMap[$key] : null;
                 $series[] = [
                     'id'             => $key,
                     'name'           => $s['name'],
+                    'short_name'     => $shortName,
                     'values'         => $values,
                     'default_active' => $defaultItemsArray === null || in_array($key, $defaultItemsArray),
                 ];

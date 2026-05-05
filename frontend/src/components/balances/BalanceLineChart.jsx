@@ -245,7 +245,7 @@ export default function BalanceLineChart({ compact = false, showLink = false, se
                             checked={active}
                             onChange={() => toggleItem(serie.id)}
                           />
-                          <span className="text-sm text-gray-700 truncate">{serie.name}</span>
+                          <span className="text-sm text-gray-700 truncate" title={serie.name}>{serie.short_name || serie.name}</span>
                         </label>
                       );
                     })}
@@ -283,7 +283,16 @@ export default function BalanceLineChart({ compact = false, showLink = false, se
                 width={65}
               />
               <Tooltip content={<CustomTooltip />} cursor={{ fill: CHART_THEME.tooltipCursor }} />
-              <Legend formatter={(value) => value} />
+              <Legend
+                formatter={(value) => (
+                  <span
+                    style={{ maxWidth: 160, display: 'inline-block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', verticalAlign: 'bottom' }}
+                    title={value}
+                  >
+                    {value}
+                  </span>
+                )}
+              />
               {visibleSeries.map((serie, idx) => {
                 const colorIdx = data.series.findIndex((s) => s.id === serie.id);
                 const color = LINE_COLORS[colorIdx % LINE_COLORS.length];
@@ -292,7 +301,7 @@ export default function BalanceLineChart({ compact = false, showLink = false, se
                     key={serie.id}
                     type="monotone"
                     dataKey={`item_${serie.id}`}
-                    name={serie.name}
+                    name={serie.short_name || serie.name}
                     stroke={color}
                     strokeWidth={2}
                     dot={{ r: 4, fill: color, strokeWidth: 0 }}

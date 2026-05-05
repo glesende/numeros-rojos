@@ -62,6 +62,7 @@ export default function BalanceChartDefaultItems() {
   const [allItems, setAllItems] = useState([]);
   const [filterItems, setFilterItems] = useState(null);
   const [defaultItems, setDefaultItems] = useState(null);
+  const [labelOverrides, setLabelOverrides] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -97,6 +98,16 @@ export default function BalanceChartDefaultItems() {
         } else {
           setDefaultItems(items.map((i) => i.id));
         }
+
+        // Load label overrides setting
+        const savedOverrides = settings.balance_chart_label_overrides;
+        if (savedOverrides) {
+          try {
+            setLabelOverrides(JSON.parse(savedOverrides));
+          } catch {
+            setLabelOverrides({});
+          }
+        }
       })
       .finally(() => setLoading(false));
   }, []);
@@ -121,9 +132,14 @@ export default function BalanceChartDefaultItems() {
   const handleSave = async () => {
     setSaving(true);
     try {
+      // Strip empty overrides before saving
+      const cleanOverrides = Object.fromEntries(
+        Object.entries(labelOverrides).filter(([, v]) => v.trim() !== '')
+      );
       await updateSettings({
         balance_chart_filter_items: JSON.stringify(filterItems),
         balance_chart_default_items: JSON.stringify(defaultItems),
+        balance_chart_label_overrides: JSON.stringify(cleanOverrides),
       });
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
@@ -238,6 +254,41 @@ export default function BalanceChartDefaultItems() {
               colorIndexMap={colorIndexMap}
             />
           </>
+        )}
+      </div>
+
+      {/* Step 3: Label overrides */}
+      <div>
+        <h3 className="text-base font-semibold text-gray-800 mb-1">
+          Paso 3 — Etiquetas cortas (opcional)
+        </h3>
+        <p className="text-sm text-gray-500 mb-3">
+          Definí un nombre abreviado para cada ítem. Se usará en el gráfico en lugar del nombre original cuando el texto sea muy largo. Dejá en blanco para usar el nombre original.
+        </p>
+        {filterableItems.length === 0 ? (
+          <p className="text-sm text-gray-400 italic">
+            Seleccioná al menos un ítem en el paso 1 para configurar sus etiquetas.
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {filterableItems.map((item) => (
+              <div key={item.id} className="flex items-center gap-3">
+                <span className="text-sm text-gray-500 w-1/2 truncate" title={item.name}>
+                  {item.name}
+                </span>
+                <input
+                  type="text"
+                  value={labelOverrides[item.id] ?? ''}
+                  onChange={(e) => {
+                    setLabelOverrides((prev) => ({ ...prev, [item.id]: e.target.value }));
+                    setSaved(false);
+                  }}
+                  placeholder="Etiqueta corta…"
+                  className="input text-sm flex-1"
+                />
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
