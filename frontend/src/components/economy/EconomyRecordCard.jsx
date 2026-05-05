@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import OfficialBadge from '../OfficialBadge';
 import SourceLabel from '../SourceLabel';
 
@@ -29,9 +30,9 @@ export default function EconomyRecordCard({ record: r }) {
           {formatMoney(r.amount, r.currency)}
         </span>
       </div>
-      <p className="text-sm font-medium text-gray-800 mb-2 leading-snug">
+      <Link to={`/economia/${r.id}`} className="block text-sm font-medium text-gray-800 mb-2 leading-snug hover:text-rojo hover:underline">
         {r.description || '-'}
-      </p>
+      </Link>
       {r.entity && (
         <p className="text-xs text-gray-500 mb-1">{r.entity}</p>
       )}
