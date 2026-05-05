@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { getEconomyRecords } from '../api/endpoints';
 import { useFilters } from '../hooks/useFilters';
 import EconomyFilters from '../components/economy/EconomyFilters';
@@ -7,8 +8,18 @@ import Pagination from '../components/common/Pagination';
 import Loader from '../components/common/Loader';
 import ErrorMessage from '../components/common/ErrorMessage';
 
+const ECONOMY_FILTER_KEYS = ['type', 'currency', 'carried_out', 'official', 'date_from', 'date_to', 'search'];
+
 export default function EconomyPage() {
-  const { filters, updateFilter, setPage, resetFilters, cleanParams } = useFilters();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const initialFilters = {};
+  ECONOMY_FILTER_KEYS.forEach((key) => {
+    const val = searchParams.get(key);
+    if (val !== null && val !== '') initialFilters[key] = val;
+  });
+
+  const { filters, updateFilter, setPage, resetFilters, cleanParams } = useFilters(initialFilters);
   const [data, setData] = useState({ data: [], totals: null, meta: null });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -17,6 +28,16 @@ export default function EconomyPage() {
     document.title = 'Compromisos Económicos | Números Rojos';
     return () => { document.title = 'Números Rojos'; };
   }, []);
+
+  // Sync active filters to URL for shareability
+  useEffect(() => {
+    const params = {};
+    ECONOMY_FILTER_KEYS.forEach((key) => {
+      const val = filters[key];
+      if (val !== null && val !== undefined && val !== '') params[key] = val;
+    });
+    setSearchParams(params, { replace: true });
+  }, [filters.type, filters.currency, filters.carried_out, filters.official, filters.date_from, filters.date_to, filters.search]);
 
   const fetchData = useCallback(() => {
     setLoading(true);
@@ -44,7 +65,7 @@ export default function EconomyPage() {
       <div className="flex items-center gap-2 mb-4">
         <span className="text-xs text-gray-400">Compartir</span>
         <a
-          href="https://wa.me/?text=Mir%C3%A1%20los%20compromisos%20econ%C3%B3micos%20de%20Independiente%3A%20https%3A%2F%2Fwww.numerosrojos.net%2Feconomia"
+          href={`https://wa.me/?text=${encodeURIComponent('Mirá los compromisos económicos de Independiente: ' + window.location.href)}`}
           target="_blank"
           rel="noopener noreferrer"
           className="text-gray-400 hover:text-green-600 transition-colors"
@@ -55,7 +76,7 @@ export default function EconomyPage() {
           </svg>
         </a>
         <a
-          href="https://x.com/intent/tweet?text=Mir%C3%A1%20los%20compromisos%20econ%C3%B3micos%20de%20Independiente%3A%20https%3A%2F%2Fwww.numerosrojos.net%2Feconomia"
+          href={`https://x.com/intent/tweet?text=${encodeURIComponent('Mirá los compromisos económicos de Independiente: ' + window.location.href)}`}
           target="_blank"
           rel="noopener noreferrer"
           className="text-gray-400 hover:text-gray-900 transition-colors"
