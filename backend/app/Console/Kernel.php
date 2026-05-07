@@ -14,6 +14,8 @@ class Kernel extends ConsoleKernel
 
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('twitter:monitor --dry-run')->dailyAt('08:00');
+        $schedule->command('twitter:monitor --dry-run')
+            ->dailyAt('08:10')
+            ->appendOutputTo(storage_path('logs/twitter-monitor.log'));
     }
 }
