@@ -94,5 +94,11 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
         $router->post('stadium/sectors', 'StadiumController@storeSector');
         $router->put('stadium/sectors/{id}', 'StadiumController@updateSector');
         $router->delete('stadium/sectors/{id}', 'StadiumController@destroySector');
+
+        // Twitter accounts CRUD
+        $router->get('twitter/accounts', 'TwitterController@index');
+        $router->post('twitter/accounts', 'TwitterController@store');
+        $router->put('twitter/accounts/{id}', 'TwitterController@update');
+        $router->delete('twitter/accounts/{id}', 'TwitterController@destroy');
     });
 });
