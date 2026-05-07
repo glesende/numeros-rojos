@@ -147,8 +147,8 @@ function PlayerContractSection({ player }) {
   return (
     <div className="space-y-4 text-sm">
       {contract.loan && (
-        <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
-          <p className="text-blue-800 font-semibold text-sm mb-2">
+        <div className="p-3 bloque-prestamo">
+          <p className="bloque-prestamo-titulo mb-2">
             Cedido a préstamo en {contract.loan.club}
           </p>
           {contract.loan.until && (

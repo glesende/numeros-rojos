@@ -97,8 +97,8 @@ export default function ContractDetailPage() {
         })()}
 
         {contract.loan && (
-          <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
-            <p className="text-blue-800 font-semibold text-sm mb-3">
+          <div className="mb-6 p-4 bloque-prestamo">
+            <p className="bloque-prestamo-titulo mb-3">
               Cedido a préstamo en {contract.loan.club}
             </p>
             <div className="grid grid-cols-2 gap-3 text-sm">
