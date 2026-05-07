@@ -67,6 +67,12 @@ export const updateStadiumSector = (id, data) => client.put(`/admin/stadium/sect
 export const deleteStadiumSector = (id) => client.delete(`/admin/stadium/sectors/${id}`);
 
 
+// Twitter accounts (admin)
+export const getTwitterAccounts = () => client.get('/admin/twitter/accounts');
+export const createTwitterAccount = (data) => client.post('/admin/twitter/accounts', data);
+export const updateTwitterAccount = (id, data) => client.put(`/admin/twitter/accounts/${id}`, data);
+export const deleteTwitterAccount = (id) => client.delete(`/admin/twitter/accounts/${id}`);
+
 // Contact
 export const sendContact = (data) => client.post('/contact', data);
 
