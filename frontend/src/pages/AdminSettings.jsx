@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { changePassword, getSettings, updateSettings } from '../api/endpoints';
+import {
+  changePassword, getSettings, updateSettings,
+  getTwitterAccounts, createTwitterAccount, updateTwitterAccount, deleteTwitterAccount,
+} from '../api/endpoints';
 import { useAuth } from '../context/AuthContext';
 import ErrorMessage from '../components/common/ErrorMessage';
 
@@ -41,6 +44,18 @@ export default function AdminSettings() {
   const [chartScaleSuccess, setChartScaleSuccess] = useState('');
   const [chartScaleLoading, setChartScaleLoading] = useState(false);
 
+  const [twitterApiKey, setTwitterApiKey] = useState('');
+  const [twitterKeyError, setTwitterKeyError] = useState('');
+  const [twitterKeySuccess, setTwitterKeySuccess] = useState('');
+  const [twitterKeyLoading, setTwitterKeyLoading] = useState(false);
+
+  const [twitterAccounts, setTwitterAccounts] = useState([]);
+  const [twitterAccountsLoaded, setTwitterAccountsLoaded] = useState(false);
+  const [newUsername, setNewUsername] = useState('');
+  const [newIsOfficial, setNewIsOfficial] = useState(false);
+  const [twitterAccountsError, setTwitterAccountsError] = useState('');
+  const [twitterAccountsLoading, setTwitterAccountsLoading] = useState(false);
+
   const { logout } = useAuth();
   const navigate = useNavigate();
 
@@ -56,9 +71,17 @@ export default function AdminSettings() {
         setChartScaleUsd(data.chart_scale_usd ?? '');
         setChartScaleEur(data.chart_scale_eur ?? '');
         setChartScaleArs(data.chart_scale_ars ?? '');
+        setTwitterApiKey(data.twitter_api_key || '');
         setSettingsLoaded(true);
       })
       .catch(() => setSettingsLoaded(true));
+
+    getTwitterAccounts()
+      .then((res) => {
+        setTwitterAccounts(res.data?.data || []);
+        setTwitterAccountsLoaded(true);
+      })
+      .catch(() => setTwitterAccountsLoaded(true));
   }, []);
 
   const handleSubmit = async (e) => {
@@ -146,6 +169,56 @@ export default function AdminSettings() {
       setOpenaiError(err.response?.data?.error || 'Error al guardar la configuración de OpenAI');
     } finally {
       setOpenaiLoading(false);
+    }
+  };
+
+  const handleTwitterKeySubmit = async (e) => {
+    e.preventDefault();
+    setTwitterKeyError('');
+    setTwitterKeySuccess('');
+    setTwitterKeyLoading(true);
+    try {
+      await updateSettings({ twitter_api_key: twitterApiKey });
+      setTwitterKeySuccess('API Key de X guardada correctamente');
+    } catch (err) {
+      setTwitterKeyError(err.response?.data?.error || 'Error al guardar la API Key de X');
+    } finally {
+      setTwitterKeyLoading(false);
+    }
+  };
+
+  const handleAddAccount = async (e) => {
+    e.preventDefault();
+    if (!newUsername.trim()) return;
+    setTwitterAccountsError('');
+    setTwitterAccountsLoading(true);
+    try {
+      const res = await createTwitterAccount({ username: newUsername.trim(), is_official: newIsOfficial });
+      setTwitterAccounts((prev) => [...prev, res.data.data]);
+      setNewUsername('');
+      setNewIsOfficial(false);
+    } catch (err) {
+      setTwitterAccountsError(err.response?.data?.error || 'Error al agregar la cuenta');
+    } finally {
+      setTwitterAccountsLoading(false);
+    }
+  };
+
+  const handleToggleOfficial = async (account) => {
+    try {
+      const res = await updateTwitterAccount(account.id, { is_official: !account.is_official });
+      setTwitterAccounts((prev) => prev.map((a) => (a.id === account.id ? res.data.data : a)));
+    } catch {
+      // silently ignore
+    }
+  };
+
+  const handleRemoveAccount = async (id) => {
+    try {
+      await deleteTwitterAccount(id);
+      setTwitterAccounts((prev) => prev.filter((a) => a.id !== id));
+    } catch {
+      // silently ignore
     }
   };
 
@@ -323,6 +396,119 @@ export default function AdminSettings() {
               {chartScaleLoading ? 'Guardando...' : 'Guardar escalas'}
             </button>
           </form>
+        )}
+      </div>
+
+      {/* Twitter / X configuration */}
+      <div className="card mb-6">
+        <h2 className="text-lg font-bold mb-1">Monitor X (Twitter)</h2>
+        <p className="text-sm text-gray-500 mb-4">
+          Configurá el Bearer Token de la API de X y las cuentas a monitorear. El agente revisa novedades diariamente y actualiza el contenido de forma automática.
+        </p>
+
+        {!settingsLoaded ? (
+          <p className="text-sm text-gray-500">Cargando...</p>
+        ) : (
+          <form onSubmit={handleTwitterKeySubmit} className="space-y-4 mb-6">
+            {twitterKeyError && <ErrorMessage message={twitterKeyError} />}
+            {twitterKeySuccess && (
+              <div className="p-3 bg-green-50 text-green-700 rounded-lg text-sm">
+                {twitterKeySuccess}
+              </div>
+            )}
+            <div>
+              <label className="block text-sm font-medium mb-1">Bearer Token de X</label>
+              <input
+                type="password"
+                value={twitterApiKey}
+                onChange={(e) => setTwitterApiKey(e.target.value)}
+                className="input-field w-full"
+                placeholder="AAAA..."
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                Se obtiene en el portal de desarrolladores de X (Twitter).
+              </p>
+            </div>
+            <button
+              type="submit"
+              disabled={twitterKeyLoading}
+              className="btn-primary w-full"
+            >
+              {twitterKeyLoading ? 'Guardando...' : 'Guardar Bearer Token'}
+            </button>
+          </form>
+        )}
+
+        <h3 className="text-sm font-semibold mb-2">Cuentas a monitorear</h3>
+
+        {twitterAccountsError && <ErrorMessage message={twitterAccountsError} />}
+
+        {!twitterAccountsLoaded ? (
+          <p className="text-sm text-gray-500">Cargando...</p>
+        ) : (
+          <>
+            {twitterAccounts.length === 0 ? (
+              <p className="text-sm text-gray-400 mb-3">No hay cuentas configuradas.</p>
+            ) : (
+              <ul className="space-y-2 mb-4">
+                {twitterAccounts.map((account) => (
+                  <li key={account.id} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2">
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium">@{account.username}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleOfficial(account)}
+                        className={`text-xs px-2 py-0.5 rounded-full border ${
+                          account.is_official
+                            ? 'bg-blue-50 text-blue-700 border-blue-200'
+                            : 'bg-gray-100 text-gray-500 border-gray-200'
+                        }`}
+                      >
+                        {account.is_official ? 'Oficial' : 'No oficial'}
+                      </button>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveAccount(account.id)}
+                      className="text-xs text-red-500 hover:underline"
+                    >
+                      Eliminar
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <form onSubmit={handleAddAccount} className="flex items-end gap-2">
+              <div className="flex-1">
+                <label className="block text-xs font-medium mb-1">Usuario</label>
+                <input
+                  type="text"
+                  value={newUsername}
+                  onChange={(e) => setNewUsername(e.target.value)}
+                  className="input-field w-full"
+                  placeholder="@usuario"
+                />
+              </div>
+              <div className="flex items-center gap-1 pb-1">
+                <input
+                  id="newIsOfficial"
+                  type="checkbox"
+                  checked={newIsOfficial}
+                  onChange={(e) => setNewIsOfficial(e.target.checked)}
+                  className="rounded"
+                />
+                <label htmlFor="newIsOfficial" className="text-xs text-gray-600">Oficial</label>
+              </div>
+              <button
+                type="submit"
+                disabled={twitterAccountsLoading || !newUsername.trim()}
+                className="btn-primary whitespace-nowrap"
+              >
+                Agregar
+              </button>
+            </form>
+          </>
         )}
       </div>
 

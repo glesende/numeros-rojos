@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 
-use Laravel\Lumen\Console\Kernel;
+use App\Console\Kernel;
 
 require_once __DIR__ . '/vendor/autoload.php';
 

@@ -135,7 +135,7 @@ export default function BalanceLineChart({ compact = false, showLink = false, se
   const allSelected = activeItems.length === data.series.length;
 
   return (
-    <div className="card overflow-hidden">
+    <div className="card">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <div>
           <h2 className="text-xl font-bold text-gray-900">Evolución de balances</h2>
@@ -185,7 +185,10 @@ export default function BalanceLineChart({ compact = false, showLink = false, se
               </button>
 
               {dropdownOpen && (
-                <div className="absolute right-0 top-full mt-1 z-50 bg-white border border-gray-200 rounded-xl shadow-lg min-w-[220px] py-2">
+                <div
+                  className="absolute right-0 top-full mt-1 z-50 bg-white border border-gray-200 rounded-xl shadow-lg min-w-[220px] py-2"
+                  onMouseDown={(e) => e.stopPropagation()}
+                >
                   {/* Select / Deselect all */}
                   <div className="flex items-center gap-2 px-3 py-1.5 border-b border-gray-100 mb-1">
                     <button
@@ -211,9 +214,15 @@ export default function BalanceLineChart({ compact = false, showLink = false, se
                       const color = LINE_COLORS[idx % LINE_COLORS.length];
                       const active = activeItems.includes(serie.id);
                       return (
-                        <label
+                        <div
                           key={serie.id}
+                          role="checkbox"
+                          aria-checked={active}
+                          tabIndex={0}
                           className="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 cursor-pointer select-none"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => toggleItem(serie.id)}
+                          onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && toggleItem(serie.id)}
                         >
                           <div
                             className="w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors"
@@ -239,14 +248,8 @@ export default function BalanceLineChart({ compact = false, showLink = false, se
                               </svg>
                             )}
                           </div>
-                          <input
-                            type="checkbox"
-                            className="sr-only"
-                            checked={active}
-                            onChange={() => toggleItem(serie.id)}
-                          />
                           <span className="text-sm text-gray-700 truncate" title={serie.name}>{serie.short_name || serie.name}</span>
-                        </label>
+                        </div>
                       );
                     })}
                   </div>
@@ -262,57 +265,66 @@ export default function BalanceLineChart({ compact = false, showLink = false, se
           Seleccioná al menos un ítem para visualizar.
         </div>
       ) : (
-        <div style={{ height: compact ? 260 : 360 }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={chartData}
-              margin={{ top: 8, right: 16, left: 8, bottom: 8 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_THEME.grid} />
-              <XAxis
-                dataKey="exercise"
-                tick={{ fontSize: 12, fill: CHART_THEME.axisText }}
-                tickLine={false}
-                axisLine={{ stroke: CHART_THEME.axisLine }}
-              />
-              <YAxis
-                tickFormatter={(v) => formatAmount(v)}
-                tick={{ fontSize: 10, fill: CHART_THEME.axisText }}
-                tickLine={false}
-                axisLine={false}
-                width={65}
-              />
-              <Tooltip content={<CustomTooltip />} cursor={{ fill: CHART_THEME.tooltipCursor }} />
-              <Legend
-                formatter={(value) => (
+        <>
+          <div style={{ height: compact ? 260 : 360 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={chartData}
+                margin={{ top: 8, right: 16, left: 8, bottom: 8 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_THEME.grid} />
+                <XAxis
+                  dataKey="exercise"
+                  tick={{ fontSize: 12, fill: CHART_THEME.axisText }}
+                  tickLine={false}
+                  axisLine={{ stroke: CHART_THEME.axisLine }}
+                />
+                <YAxis
+                  tickFormatter={(v) => formatAmount(v)}
+                  tick={{ fontSize: 10, fill: CHART_THEME.axisText }}
+                  tickLine={false}
+                  axisLine={false}
+                  width={65}
+                />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: CHART_THEME.tooltipCursor }} />
+                {visibleSeries.map((serie, idx) => {
+                  const colorIdx = data.series.findIndex((s) => s.id === serie.id);
+                  const color = LINE_COLORS[colorIdx % LINE_COLORS.length];
+                  return (
+                    <Line
+                      key={serie.id}
+                      type="monotone"
+                      dataKey={`item_${serie.id}`}
+                      name={serie.short_name || serie.name}
+                      stroke={color}
+                      strokeWidth={2}
+                      dot={{ r: 4, fill: color, strokeWidth: 0 }}
+                      activeDot={{ r: 6 }}
+                      connectNulls
+                    />
+                  );
+                })}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 pl-[65px]">
+            {visibleSeries.map((serie) => {
+              const colorIdx = data.series.findIndex((s) => s.id === serie.id);
+              const color = LINE_COLORS[colorIdx % LINE_COLORS.length];
+              return (
+                <div key={serie.id} className="flex items-center gap-1.5 min-w-0">
+                  <div className="flex-shrink-0 w-4 rounded" style={{ height: 2, backgroundColor: color }} />
                   <span
-                    style={{ maxWidth: 160, display: 'inline-block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', verticalAlign: 'bottom' }}
-                    title={value}
+                    className="text-xs text-gray-600 truncate max-w-[160px]"
+                    title={serie.name}
                   >
-                    {value}
+                    {serie.short_name || serie.name}
                   </span>
-                )}
-              />
-              {visibleSeries.map((serie, idx) => {
-                const colorIdx = data.series.findIndex((s) => s.id === serie.id);
-                const color = LINE_COLORS[colorIdx % LINE_COLORS.length];
-                return (
-                  <Line
-                    key={serie.id}
-                    type="monotone"
-                    dataKey={`item_${serie.id}`}
-                    name={serie.short_name || serie.name}
-                    stroke={color}
-                    strokeWidth={2}
-                    dot={{ r: 4, fill: color, strokeWidth: 0 }}
-                    activeDot={{ r: 6 }}
-                    connectNulls
-                  />
-                );
-              })}
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
       )}
     </div>
   );
