@@ -6,6 +6,15 @@ import Loader from '../components/common/Loader';
 import OfficialBadge from '../components/OfficialBadge';
 import SourceLabel from '../components/SourceLabel';
 
+function formatDate(dateStr) {
+  if (!dateStr) return '-';
+  const d = new Date(dateStr);
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const year = d.getUTCFullYear();
+  return `${day}-${month}-${year}`;
+}
+
 export default function EconomyDetailPage() {
   const { id } = useParams();
   const [record, setRecord] = useState(null);
@@ -101,7 +110,7 @@ export default function EconomyDetailPage() {
           </div>
           <div>
             <p className="text-gray-500">Fecha</p>
-            <p className="font-medium">{record.record_date || 'Sin fecha'}</p>
+            <p className="font-medium">{formatDate(record.record_date) || 'Sin fecha'}</p>
           </div>
         </div>
 

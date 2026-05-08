@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import EconomyRecordCard from './EconomyRecordCard';
 import OfficialBadge from '../OfficialBadge';
 import SourceLabel from '../SourceLabel';
@@ -75,11 +76,11 @@ export default function EconomyTable({ records, sortBy, sortDir, onSort }) {
               <tr key={r.id} className="border-b border-gray-100 hover:bg-gray-50">
                 <td className="py-3 pr-4 whitespace-nowrap">{formatDate(r.record_date)}</td>
                 <td className="py-3 pr-4">
-                  <span className="font-medium">
+                  <Link to={`/economia/${r.id}`} className="font-medium text-gray-900 hover:text-rojo hover:underline">
                     {r.description
                       ? (r.description.length > 60 ? r.description.slice(0, 60) + '...' : r.description)
                       : '-'}
-                  </span>
+                  </Link>
                 </td>
                 <td className="py-3 pr-4 text-gray-600 text-xs">
                   {r.entity || '-'}
