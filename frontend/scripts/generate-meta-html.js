@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
 /**
- * Script post-build: genera versiones de index.html con OG tags específicos por ruta.
+ * Script post-build: genera versiones de index.html con OG tags y canonical específicos por ruta.
  * Se ejecuta automáticamente después de `npm run build` via el hook "postbuild".
  *
  * Genera dist/{ruta}/index.html con og:title, og:description, og:url,
- * twitter:title y twitter:description específicos para cada sección del portal.
+ * twitter:title, twitter:description y canonical correctos para cada sección.
  */
 
 import { readFileSync, mkdirSync, writeFileSync } from 'fs';
@@ -19,28 +19,33 @@ const baseUrl = 'https://www.numerosrojos.net';
 const routes = [
   {
     path: 'contratos',
-    title: 'Contratos del plantel de Independiente | Números Rojos',
-    description: 'Salarios, fechas de vencimiento y condiciones contractuales de los jugadores del plantel de Independiente.',
+    title: 'Contratos de jugadores de Independiente | Números Rojos',
+    description:
+      'Contratos profesionales del plantel de Independiente: fechas de vencimiento, salarios estimados, cláusulas y porcentajes del pase. Datos actualizados.',
   },
   {
     path: 'economia',
     title: 'Compromisos económicos de Independiente | Números Rojos',
-    description: 'Registro de compromisos económicos, deudas y pagos del Club Atlético Independiente.',
+    description:
+      'Registro completo de compromisos económicos, deudas, pagos y cobros del Club Atlético Independiente. Fuentes periodísticas y oficiales.',
   },
   {
     path: 'balances',
     title: 'Balances oficiales de Independiente | Números Rojos',
-    description: 'Balances patrimoniales y estados contables oficiales del Club Atlético Independiente.',
+    description:
+      'Balances patrimoniales y estados contables oficiales del Club Atlético Independiente. Evolución histórica y desglose detallado.',
   },
   {
     path: 'estadisticas',
     title: 'Estadísticas del plantel de Independiente | Números Rojos',
-    description: 'Tabla de posiciones y fichas estadísticas de los jugadores del plantel de Independiente.',
+    description:
+      'Tabla de posiciones y fichas estadísticas de los jugadores del plantel de Independiente en el torneo actual.',
   },
   {
     path: 'estadio',
     title: 'Estadio Libertadores de América | Números Rojos',
-    description: 'Capacidad y distribución de sectores del estadio Libertadores de América de Independiente.',
+    description:
+      'Capacidad, sectores y datos del Estadio Libertadores de América del Club Atlético Independiente.',
   },
 ];
 
@@ -74,6 +79,21 @@ for (const route of routes) {
     .replace(
       /(<meta\s+name="twitter:description"\s+content=")[^"]*(")/,
       `$1${route.description}$2`
+    )
+    // meta description
+    .replace(
+      /(<meta\s+name="description"\s+content=")[^"]*(")/,
+      `$1${route.description}$2`
+    )
+    // canonical
+    .replace(
+      /(<link\s+rel="canonical"\s+href=")[^"]*(")/,
+      `$1${url}$2`
+    )
+    // title tag
+    .replace(
+      /(<title>)[^<]*(<\/title>)/,
+      `$1${route.title}$2`
     );
 
   const outDir = join(distDir, route.path);
@@ -83,4 +103,4 @@ for (const route of routes) {
   console.log(`✓ dist/${route.path}/index.html generado`);
 }
 
-console.log(`\nMeta tags OG generados para ${routes.length} rutas.`);
+console.log(`\nMeta tags SEO generados para ${routes.length} rutas.`);

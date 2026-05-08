@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getContract } from '../api/endpoints';
+import { usePageMeta } from '../hooks/usePageMeta';
 import Loader from '../components/common/Loader';
 import OfficialBadge from '../components/OfficialBadge';
 import SourceLabel from '../components/SourceLabel';
@@ -24,11 +25,62 @@ export default function ContractDetailPage() {
       .then((contractRes) => {
         const c = contractRes.data.data;
         setContract(c);
-        if (c) document.title = `Contrato de ${c.full_name} | Números Rojos`;
       })
       .finally(() => setLoading(false));
-    return () => { document.title = 'Números Rojos'; };
   }, [id]);
+
+  const metaTitle = contract
+    ? `Contrato de ${contract.full_name} en Independiente | Números Rojos`
+    : null;
+
+  const metaDescription = contract
+    ? (() => {
+        const salary = contract.estimated_salary
+          ? new Intl.NumberFormat('es-AR', {
+              style: 'currency',
+              currency: contract.currency || 'USD',
+              maximumFractionDigits: 0,
+            }).format(contract.estimated_salary)
+          : null;
+        const parts = [`Contrato de ${contract.full_name} en el Club Atlético Independiente.`];
+        if (salary) parts.push(`Salario estimado: ${salary}.`);
+        if (contract.expiration_date) parts.push(`Vencimiento: ${formatDate(contract.expiration_date)}.`);
+        parts.push('Datos en Números Rojos.');
+        return parts.join(' ');
+      })()
+    : null;
+
+  const structuredData = useMemo(() => {
+    if (!contract) return null;
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      headline: `Contrato de ${contract.full_name} en Independiente`,
+      description: metaDescription,
+      url: `https://www.numerosrojos.net/contratos/${id}`,
+      dateModified: contract.updated_at,
+      publisher: {
+        '@type': 'Organization',
+        name: 'Números Rojos',
+        url: 'https://www.numerosrojos.net',
+      },
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': `https://www.numerosrojos.net/contratos/${id}`,
+      },
+      about: {
+        '@type': 'Person',
+        name: contract.full_name,
+      },
+    };
+  }, [contract, id, metaDescription]);
+
+  usePageMeta({
+    title: metaTitle,
+    description: metaDescription,
+    path: `/contratos/${id}`,
+    structuredData,
+  });
 
   if (loading) return <Loader />;
   if (!contract) return <p className="text-center py-12 text-gray-500">No encontrado.</p>;

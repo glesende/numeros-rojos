@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getEconomyRecords } from '../api/endpoints';
 import { useFilters } from '../hooks/useFilters';
+import { usePageMeta } from '../hooks/usePageMeta';
 import EconomyFilters from '../components/economy/EconomyFilters';
 import EconomyTable from '../components/economy/EconomyTable';
 import Pagination from '../components/common/Pagination';
@@ -26,10 +27,11 @@ export default function EconomyPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    document.title = 'Compromisos Económicos | Números Rojos';
-    return () => { document.title = 'Números Rojos'; };
-  }, []);
+  usePageMeta({
+    title: 'Compromisos económicos de Independiente | Números Rojos',
+    description: 'Registro completo de compromisos económicos, deudas, pagos y cobros del Club Atlético Independiente. Fuentes periodísticas y oficiales.',
+    path: '/economia',
+  });
 
   // Sync sort state to URL for shareability
   useEffect(() => {

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getStadium } from '../api/endpoints';
+import { usePageMeta } from '../hooks/usePageMeta';
 import Loader from '../components/common/Loader';
 
 function formatDate(dateStr) {
@@ -35,10 +36,11 @@ export default function StadiumPage() {
   const [matches, setMatches] = useState([]);
   const [showPast, setShowPast] = useState(false);
 
-  useEffect(() => {
-    document.title = 'Estadio | Números Rojos';
-    return () => { document.title = 'Números Rojos'; };
-  }, []);
+  usePageMeta({
+    title: 'Estadio Libertadores de América | Números Rojos',
+    description: 'Capacidad, sectores y datos del Estadio Libertadores de América del Club Atlético Independiente.',
+    path: '/estadio',
+  });
 
   useEffect(() => {
     getStadium()

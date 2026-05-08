@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Models\Balance;
 use App\Models\Contract;
 use App\Models\EconomyRecord;
 use Illuminate\Http\Response;
@@ -11,26 +12,27 @@ class SitemapController extends Controller
 {
     public function index(): Response
     {
-        $baseUrl = rtrim(env('FRONTEND_URL', 'https://numerosrojos.com.ar'), '/');
+        $baseUrl = rtrim(env('FRONTEND_URL', 'https://www.numerosrojos.net'), '/');
 
-        $contracts = Contract::select('id', 'updated_at')->orderBy('id')->get();
+        $contracts     = Contract::select('id', 'updated_at')->orderBy('id')->get();
         $economyRecords = EconomyRecord::select('id', 'updated_at')->orderBy('id')->get();
+        $balances      = Balance::select('id', 'updated_at')->orderBy('id')->get();
 
         $urls = [];
 
         // Páginas estáticas
-        $urls[] = ['loc' => $baseUrl . '/', 'priority' => '1.0', 'changefreq' => 'weekly'];
-        $urls[] = ['loc' => $baseUrl . '/contratos', 'priority' => '0.8', 'changefreq' => 'daily'];
-        $urls[] = ['loc' => $baseUrl . '/economia', 'priority' => '0.8', 'changefreq' => 'daily'];
-        $urls[] = ['loc' => $baseUrl . '/rendimiento', 'priority' => '0.8', 'changefreq' => 'weekly'];
-        $urls[] = ['loc' => $baseUrl . '/metodologia', 'priority' => '0.8', 'changefreq' => 'monthly'];
+        $urls[] = ['loc' => $baseUrl . '/',             'priority' => '1.0', 'changefreq' => 'weekly'];
+        $urls[] = ['loc' => $baseUrl . '/contratos',    'priority' => '0.9', 'changefreq' => 'daily'];
+        $urls[] = ['loc' => $baseUrl . '/economia',     'priority' => '0.9', 'changefreq' => 'daily'];
+        $urls[] = ['loc' => $baseUrl . '/balances',     'priority' => '0.7', 'changefreq' => 'monthly'];
+        $urls[] = ['loc' => $baseUrl . '/estadisticas', 'priority' => '0.6', 'changefreq' => 'weekly'];
 
         // Páginas dinámicas de contratos
         foreach ($contracts as $contract) {
             $urls[] = [
                 'loc'        => $baseUrl . '/contratos/' . $contract->id,
                 'lastmod'    => $contract->updated_at->toAtomString(),
-                'priority'   => '0.6',
+                'priority'   => '0.7',
                 'changefreq' => 'monthly',
             ];
         }
@@ -40,7 +42,17 @@ class SitemapController extends Controller
             $urls[] = [
                 'loc'        => $baseUrl . '/economia/' . $record->id,
                 'lastmod'    => $record->updated_at->toAtomString(),
-                'priority'   => '0.6',
+                'priority'   => '0.7',
+                'changefreq' => 'monthly',
+            ];
+        }
+
+        // Páginas dinámicas de balances
+        foreach ($balances as $balance) {
+            $urls[] = [
+                'loc'        => $baseUrl . '/balances/' . $balance->id,
+                'lastmod'    => $balance->updated_at->toAtomString(),
+                'priority'   => '0.5',
                 'changefreq' => 'monthly',
             ];
         }

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getContracts } from '../api/endpoints';
 import { useFilters } from '../hooks/useFilters';
+import { usePageMeta } from '../hooks/usePageMeta';
 import ContractFilters from '../components/contracts/ContractFilters';
 import ContractTable from '../components/contracts/ContractTable';
 import ContractWidgets from '../components/contracts/ContractWidgets';
@@ -27,10 +28,11 @@ export default function ContractsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    document.title = 'Contratos | Números Rojos';
-    return () => { document.title = 'Números Rojos'; };
-  }, []);
+  usePageMeta({
+    title: 'Contratos de jugadores de Independiente | Números Rojos',
+    description: 'Contratos profesionales del plantel de Independiente: fechas de vencimiento, salarios estimados, cláusulas y porcentajes del pase. Datos actualizados.',
+    path: '/contratos',
+  });
 
   // Sync sort state to URL for shareability
   useEffect(() => {
