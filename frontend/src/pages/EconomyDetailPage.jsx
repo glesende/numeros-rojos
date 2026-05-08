@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getEconomyRecord } from '../api/endpoints';
+import { usePageMeta } from '../hooks/usePageMeta';
 import Loader from '../components/common/Loader';
 import OfficialBadge from '../components/OfficialBadge';
 import SourceLabel from '../components/SourceLabel';
@@ -15,11 +16,57 @@ export default function EconomyDetailPage() {
       .then((res) => {
         const r = res.data.data;
         setRecord(r);
-        if (r) document.title = `${r.description} | Números Rojos`;
       })
       .finally(() => setLoading(false));
-    return () => { document.title = 'Números Rojos'; };
   }, [id]);
+
+  const metaTitle = record
+    ? `${record.description} | Números Rojos`
+    : null;
+
+  const metaDescription = record
+    ? (() => {
+        const amount = new Intl.NumberFormat('es-AR', {
+          style: 'currency',
+          currency: record.currency,
+          maximumFractionDigits: 0,
+        }).format(record.amount);
+        const tipo = record.type === 'cobro' ? 'Cobro' : 'Pago';
+        const parts = [`${tipo} de ${amount}`];
+        if (record.entity) parts.push(`relacionado con ${record.entity}`);
+        if (record.record_date) parts.push(`(${record.record_date})`);
+        parts.push('— Club Atlético Independiente. Datos en Números Rojos.');
+        return parts.join(' ');
+      })()
+    : null;
+
+  const structuredData = useMemo(() => {
+    if (!record) return null;
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      headline: record.description,
+      description: metaDescription,
+      url: `https://www.numerosrojos.net/economia/${id}`,
+      dateModified: record.updated_at,
+      publisher: {
+        '@type': 'Organization',
+        name: 'Números Rojos',
+        url: 'https://www.numerosrojos.net',
+      },
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': `https://www.numerosrojos.net/economia/${id}`,
+      },
+    };
+  }, [record, id, metaDescription]);
+
+  usePageMeta({
+    title: metaTitle,
+    description: metaDescription,
+    path: `/economia/${id}`,
+    structuredData,
+  });
 
   if (loading) return <Loader />;
   if (!record) return <p className="text-center py-12 text-gray-500">No encontrado.</p>;

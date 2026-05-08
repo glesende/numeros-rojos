@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { getContracts, getRights, getStadium, sendContact } from '../api/endpoints';
+import { usePageMeta } from '../hooks/usePageMeta';
 import PlayerMatchesModal from '../components/stats/PlayerMatchesModal';
 import Loader from '../components/common/Loader';
 import MonthlyBarChart from '../components/economy/MonthlyBarChart';
@@ -343,10 +344,11 @@ export default function HomePage() {
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => {
-    document.title = 'Números Rojos | Portal de Datos del Club Atlético Independiente';
-    return () => { document.title = 'Números Rojos'; };
-  }, []);
+  usePageMeta({
+    title: 'Números Rojos - Portal de datos del Club Atlético Independiente',
+    description: 'Portal de transparencia económica y deportiva del Club Atlético Independiente. Contratos de jugadores, compromisos económicos, deudas, balances oficiales y estadísticas.',
+    path: '/',
+  });
 
   useEffect(() => {
     fetchContracts();
