@@ -3,11 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Los datos económicos, contractuales y deportivos que todo socio de Independiente tiene que saber." />
+    <meta name="description" content="Portal de transparencia económica y deportiva del Club Atlético Independiente. Contratos de jugadores, compromisos económicos, deudas, balances oficiales y estadísticas." />
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://www.numerosrojos.net/" />
 
     <!-- Open Graph -->
     <meta property="og:title" content="Números Rojos - Portal de datos de Independiente" />
-    <meta property="og:description" content="Los datos económicos, contractuales y deportivos que todo socio de Independiente tiene que saber." />
+    <meta property="og:description" content="Portal de transparencia económica y deportiva del Club Atlético Independiente. Contratos de jugadores, compromisos económicos, deudas, balances oficiales y estadísticas." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://www.numerosrojos.net/" />
     <meta property="og:image" content="https://www.numerosrojos.net/og-image-nr.png" />
@@ -19,7 +22,7 @@
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Números Rojos - Portal de datos de Independiente" />
-    <meta name="twitter:description" content="Los datos económicos, contractuales y deportivos que todo socio de Independiente tiene que saber." />
+    <meta name="twitter:description" content="Portal de transparencia económica y deportiva del Club Atlético Independiente. Contratos de jugadores, compromisos económicos, deudas, balances oficiales y estadísticas." />
     <meta name="twitter:image" content="https://www.numerosrojos.net/og-image-nr.png" />
 
     <!-- JSON-LD Structured Data -->
@@ -32,7 +35,15 @@
           "name": "Números Rojos",
           "url": "https://www.numerosrojos.net",
           "description": "Portal de datos abiertos del Club Atlético Independiente. Transparencia económica, contractual y deportiva.",
-          "inLanguage": "es-AR"
+          "inLanguage": "es-AR",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://www.numerosrojos.net/contratos?search={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+          }
         },
         {
           "@type": "Organization",
@@ -52,7 +63,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>Numeros Rojos - Portal de datos del Club Atlético Independiente</title>
+    <title>Números Rojos - Portal de datos del Club Atlético Independiente</title>
     <!-- Google Analytics 4 (carga solo si VITE_GA_MEASUREMENT_ID está definido en el build) -->
     <script>
       (function() {

@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getBalance, getBalanceDownloadUrl } from '../api/endpoints';
+import { usePageMeta } from '../hooks/usePageMeta';
 import Loader from '../components/common/Loader';
 import BalanceBreakdownTable from '../components/balances/BalanceBreakdownTable';
 
@@ -16,13 +17,56 @@ export default function BalanceDetailPage() {
       .then((res) => {
         const d = res.data?.data;
         setBalance(d);
-        document.title = `Números Rojos | Balance ${d?.exercise || ''}`;
       })
       .catch(() => setError('No se pudo cargar el balance.'))
       .finally(() => setLoading(false));
-
-    return () => { document.title = 'Números Rojos'; };
   }, [id]);
+
+  const metaTitle = balance
+    ? `Balance ${balance.exercise} de Independiente | Números Rojos`
+    : null;
+
+  const metaDescription = balance
+    ? (() => {
+        const parts = [`Balance patrimonial del ejercicio ${balance.exercise} del Club Atlético Independiente.`];
+        if (balance.published_at) {
+          const fecha = new Date(balance.published_at).toLocaleDateString('es-AR', {
+            day: '2-digit', month: 'long', year: 'numeric',
+          });
+          parts.push(`Publicado el ${fecha}.`);
+        }
+        parts.push('Datos en Números Rojos.');
+        return parts.join(' ');
+      })()
+    : null;
+
+  const structuredData = useMemo(() => {
+    if (!balance) return null;
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      headline: `Balance ${balance.exercise} del Club Atlético Independiente`,
+      description: metaDescription,
+      url: `https://www.numerosrojos.net/balances/${id}`,
+      dateModified: balance.updated_at,
+      publisher: {
+        '@type': 'Organization',
+        name: 'Números Rojos',
+        url: 'https://www.numerosrojos.net',
+      },
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': `https://www.numerosrojos.net/balances/${id}`,
+      },
+    };
+  }, [balance, id, metaDescription]);
+
+  usePageMeta({
+    title: metaTitle,
+    description: metaDescription,
+    path: `/balances/${id}`,
+    structuredData,
+  });
 
   if (loading) {
     return (

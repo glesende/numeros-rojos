@@ -1,22 +1,72 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { getEconomyRecords } from '../api/endpoints';
 import { useFilters } from '../hooks/useFilters';
+import { usePageMeta } from '../hooks/usePageMeta';
 import EconomyFilters from '../components/economy/EconomyFilters';
 import EconomyTable from '../components/economy/EconomyTable';
 import Pagination from '../components/common/Pagination';
 import Loader from '../components/common/Loader';
 import ErrorMessage from '../components/common/ErrorMessage';
 
+const ECONOMY_FILTER_KEYS = ['type', 'currency', 'carried_out', 'official', 'date_from', 'date_to', 'search'];
+const ALLOWED_SORT_FIELDS = ['record_date', 'amount'];
+
 export default function EconomyPage() {
-  const { filters, updateFilter, setPage, resetFilters, cleanParams } = useFilters();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const initialFilters = {};
+  
+  ECONOMY_FILTER_KEYS.forEach((key) => {
+    const val = searchParams.get(key);
+    if (val !== null && val !== '') initialFilters[key] = val;
+  });
+  
+  const initialSortBy = ALLOWED_SORT_FIELDS.includes(searchParams.get('sort_by'))
+    ? searchParams.get('sort_by')
+    : 'record_date';
+  const initialSortDir = searchParams.get('sort_dir') === 'asc' ? 'asc' : 'desc';
+
+  const { filters, updateFilter, setPage, resetFilters, cleanParams } = useFilters({
+    sort_by: initialSortBy,
+    sort_dir: initialSortDir,
+  });
   const [data, setData] = useState({ data: [], totals: null, meta: null });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  usePageMeta({
+    title: 'Compromisos económicos de Independiente | Números Rojos',
+    description: 'Registro completo de compromisos económicos, deudas, pagos y cobros del Club Atlético Independiente. Fuentes periodísticas y oficiales.',
+    path: '/economia',
+  });
+
+  // Sync sort state to URL for shareability
   useEffect(() => {
-    document.title = 'Compromisos Económicos | Números Rojos';
-    return () => { document.title = 'Números Rojos'; };
-  }, []);
+    const params = {};
+    if (filters.sort_by && filters.sort_by !== 'record_date') params.sort_by = filters.sort_by;
+    if (filters.sort_dir && filters.sort_dir !== 'desc') params.sort_dir = filters.sort_dir;
+    setSearchParams(params, { replace: true });
+  }, [filters.sort_by, filters.sort_dir]);
+
+  const handleSort = useCallback((field) => {
+    if (filters.sort_by === field) {
+      updateFilter('sort_dir', filters.sort_dir === 'desc' ? 'asc' : 'desc');
+    } else {
+      updateFilter('sort_by', field);
+      updateFilter('sort_dir', 'desc');
+    }
+  }, [filters.sort_by, filters.sort_dir, updateFilter]);
+
+  // Sync active filters to URL for shareability
+  useEffect(() => {
+    const params = {};
+    ECONOMY_FILTER_KEYS.forEach((key) => {
+      const val = filters[key];
+      if (val !== null && val !== undefined && val !== '') params[key] = val;
+    });
+    setSearchParams(params, { replace: true });
+  }, [filters.type, filters.currency, filters.carried_out, filters.official, filters.date_from, filters.date_to, filters.search]);
 
   const fetchData = useCallback(() => {
     setLoading(true);
@@ -44,7 +94,7 @@ export default function EconomyPage() {
       <div className="flex items-center gap-2 mb-4">
         <span className="text-xs text-gray-400">Compartir</span>
         <a
-          href="https://wa.me/?text=Mir%C3%A1%20los%20compromisos%20econ%C3%B3micos%20de%20Independiente%3A%20https%3A%2F%2Fwww.numerosrojos.net%2Feconomia"
+          href={`https://wa.me/?text=${encodeURIComponent('Mirá los compromisos económicos de Independiente: ' + window.location.href)}`}
           target="_blank"
           rel="noopener noreferrer"
           className="text-gray-400 hover:text-green-600 transition-colors"
@@ -55,7 +105,7 @@ export default function EconomyPage() {
           </svg>
         </a>
         <a
-          href="https://x.com/intent/tweet?text=Mir%C3%A1%20los%20compromisos%20econ%C3%B3micos%20de%20Independiente%3A%20https%3A%2F%2Fwww.numerosrojos.net%2Feconomia"
+          href={`https://x.com/intent/tweet?text=${encodeURIComponent('Mirá los compromisos económicos de Independiente: ' + window.location.href)}`}
           target="_blank"
           rel="noopener noreferrer"
           className="text-gray-400 hover:text-gray-900 transition-colors"
@@ -77,7 +127,12 @@ export default function EconomyPage() {
         </div>
       ) : (
         <div className="card">
-          <EconomyTable records={data.data} />
+          <EconomyTable
+            records={data.data}
+            sortBy={filters.sort_by}
+            sortDir={filters.sort_dir}
+            onSort={handleSort}
+          />
           <Pagination meta={data.meta} onPageChange={setPage} />
         </div>
       )}

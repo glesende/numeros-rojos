@@ -21,7 +21,29 @@ function formatMoney(amount, currency) {
   return fmt.format(amount);
 }
 
-export default function EconomyTable({ records }) {
+function SortIcon({ active, dir }) {
+  if (!active) return <span className="ml-1 text-gray-300">↕</span>;
+  return <span className="ml-1 text-rojo">{dir === 'asc' ? '↑' : '↓'}</span>;
+}
+
+function SortableHeader({ label, field, sortBy, sortDir, onSort, className = '' }) {
+  const active = sortBy === field;
+  return (
+    <th className={`pb-3 pr-4 ${className}`}>
+      <button
+        onClick={() => onSort(field)}
+        className={`flex items-center gap-0 uppercase text-xs font-semibold tracking-wide transition-colors ${
+          active ? 'text-rojo' : 'text-gray-500 hover:text-gray-800'
+        } ${className.includes('text-right') ? 'ml-auto' : ''}`}
+      >
+        {label}
+        <SortIcon active={active} dir={sortDir} />
+      </button>
+    </th>
+  );
+}
+
+export default function EconomyTable({ records, sortBy, sortDir, onSort }) {
   if (!records.length) {
     return <p className="text-gray-500 text-center py-8">No hay registros.</p>;
   }
@@ -40,11 +62,11 @@ export default function EconomyTable({ records }) {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-200 text-left text-xs text-gray-500 uppercase">
-              <th className="pb-3 pr-4">Fecha</th>
+              <SortableHeader label="Fecha" field="record_date" sortBy={sortBy} sortDir={sortDir} onSort={onSort} />
               <th className="pb-3 pr-4">Descripcion</th>
               <th className="pb-3 pr-4">Entidad</th>
               <th className="pb-3 pr-4">Tipo</th>
-              <th className="pb-3 pr-4 text-right">Monto</th>
+              <SortableHeader label="Monto" field="amount" sortBy={sortBy} sortDir={sortDir} onSort={onSort} className="text-right" />
               <th className="pb-3">Efectuado</th>
               <th className="pb-3">Fuentes</th>
             </tr>

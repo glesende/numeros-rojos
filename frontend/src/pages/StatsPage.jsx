@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getTeam } from '../api/endpoints';
+import { usePageMeta } from '../hooks/usePageMeta';
 import Loader from '../components/common/Loader';
 import FormBadges from '../components/stats/FormBadges';
 import PlayerCard from '../components/stats/PlayerCard';
@@ -78,10 +79,11 @@ export default function StatsPage() {
   const [activeRole, setActiveRole] = useState('1');
   const [selectedPlayer, setSelectedPlayer] = useState(null);
 
-  useEffect(() => {
-    document.title = 'Estadísticas | Números Rojos';
-    return () => { document.title = 'Números Rojos'; };
-  }, []);
+  usePageMeta({
+    title: 'Estadísticas del plantel de Independiente | Números Rojos',
+    description: 'Tabla de posiciones y fichas estadísticas de los jugadores del plantel de Independiente en el torneo actual.',
+    path: '/estadisticas',
+  });
 
   useEffect(() => {
     getTeam()
