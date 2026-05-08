@@ -54,6 +54,7 @@ class SettingsController extends Controller
             'besoccer_team_id'           => 'sometimes|nullable|string|max:50',
             'openai_api_key'             => 'sometimes|nullable|string',
             'openai_model'               => 'sometimes|nullable|string|max:100',
+            'twitter_api_key'            => 'sometimes|nullable|string',
             'section_economia_enabled'   => 'sometimes|boolean',
             'section_contratos_enabled'  => 'sometimes|boolean',
             'section_derechos_enabled'   => 'sometimes|boolean',
@@ -69,6 +70,7 @@ class SettingsController extends Controller
 
         $allowed = [
             'data_service', 'besoccer_api_key', 'besoccer_team_id', 'openai_api_key', 'openai_model',
+            'twitter_api_key',
             'section_economia_enabled', 'section_contratos_enabled', 'section_derechos_enabled',
             'section_balances_enabled', 'section_estadio_enabled',
             'balance_chart_default_items', 'balance_chart_filter_items', 'balance_chart_label_overrides',

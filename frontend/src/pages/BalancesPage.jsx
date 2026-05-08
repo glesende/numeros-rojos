@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { getBalances } from '../api/endpoints';
+import { usePageMeta } from '../hooks/usePageMeta';
 import Loader from '../components/common/Loader';
 import ErrorMessage from '../components/common/ErrorMessage';
 import BalanceLineChart from '../components/balances/BalanceLineChart';
@@ -28,10 +29,14 @@ export default function BalancesPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  usePageMeta({
+    title: 'Balances oficiales de Independiente | Números Rojos',
+    description: 'Balances patrimoniales y estados contables oficiales del Club Atlético Independiente. Evolución histórica y desglose detallado.',
+    path: '/balances',
+  });
+
   useEffect(() => {
-    document.title = 'Números Rojos | Balances oficiales';
     fetchBalances();
-    return () => { document.title = 'Números Rojos'; };
   }, [fetchBalances]);
 
   return (

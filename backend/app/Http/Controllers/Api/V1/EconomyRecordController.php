@@ -28,7 +28,15 @@ class EconomyRecordController extends Controller
         $sortDir = in_array(strtolower($request->input('sort_dir', 'desc')), ['asc', 'desc'])
             ? strtolower($request->input('sort_dir', 'desc'))
             : 'desc';
-        $query->orderByRaw("(record_date IS NULL) DESC, record_date {$sortDir}");
+        $sortBy = in_array($request->input('sort_by', 'record_date'), ['record_date', 'amount'])
+            ? $request->input('sort_by', 'record_date')
+            : 'record_date';
+
+        if ($sortBy === 'amount') {
+            $query->orderBy('amount', $sortDir);
+        } else {
+            $query->orderByRaw("(record_date IS NULL) DESC, record_date {$sortDir}");
+        }
 
         $perPage = min((int) $request->input('per_page', 15), 100);
         $records = $query->paginate($perPage);
