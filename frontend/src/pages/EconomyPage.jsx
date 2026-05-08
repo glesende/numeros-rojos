@@ -9,11 +9,19 @@ import Pagination from '../components/common/Pagination';
 import Loader from '../components/common/Loader';
 import ErrorMessage from '../components/common/ErrorMessage';
 
+const ECONOMY_FILTER_KEYS = ['type', 'currency', 'carried_out', 'official', 'date_from', 'date_to', 'search'];
 const ALLOWED_SORT_FIELDS = ['record_date', 'amount'];
 
 export default function EconomyPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
+  const initialFilters = {};
+  
+  ECONOMY_FILTER_KEYS.forEach((key) => {
+    const val = searchParams.get(key);
+    if (val !== null && val !== '') initialFilters[key] = val;
+  });
+  
   const initialSortBy = ALLOWED_SORT_FIELDS.includes(searchParams.get('sort_by'))
     ? searchParams.get('sort_by')
     : 'record_date';
@@ -49,6 +57,16 @@ export default function EconomyPage() {
       updateFilter('sort_dir', 'desc');
     }
   }, [filters.sort_by, filters.sort_dir, updateFilter]);
+
+  // Sync active filters to URL for shareability
+  useEffect(() => {
+    const params = {};
+    ECONOMY_FILTER_KEYS.forEach((key) => {
+      const val = filters[key];
+      if (val !== null && val !== undefined && val !== '') params[key] = val;
+    });
+    setSearchParams(params, { replace: true });
+  }, [filters.type, filters.currency, filters.carried_out, filters.official, filters.date_from, filters.date_to, filters.search]);
 
   const fetchData = useCallback(() => {
     setLoading(true);
