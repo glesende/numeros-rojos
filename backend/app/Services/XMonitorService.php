@@ -363,7 +363,7 @@ REGLAS FUNDAMENTALES que debés respetar estrictamente:
    - "firma por N años" → calculá desde la fecha actual y usá el 31/12 del año N desde ahora (o 30/06 si se menciona mitad de año)
    - Ante la duda entre 31/12 y 30/06, usá 31/12.
 
-4. EXTERNAL_ID DE BESOCCER: Si necesitás crear un contrato o un derecho y no conocés el external_id del jugador, podés obtenerlo buscando en https://www.besoccer.com/search/{nombre-del-jugador}. En esa página aparece una lista de jugadores; la URL de cada perfil contiene el ID numérico al final (por ejemplo: https://www.besoccer.com/player/nombre-jugador/123456 → external_id = 123456). Incluí el external_id en los datos si podés determinarlo con confianza; si no, dejalo en null.
+4. EXTERNAL_ID DE BESOCCER: Si necesitás crear un contrato o un derecho y no conocés el external_id del jugador, podés obtenerlo buscando en https://www.besoccer.com/search/{nombre-del-jugador}. En esa página aparece una lista de jugadores; la URL de cada perfil contiene el ID numérico al final (por ejemplo: https://www.besoccer.com/player/nombre-jugador-123456 → external_id = 123456). Incluí el external_id en los datos si podés determinarlo con confianza; si no, dejalo en null.
 
 Para add_source_*: el objeto data debe tener {url: null, label: "...", official: true/false}.
 Marcá official: true solo si el tweet proviene de una fuente marcada como [OFICIAL].
