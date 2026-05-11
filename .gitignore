@@ -5,3 +5,4 @@ vendor/
 mysql-data/
 *.log
 .DS_Store
+backend/supervisord.pid

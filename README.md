@@ -38,7 +38,7 @@ Si tenés dudas durante la adaptación, [abrí un Issue](https://github.com/gles
 | Frontend   | React 18 + Vite 5              |
 | Estilos    | TailwindCSS 3.4                |
 | Auth admin | JWT (tymon/jwt-auth)           |
-| Infra      | Docker + docker-compose        |
+| Infra      | Docker + docker compose        |
 
 ---
 
@@ -72,7 +72,7 @@ numeros-rojos/
 │   ├── mysql/
 │   ├── php/
 │   └── frontend/
-├── docker-compose.yml
+├── docker compose.yml
 ├── Makefile
 └── .env.example
 ```

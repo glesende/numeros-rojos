@@ -199,6 +199,14 @@ El sistema gestiona los siguientes tipos de registros:
 
 Tu tarea es analizar una lista de tweets recientes y determinar cuáles son relevantes para alguno de estos dominios.
 
+REGLAS FUNDAMENTALES que debés respetar estrictamente:
+
+1. SOLO HECHOS CONFIRMADOS: Ignorá completamente cualquier tweet que hable de rumores, versiones no confirmadas, negociaciones en curso, posibles fichajes futuros, o situaciones hipotéticas. Solo son relevantes situaciones precisas, ya realizadas y confirmadas.
+
+2. FUENTE OFICIAL PARA CONTRATOS: Para que un tweet sea relevante respecto a la CREACIÓN o RESCISIÓN de un contrato, es imprescindible que provenga de una cuenta marcada como [OFICIAL]. Los tweets de cuentas [No oficial] solo pueden ser relevantes para agregar información complementaria (cláusulas, detalles, etc.) a un contrato ya existente, nunca para crear o rescindir uno.
+
+3. Las cuentas [No oficial] SÍ pueden ser fuente válida para registros económicos y derechos.
+
 Para cada tweet relevante, indicá también qué términos de búsqueda conviene usar en nuestra base de datos para ver si ya tenemos información relacionada.
 
 Respondé ÚNICAMENTE con JSON válido, sin texto adicional.
@@ -330,9 +338,9 @@ PROMPT;
 Sos un asistente especializado en gestión de información de clubes de fútbol argentinos.
 
 El sistema maneja:
-- Contratos: full_name, expiration_date, signing_date, termination_date, estimated_salary, currency (ARS/USD/EUR), clauses (array), links (array de {url, label, official}), loan (objeto o null)
+- Contratos: full_name, expiration_date, signing_date, termination_date, estimated_salary, currency (ARS/USD/EUR), clauses (array), links (array de {url, label, official}), loan (objeto o null), external_id (número de BeSoccer)
 - Registros económicos (EconomyRecord): description, entity, type (ingreso|egreso|transferencia|pase|otro), amount, currency, record_date, carried_out (bool), links
-- Derechos (Right): full_name, clauses, links
+- Derechos (Right): full_name, clauses, links, external_id (número de BeSoccer)
 
 Tu tarea: dados los tweets relevantes y los resultados de búsqueda, determiná qué acciones concretas se deben tomar.
 
@@ -341,6 +349,21 @@ Acciones posibles:
 - create_economy_record / update_economy_record / add_source_to_economy_record
 - create_right / update_right / add_source_to_right
 - no_action
+
+REGLAS FUNDAMENTALES que debés respetar estrictamente:
+
+1. SOLO HECHOS CONFIRMADOS: Nunca tomes acciones basadas en rumores, especulaciones, negociaciones en curso o situaciones futuras no confirmadas. Solo actuás sobre hechos ya realizados y confirmados.
+
+2. FUENTE OFICIAL OBLIGATORIA PARA CONTRATOS: Para create_contract o para registrar la rescisión/terminación de un contrato (update_contract con termination_date), la fuente DEBE ser una cuenta [OFICIAL]. Las cuentas [No oficial] solo pueden generar acciones de tipo add_source_to_contract o update_contract para agregar información complementaria (cláusulas, detalles, etc.), nunca para crear o rescindir contratos.
+
+3. FECHAS DE VENCIMIENTO DE CONTRATOS: La fecha de finalización de un contrato en el fútbol argentino siempre cae el 31/12 o el 30/06 de algún año. Aplicá estas reglas de conversión:
+   - "firma hasta 2028" → expiration_date = "2027-12-31" (el año mencionado indica el año del torneo siguiente, el contrato vence el 31/12 del año anterior)
+   - "contrato hasta diciembre de 2027" → expiration_date = "2027-12-31"
+   - "contrato hasta junio de 2027" → expiration_date = "2027-06-30"
+   - "firma por N años" → calculá desde la fecha actual y usá el 31/12 del año N desde ahora (o 30/06 si se menciona mitad de año)
+   - Ante la duda entre 31/12 y 30/06, usá 31/12.
+
+4. EXTERNAL_ID DE BESOCCER: Si necesitás crear un contrato o un derecho y no conocés el external_id del jugador, podés obtenerlo buscando en https://www.besoccer.com/search/{nombre-del-jugador}. En esa página aparece una lista de jugadores; la URL de cada perfil contiene el ID numérico al final (por ejemplo: https://www.besoccer.com/player/nombre-jugador-123456 → external_id = 123456). Incluí el external_id en los datos si podés determinarlo con confianza; si no, dejalo en null.
 
 Para add_source_*: el objeto data debe tener {url: null, label: "...", official: true/false}.
 Marcá official: true solo si el tweet proviene de una fuente marcada como [OFICIAL].
