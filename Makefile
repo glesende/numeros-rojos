@@ -1,4 +1,4 @@
-COMPOSE := docker-compose
+COMPOSE := docker compose
 
 -include .env.local
 
@@ -97,6 +97,7 @@ fresh-start: ## Fresh install: down, build, up, npm-install, migrate:fresh --see
 	$(COMPOSE) build
 	$(COMPOSE) up -d
 	$(COMPOSE) exec frontend npm install
+	$(COMPOSE) exec api composer install
 	$(COMPOSE) exec api php artisan migrate:fresh --seed
 	@echo ""
 	@echo "$(GREEN)=====================================$(NC)"
@@ -112,33 +113,33 @@ SERVER ?= $(error SERVER no definido. Crea .env.local con SERVER=user@ip)
 DEPLOY_PATH ?= $(error DEPLOY_PATH no definido. Crea .env.local con DEPLOY_PATH=/ruta/proyecto)
 
 prod-build: ## Construir para producción
-	docker-compose -f docker-compose.prod.yml --env-file .env.prod build
+	docker compose -f docker compose.prod.yml --env-file .env.prod build
 
 prod-up: ## Levantar en modo producción
-	docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d
+	docker compose -f docker compose.prod.yml --env-file .env.prod up -d
 
 prod-down: ## Parar producción
-	docker-compose -f docker-compose.prod.yml --env-file .env.prod down
+	docker compose -f docker compose.prod.yml --env-file .env.prod down
 
 prod-restart: ## Reiniciar producción
-	docker-compose -f docker-compose.prod.yml --env-file .env.prod restart
+	docker compose -f docker compose.prod.yml --env-file .env.prod restart
 
 prod-logs: ## Ver logs de producción
-	docker-compose -f docker-compose.prod.yml --env-file .env.prod logs -f
+	docker compose -f docker compose.prod.yml --env-file .env.prod logs -f
 
 prod-migrate: ## Ejecutar migraciones en producción
 	@echo "⏳ Esperando a que la base de datos esté disponible..."
-	@docker-compose -f docker-compose.prod.yml --env-file .env.prod exec mysql sh -c "\
+	@docker compose -f docker compose.prod.yml --env-file .env.prod exec mysql sh -c "\
 		until mysqladmin ping -h localhost -u root -p\$$MYSQL_ROOT_PASSWORD --silent; do \
 			echo 'Esperando base de datos...'; \
 			sleep 2; \
 		done"
 	@echo "✅ Base de datos lista"
-	@docker-compose -f docker-compose.prod.yml --env-file .env.prod exec api php artisan migrate --force
+	@docker compose -f docker compose.prod.yml --env-file .env.prod exec api php artisan migrate --force
 	@echo "$(GREEN)Migraciones aplicadas$(NC)"
 
 prod-status: ## Ver estado de producción
-	docker-compose -f docker-compose.prod.yml --env-file .env.prod ps
+	docker compose -f docker compose.prod.yml --env-file .env.prod ps
 
 ssh-vps: ## Conectar al VPS
 	ssh $(SERVER)
