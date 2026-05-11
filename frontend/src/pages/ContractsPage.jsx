@@ -10,10 +10,17 @@ import Pagination from '../components/common/Pagination';
 import Loader from '../components/common/Loader';
 import ErrorMessage from '../components/common/ErrorMessage';
 
+const CONTRACT_FILTER_KEYS = ['search', 'status', 'validity', 'official', 'loan', 'date_from', 'date_to', 'expire_from', 'expire_to'];
 const ALLOWED_SORT_FIELDS = ['expiration_date', 'signing_date', 'estimated_salary'];
 
 export default function ContractsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+
+  const initialFilters = {};
+  CONTRACT_FILTER_KEYS.forEach((key) => {
+    const val = searchParams.get(key);
+    if (val !== null && val !== '') initialFilters[key] = val;
+  });
 
   const initialSortBy = ALLOWED_SORT_FIELDS.includes(searchParams.get('sort_by'))
     ? searchParams.get('sort_by')
@@ -21,6 +28,7 @@ export default function ContractsPage() {
   const initialSortDir = searchParams.get('sort_dir') === 'asc' ? 'asc' : 'desc';
 
   const { filters, updateFilter, setPage, resetFilters, cleanParams } = useFilters({
+    ...initialFilters,
     sort_by: initialSortBy,
     sort_dir: initialSortDir,
   });
@@ -34,13 +42,17 @@ export default function ContractsPage() {
     path: '/contratos',
   });
 
-  // Sync sort state to URL for shareability
+  // Sync all filters and sort state to URL for shareability
   useEffect(() => {
     const params = {};
     if (filters.sort_by && filters.sort_by !== 'expiration_date') params.sort_by = filters.sort_by;
     if (filters.sort_dir && filters.sort_dir !== 'desc') params.sort_dir = filters.sort_dir;
+    CONTRACT_FILTER_KEYS.forEach((key) => {
+      const val = filters[key];
+      if (val !== null && val !== undefined && val !== '') params[key] = val;
+    });
     setSearchParams(params, { replace: true });
-  }, [filters.sort_by, filters.sort_dir]);
+  }, [filters.sort_by, filters.sort_dir, filters.search, filters.status, filters.validity, filters.official, filters.loan, filters.date_from, filters.date_to, filters.expire_from, filters.expire_to]);
 
   const handleSort = useCallback((field) => {
     if (filters.sort_by === field) {
