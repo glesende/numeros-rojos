@@ -245,8 +245,6 @@ export default function ContractDetailPage() {
             </ul>
           </div>
         )}
-
-        <p className="text-xs text-gray-400 mt-6">Actualizado: {formatDate(contract.updated_at)}</p>
       </div>
     </div>
   );

@@ -187,10 +187,6 @@ export default function EconomyDetailPage() {
             </ul>
           </div>
         )}
-
-        <p className="text-xs text-gray-400 mt-6">
-          Actualizado: {record.updated_at}
-        </p>
       </div>
     </div>
   );
