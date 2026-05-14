@@ -28,6 +28,7 @@ export default function EconomyPage() {
   const initialSortDir = searchParams.get('sort_dir') === 'asc' ? 'asc' : 'desc';
 
   const { filters, updateFilter, setPage, resetFilters, cleanParams } = useFilters({
+    ...initialFilters,
     sort_by: initialSortBy,
     sort_dir: initialSortDir,
   });
@@ -41,13 +42,17 @@ export default function EconomyPage() {
     path: '/economia',
   });
 
-  // Sync sort state to URL for shareability
+  // Sync all filters and sort state to URL for shareability
   useEffect(() => {
     const params = {};
     if (filters.sort_by && filters.sort_by !== 'record_date') params.sort_by = filters.sort_by;
     if (filters.sort_dir && filters.sort_dir !== 'desc') params.sort_dir = filters.sort_dir;
+    ECONOMY_FILTER_KEYS.forEach((key) => {
+      const val = filters[key];
+      if (val !== null && val !== undefined && val !== '') params[key] = val;
+    });
     setSearchParams(params, { replace: true });
-  }, [filters.sort_by, filters.sort_dir]);
+  }, [filters.sort_by, filters.sort_dir, filters.type, filters.currency, filters.carried_out, filters.official, filters.date_from, filters.date_to, filters.search]);
 
   const handleSort = useCallback((field) => {
     if (filters.sort_by === field) {
@@ -57,16 +62,6 @@ export default function EconomyPage() {
       updateFilter('sort_dir', 'desc');
     }
   }, [filters.sort_by, filters.sort_dir, updateFilter]);
-
-  // Sync active filters to URL for shareability
-  useEffect(() => {
-    const params = {};
-    ECONOMY_FILTER_KEYS.forEach((key) => {
-      const val = filters[key];
-      if (val !== null && val !== undefined && val !== '') params[key] = val;
-    });
-    setSearchParams(params, { replace: true });
-  }, [filters.type, filters.currency, filters.carried_out, filters.official, filters.date_from, filters.date_to, filters.search]);
 
   const fetchData = useCallback(() => {
     setLoading(true);
