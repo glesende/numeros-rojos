@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { getContracts, getRights, getStadium, sendContact } from '../api/endpoints';
+import { getContracts, getRights, getRumors, getStadium, sendContact } from '../api/endpoints';
 import { usePageMeta } from '../hooks/usePageMeta';
 import PlayerMatchesModal from '../components/stats/PlayerMatchesModal';
 import Loader from '../components/common/Loader';
@@ -8,6 +8,7 @@ import MonthlyBarChart from '../components/economy/MonthlyBarChart';
 import BalanceLineChart from '../components/balances/BalanceLineChart';
 import StatsWidget from '../components/stats/StatsWidget';
 import useSectionSettings from '../hooks/useSectionSettings';
+import { translatePosition } from '../utils/positions';
 import ContractWidgets from '../components/contracts/ContractWidgets';
 import OfficialBadge from '../components/OfficialBadge';
 import SourceLabel from '../components/SourceLabel';
@@ -145,8 +146,12 @@ function ContractCard({ contract, onClick }) {
   );
 }
 
-function RightCard({ right, onClick }) {
-  const clickable = !!right.external_id && !!onClick;
+// Unified card for Rights and Rumors — both share the same structure
+function PlayerCard({ player, onClick, showPositions = false }) {
+  const clickable = !!player.external_id && !!onClick;
+  const isArgentine = player.country?.toLowerCase?.()?.includes('argentin');
+  const contratado = player.status === 'contratado';
+  const positions = showPositions && Array.isArray(player.positions) ? player.positions : [];
 
   return (
     <div
@@ -154,35 +159,57 @@ function RightCard({ right, onClick }) {
       onClick={clickable ? onClick : undefined}
     >
       <div className="flex items-center gap-3">
-        <PlayerAvatar src={right.player_avatar} alt={right.full_name} />
+        <div className="relative flex-shrink-0">
+          <PlayerAvatar src={player.player_avatar} alt={player.full_name} />
+          {player.country_flag && !isArgentine && (
+            <img
+              src={player.country_flag}
+              alt=""
+              className="absolute -bottom-0.5 -right-0.5 w-4 h-3 object-cover rounded-sm border border-white"
+            />
+          )}
+        </div>
         <div className="overflow-hidden flex-1">
           <p className="font-bold text-gray-900 text-sm leading-tight line-clamp-2">
-            {right.full_name}
+            {player.full_name}
           </p>
+          {player.current_team_name && (
+            <p className="text-xs text-gray-500 truncate">{player.current_team_name}</p>
+          )}
+          {positions.length > 0 && (
+            <div className="text-xs text-gray-400 mt-0.5">
+              {positions.map((p, i) => (
+                <p key={i}>{translatePosition(p.pos)}</p>
+              ))}
+            </div>
+          )}
+          {contratado && (
+            <span className="inline-block mt-1 text-xs font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded-full">
+              Contratado
+            </span>
+          )}
         </div>
       </div>
 
-      {Array.isArray(right.clauses) && right.clauses.length > 0 && (
+      {Array.isArray(player.clauses) && player.clauses.length > 0 && (
         <div className="pt-1 border-t border-gray-100 flex-1">
           <p className="text-xs text-gray-400 mb-1">Cláusulas</p>
           <ul className="text-xs text-gray-600 space-y-0.5">
-            {right.clauses.slice(0, 3).map((clause, i) => (
-              <li key={i} className="bg-gray-50 px-2 py-1 rounded break-words">
-                {clause}
-              </li>
+            {player.clauses.slice(0, 3).map((clause, i) => (
+              <li key={i} className="bg-gray-50 px-2 py-1 rounded break-words">{clause}</li>
             ))}
-            {right.clauses.length > 3 && (
-              <li className="text-gray-400">+{right.clauses.length - 3} más</li>
+            {player.clauses.length > 3 && (
+              <li className="text-gray-400">+{player.clauses.length - 3} más</li>
             )}
           </ul>
         </div>
       )}
 
-      {Array.isArray(right.links) && right.links.length > 0 && (
+      {Array.isArray(player.links) && player.links.length > 0 && (
         <div className="pt-1 border-t border-gray-100">
           <p className="text-xs text-gray-400 mb-1">Fuentes</p>
           <ul className="text-xs text-gray-600 space-y-0.5">
-            {right.links.slice(0, 2).map((link, i) => (
+            {player.links.slice(0, 2).map((link, i) => (
               <li key={i} className="flex items-center gap-1">
                 <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-rojo hover:underline truncate">
                   <SourceLabel url={link.url} />
@@ -190,8 +217,8 @@ function RightCard({ right, onClick }) {
                 {link.official && <OfficialBadge />}
               </li>
             ))}
-            {right.links.length > 2 && (
-              <li className="text-gray-400">+{right.links.length - 2} más</li>
+            {player.links.length > 2 && (
+              <li className="text-gray-400">+{player.links.length - 2} más</li>
             )}
           </ul>
         </div>
@@ -330,7 +357,10 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [rights, setRights] = useState([]);
   const [rightsLoading, setRightsLoading] = useState(false);
+  const [rumors, setRumors] = useState([]);
+  const [rumoresLoading, setRumoresLoading] = useState(false);
   const [selectedContractPlayer, setSelectedContractPlayer] = useState(null);
+  const [selectedRumorPlayer, setSelectedRumorPlayer] = useState(null);
   const { sections } = useSectionSettings();
 
   const fetchContracts = useCallback(() => {
@@ -361,6 +391,15 @@ export default function HomePage() {
       .catch(() => setRights([]))
       .finally(() => setRightsLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (sections.section_rumores_enabled !== true) return;
+    setRumoresLoading(true);
+    getRumors({ per_page: 100 })
+      .then((res) => setRumors(res.data.data || []))
+      .catch(() => setRumors([]))
+      .finally(() => setRumoresLoading(false));
+  }, [sections.section_rumores_enabled]);
 
   const filteredContracts = useMemo(() => {
     let result = contracts;
@@ -403,7 +442,8 @@ export default function HomePage() {
 
   return (
     <>
-    <PlayerMatchesModal player={selectedContractPlayer} onClose={() => setSelectedContractPlayer(null)} />
+    <PlayerMatchesModal player={selectedContractPlayer} showContract={true} onClose={() => setSelectedContractPlayer(null)} />
+    <PlayerMatchesModal player={selectedRumorPlayer} showContract={false} onClose={() => setSelectedRumorPlayer(null)} />
     <div>
       {/* Hero */}
       <section className="bg-rojo text-white py-10 md:py-16">
@@ -416,6 +456,42 @@ export default function HomePage() {
           </p>
         </div>
       </section>
+
+      {/* Rumores del mercado */}
+      {sections.section_rumores_enabled === true && (
+      <section id="rumores" className="max-w-6xl mx-auto px-4 py-4">
+        <div className="card overflow-hidden">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold">Rumores del mercado</h2>
+          </div>
+          <p className="text-sm text-gray-500 -mt-2 mb-4">Las estadísticas de los jugadores mencionados como posibles refuerzos</p>
+
+          {rumoresLoading ? (
+            <div className="py-12">
+              <Loader />
+            </div>
+          ) : rumors.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              No hay rumores registrados.
+            </div>
+          ) : (
+            <>
+              <p className="text-sm text-gray-500 mb-3">{rumors.length} jugadores</p>
+              <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
+                {rumors.map((r) => (
+                  <PlayerCard
+                    key={r.id}
+                    player={r}
+                    showPositions={true}
+                    onClick={r.external_id ? () => setSelectedRumorPlayer({ id: r.external_id, nick: r.full_name, image: r.player_avatar }) : undefined}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      </section>
+      )}
 
       {/* Monthly income/expense chart */}
       {sections.section_economia_enabled !== false && (
@@ -524,10 +600,10 @@ export default function HomePage() {
               <p className="text-sm text-gray-500 mb-3">{rights.length} jugadores</p>
               <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
                 {rights.map((r) => (
-                  <RightCard
+                  <PlayerCard
                     key={r.id}
-                    right={r}
-                    onClick={r.external_id ? () => setSelectedContractPlayer({ id: r.external_id, nick: r.full_name, image: r.player_avatar }) : undefined}
+                    player={r}
+                    onClick={r.external_id ? () => setSelectedRumorPlayer({ id: r.external_id, nick: r.full_name, image: r.player_avatar }) : undefined}
                   />
                 ))}
               </div>

@@ -77,9 +77,21 @@ class StatsController extends Controller
         return response()->json($data);
     }
 
-    public function playerMatches(string $id): JsonResponse
+    public function playerMatches(Request $request, string $id): JsonResponse
     {
-        $data = $this->besoccer->getPlayerMatches($id);
+        $year = $request->query('year') ? (int) $request->query('year') : null;
+        $data = $this->besoccer->getPlayerMatches($id, $year);
+
+        if (!($data['success'] ?? false)) {
+            return response()->json($data, 502);
+        }
+
+        return response()->json($data);
+    }
+
+    public function playerData(string $id): JsonResponse
+    {
+        $data = $this->besoccer->getPlayerData($id);
 
         if (!($data['success'] ?? false)) {
             return response()->json($data, 502);

@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
-import { getPlayerMatches, getContracts } from '../../api/endpoints';
+import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import { getPlayerMatches, getPlayer, getContracts } from '../../api/endpoints';
 import Loader from '../common/Loader';
 import OfficialBadge from '../OfficialBadge';
 import SourceLabel from '../SourceLabel';
 import PlayerAvatar from '../PlayerAvatar';
+import { translatePosition } from '../../utils/positions';
 
 const ROLE_LABELS = { '1': 'Arqueros', '2': 'Defensores', '3': 'Mediocampistas', '4': 'Delanteros' };
 
@@ -16,6 +18,108 @@ function formatDate(dateStr) {
   return `${day}-${month}-${year}`;
 }
 
+function CompetitionTooltip({ logo, name }) {
+  const [pos, setPos] = useState(null);
+  const ref = useRef(null);
+
+  const handleShow = () => {
+    if (!ref.current || !name) return;
+    const r = ref.current.getBoundingClientRect();
+    setPos({ top: r.bottom + 4, left: r.left + r.width / 2 });
+  };
+
+  return (
+    <>
+      <img
+        ref={ref}
+        src={logo}
+        alt={name || ''}
+        className="h-4 w-auto flex-shrink-0 cursor-default"
+        onMouseEnter={handleShow}
+        onMouseLeave={() => setPos(null)}
+        onTouchStart={handleShow}
+        onTouchEnd={() => setTimeout(() => setPos(null), 1500)}
+      />
+      {pos && name && createPortal(
+        <span
+          style={{ position: 'fixed', top: pos.top, left: pos.left, transform: 'translateX(-50%)', zIndex: 9999 }}
+          className="px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap shadow-sm pointer-events-none"
+        >
+          {name}
+        </span>,
+        document.body
+      )}
+    </>
+  );
+}
+
+function PlayerInfoBlock({ playerData, currentTeam }) {
+  if (!currentTeam && !playerData) return null;
+
+  const teamName = currentTeam ? (currentTeam.nameShow || currentTeam.fullName || currentTeam.name) : null;
+  const tableEntry = currentTeam?.tables?.find((t) => String(t.teamId) === String(currentTeam.id));
+  const position = tableEntry?.position;
+
+  const positions = playerData ? [
+    { pos: playerData.pos1, pct: playerData.pos1p },
+    { pos: playerData.pos2, pct: playerData.pos2p },
+    { pos: playerData.pos3, pct: playerData.pos3p },
+    { pos: playerData.pos4, pct: playerData.pos4p },
+  ].filter((p) => p.pos && Number(p.pct) > 40) : [];
+
+  const hasPhysical = playerData && (playerData.age || playerData.height || playerData.weight || positions.length > 0);
+
+  return (
+    <div className="px-4 py-3 border-b bg-gray-50/50">
+      {currentTeam && (
+        <div className="flex items-center gap-3 mb-2">
+          {currentTeam.shield && (
+            <img src={currentTeam.shield} alt={teamName} className="h-9 w-auto flex-shrink-0" />
+          )}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5">
+              <p className="font-semibold text-sm leading-tight">{teamName}</p>
+              {currentTeam.team_flag && (
+                <img src={currentTeam.team_flag} alt="" className="h-3.5 w-auto flex-shrink-0 rounded-sm" />
+              )}
+            </div>
+            {currentTeam.category?.cat_name && (
+              <p className="text-xs text-gray-500 mt-0.5">
+                {position != null ? `${position}° en ` : ''}{currentTeam.category.cat_name}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {hasPhysical && (
+        <>
+          {(playerData.age || playerData.height || playerData.weight) && (
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-600">
+              {playerData.age && (
+                <span><span className="font-medium text-gray-800">{playerData.age}</span> años</span>
+              )}
+              {playerData.height && (
+                <span><span className="font-medium text-gray-800">{playerData.height}</span> cm</span>
+              )}
+              {playerData.weight && (
+                <span><span className="font-medium text-gray-800">{playerData.weight}</span> kg</span>
+              )}
+            </div>
+          )}
+          {positions.length > 0 && (
+            <div className="text-xs mt-1 space-y-0.5">
+              {positions.map((p, i) => (
+                <p key={i} className="font-medium text-gray-800">{translatePosition(p.pos)}</p>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 function PlayerMatchesSection({ player }) {
   const [matches, setMatches] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -23,9 +127,31 @@ function PlayerMatchesSection({ player }) {
   useEffect(() => {
     setLoading(true);
     setMatches(null);
-    getPlayerMatches(player.id)
-      .then((res) => setMatches(res.data?.data?.match || []))
-      .catch(() => setMatches([]))
+
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const prevYear = currentYear - 1;
+    const cutoff = new Date(now);
+    cutoff.setDate(cutoff.getDate() - 365);
+
+    Promise.all([
+      getPlayerMatches(player.id, currentYear).catch(() => null),
+      getPlayerMatches(player.id, prevYear).catch(() => null),
+    ])
+      .then(([currentRes, prevRes]) => {
+        const currentMatches = currentRes?.data?.data?.match || [];
+        const prevMatches = prevRes?.data?.data?.match || [];
+
+        const allMatches = [...currentMatches, ...prevMatches];
+        const filtered = allMatches.filter((m) => {
+          const d = new Date(m.shedule);
+          return !isNaN(d.getTime()) && d >= cutoff;
+        });
+        const unique = [...new Map(filtered.map((m) => [m.id, m])).values()];
+        unique.sort((a, b) => new Date(b.shedule) - new Date(a.shedule));
+
+        setMatches(unique);
+      })
       .finally(() => setLoading(false));
   }, [player.id]);
 
@@ -42,82 +168,82 @@ function PlayerMatchesSection({ player }) {
     { pj: 0, goals: 0, asis: 0, yc: 0, rc: 0, minutes: 0, wins: 0 }
   );
 
+  if (loading) return <div className="py-8"><Loader /></div>;
+
+  if (!matches || matches.length === 0) {
+    return <p className="text-sm text-gray-500 py-6 text-center">Sin partidos registrados en los últimos 365 días</p>;
+  }
+
   return (
     <div>
-      {loading ? (
-        <div className="py-8"><Loader /></div>
-      ) : !matches || matches.length === 0 ? (
-        <p className="text-sm text-gray-500 py-6 text-center">Sin partidos registrados</p>
-      ) : (
-        <>
-          <div className="grid grid-cols-4 md:grid-cols-7 gap-2 mb-6">
-            {[
-              { label: 'PJ', value: totals.pj },
-              { label: 'Victorias', value: totals.wins },
-              { label: 'Goles', value: totals.goals },
-              { label: 'Asist.', value: totals.asis },
-              { label: 'Minutos', value: totals.minutes },
-              { label: 'Amarillas', value: totals.yc },
-              { label: 'Rojas', value: totals.rc },
-            ].map(({ label, value }) => (
-              <div key={label} className="text-center p-2 bg-gray-50 rounded-xl">
-                <p className="text-xl font-bold">{value}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{label}</p>
-              </div>
-            ))}
+      <div className="grid grid-cols-4 md:grid-cols-7 gap-2 mb-6">
+        {[
+          { label: 'PJ', value: totals.pj },
+          { label: 'Victorias', value: totals.wins },
+          { label: 'Goles', value: totals.goals },
+          { label: 'Asist.', value: totals.asis },
+          { label: 'Minutos', value: totals.minutes },
+          { label: 'Amarillas', value: totals.yc },
+          { label: 'Rojas', value: totals.rc },
+        ].map(({ label, value }) => (
+          <div key={label} className="text-center p-2 bg-gray-50 rounded-xl">
+            <p className="text-xl font-bold">{value}</p>
+            <p className="text-xs text-gray-500 mt-0.5">{label}</p>
           </div>
+        ))}
+      </div>
 
-          <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-xs text-gray-400 border-b uppercase tracking-wide">
-                  <th className="pb-2 pr-3"></th>
-                  <th className="pb-2 pr-3">Partido</th>
-                  <th className="pb-2 text-center px-2">Min</th>
-                  <th className="pb-2 text-center px-2">G</th>
-                  <th className="pb-2 text-center px-2">A</th>
-                  <th className="pb-2 text-center px-2">🟨</th>
-                  <th className="pb-2 text-center px-2">🟥</th>
+      <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-left text-xs text-gray-400 border-b uppercase tracking-wide">
+              <th className="pb-2 pr-3"></th>
+              <th className="pb-2 pr-3">Partido</th>
+              <th className="pb-2 text-center px-2">Min</th>
+              <th className="pb-2 text-center px-2">G</th>
+              <th className="pb-2 text-center px-2">A</th>
+              <th className="pb-2 text-center px-2">🟨</th>
+              <th className="pb-2 text-center px-2">🟥</th>
+            </tr>
+          </thead>
+          <tbody>
+            {matches.map((m) => {
+              const score = `${m.r1}–${m.r2}`;
+              const date = new Date(m.shedule);
+              const yr = String(date.getFullYear()).slice(-2);
+              const dateStr = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${yr}`;
+              const competitionName = m.competition_name || m.competition || null;
+
+              return (
+                <tr key={m.id} className="border-b last:border-0 hover:bg-gray-50">
+                  <td className="py-2 pr-3">
+                    <div className="flex items-center gap-1.5">
+                      <CompetitionTooltip logo={m.competition_logo} name={competitionName} />
+                      <span className="text-xs text-gray-400">{dateStr}</span>
+                    </div>
+                  </td>
+                  <td className="py-2 pr-3 font-mono text-xs whitespace-nowrap">
+                    {m.team1_name} <span className="text-gray-400">{score}</span> {m.team2_name}
+                  </td>
+                  <td className="py-2 text-center px-2 text-gray-500">
+                    {Number(m.minutes) > 0 ? m.minutes : '–'}
+                  </td>
+                  <td className="py-2 text-center px-2">{m.goals || 0}</td>
+                  <td className="py-2 text-center px-2">{m.asis || 0}</td>
+                  <td className="py-2 text-center px-2">{m.yc || 0}</td>
+                  <td className="py-2 text-center px-2">{m.rc || 0}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {matches.map((m) => {
-                  const score = `${m.r1}–${m.r2}`;
-                  const date = new Date(m.shedule);
-                  const dateStr = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}`;
-
-                  return (
-                    <tr key={m.id} className="border-b last:border-0 hover:bg-gray-50">
-                      <td className="py-2 pr-3">
-                        <div className="flex items-center gap-1.5">
-                          <img src={m.competition_logo} alt="" className="h-4 w-auto flex-shrink-0" />
-                          <span className="text-xs text-gray-400">{dateStr}</span>
-                        </div>
-                      </td>
-                      <td className="py-2 pr-3 font-mono text-xs whitespace-nowrap">
-                        {m.team1_name} <span className="text-gray-400">{score}</span> {m.team2_name}
-                      </td>
-                      <td className="py-2 text-center px-2 text-gray-500">
-                        {Number(m.minutes) > 0 ? m.minutes : '–'}
-                      </td>
-                      <td className="py-2 text-center px-2">{m.goals || 0}</td>
-                      <td className="py-2 text-center px-2">{m.asis || 0}</td>
-                      <td className="py-2 text-center px-2">{m.yc || 0}</td>
-                      <td className="py-2 text-center px-2">{m.rc || 0}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </>
-      )}
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
 
 function PlayerContractSection({ player }) {
-  const [contract, setContract] = useState(undefined); // undefined = loading, null = not found
+  const [contract, setContract] = useState(undefined);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -251,19 +377,30 @@ function PlayerContractSection({ player }) {
   );
 }
 
-const TABS = [
+const ALL_TABS = [
   { key: 'stats', label: 'Estadísticas' },
   { key: 'contract', label: 'Contrato' },
 ];
 
-export default function PlayerMatchesModal({ player, onClose }) {
+export default function PlayerMatchesModal({ player, onClose, showContract = true }) {
+  const tabs = showContract ? ALL_TABS : ALL_TABS.filter((t) => t.key !== 'contract');
   const [tab, setTab] = useState('stats');
+  const [playerData, setPlayerData] = useState(null);
 
   useEffect(() => {
     setTab('stats');
+    setPlayerData(null);
+    if (player?.id) {
+      getPlayer(player.id)
+        .then((res) => setPlayerData(res?.data?.data || null))
+        .catch(() => null);
+    }
   }, [player?.id]);
 
   if (!player) return null;
+
+  const currentTeam = playerData?.current_team || null;
+  const isArgentine = playerData?.country?.toLowerCase?.()?.includes('argentin');
 
   return (
     <div
@@ -277,7 +414,16 @@ export default function PlayerMatchesModal({ player, onClose }) {
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b sticky top-0 bg-white rounded-t-2xl z-10">
           <div className="flex items-center gap-3">
-            <PlayerAvatar src={player.image} alt={player.nick} className="w-9 h-9" />
+            <div className="relative flex-shrink-0">
+              <PlayerAvatar src={player.image} alt={player.nick} className="w-9 h-9" />
+              {playerData?.country_flag && !isArgentine && (
+                <img
+                  src={playerData.country_flag}
+                  alt=""
+                  className="absolute -bottom-0.5 -right-0.5 w-4 h-3 object-cover rounded-sm border border-white"
+                />
+              )}
+            </div>
             <div>
               <p className="font-bold text-sm leading-tight">{player.nick}</p>
               {(player.squadNumber || player.role) && (
@@ -300,9 +446,12 @@ export default function PlayerMatchesModal({ player, onClose }) {
           </button>
         </div>
 
+        {/* Player + Team Info Block — global, shown above tabs */}
+        <PlayerInfoBlock playerData={playerData} currentTeam={currentTeam} />
+
         {/* Tabs */}
         <div className="flex border-b sticky top-[69px] bg-white z-10">
-          {TABS.map((t) => (
+          {tabs.map((t) => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
@@ -320,7 +469,7 @@ export default function PlayerMatchesModal({ player, onClose }) {
         {/* Content */}
         <div className="p-4">
           {tab === 'stats' && <PlayerMatchesSection player={player} />}
-          {tab === 'contract' && <PlayerContractSection player={player} />}
+          {tab === 'contract' && showContract && <PlayerContractSection player={player} />}
         </div>
       </div>
     </div>

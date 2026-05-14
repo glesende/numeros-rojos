@@ -28,7 +28,15 @@ export const getStandings = (params = {}) => client.get('/standings', { params }
 export const getPlayerStats = (id) => client.get(`/player/${id}/stats`);
 export const getLeagueStats = (params = {}) => client.get('/league/stats', { params });
 export const getTeam = (params = {}) => client.get('/team', { params });
-export const getPlayerMatches = (id) => client.get(`/player/${id}/matches`);
+export const getPlayerMatches = (id, year = null) => client.get(`/player/${id}/matches`, { params: year ? { year } : {} });
+export const getPlayer = (id) => client.get(`/player/${id}`);
+
+// Rumors
+export const getRumors = (params = {}) => client.get('/rumors', { params });
+export const getRumor = (id) => client.get(`/rumors/${id}`);
+export const createRumor = (data) => client.post('/admin/rumors', data);
+export const updateRumor = (id, data) => client.put(`/admin/rumors/${id}`, data);
+export const deleteRumor = (id) => client.delete(`/admin/rumors/${id}`);
 
 // Settings
 export const getSettings = () => client.get('/admin/settings');

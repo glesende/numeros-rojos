@@ -19,6 +19,8 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
     $router->get('contracts/{id}', 'ContractController@show');
     $router->get('rights', 'RightController@index');
     $router->get('rights/{id}', 'RightController@show');
+    $router->get('rumors', 'RumorController@index');
+    $router->get('rumors/{id}', 'RumorController@show');
 
     // Balances (public)
     $router->get('balances', 'BalanceController@index');
@@ -39,6 +41,7 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
     $router->get('standings', 'StatsController@standings');
     $router->get('player/{id}/stats', 'StatsController@playerStats');
     $router->get('player/{id}/matches', 'StatsController@playerMatches');
+    $router->get('player/{id}', 'StatsController@playerData');
     $router->get('league/stats', 'StatsController@leagueStats');
     $router->get('team', 'StatsController@team');
 
@@ -70,6 +73,11 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
         $router->post('rights', 'RightController@store');
         $router->put('rights/{id}', 'RightController@update');
         $router->delete('rights/{id}', 'RightController@destroy');
+
+        // Rumors CRUD
+        $router->post('rumors', 'RumorController@store');
+        $router->put('rumors/{id}', 'RumorController@update');
+        $router->delete('rumors/{id}', 'RumorController@destroy');
 
         // Balances CRUD
         $router->post('balances', 'BalanceController@store');

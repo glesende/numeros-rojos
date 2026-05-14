@@ -2,6 +2,7 @@
 
 return [
     'base_url' => env('BESOCCER_BASE_URL', 'https://apiclient.besoccerapps.com/scripts/api'),
+    'api_key'  => env('BESOCCER_API_KEY'),
 
     'cache_ttl' => [
         'standings'    => (int) env('CACHE_TTL_STANDINGS', 3600),

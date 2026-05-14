@@ -20,10 +20,17 @@ class RightController extends Controller
     private function enrichWithPlayerAvatar(array $right): array
     {
         if (!empty($right['external_id'])) {
-            $playerData = $this->besoccerService->getPlayerByExternalId($right['external_id']);
-            if ($playerData['success'] ?? false) {
+            $playerFull = $this->besoccerService->getPlayerData($right['external_id']);
+            if ($playerFull['success'] ?? false) {
                 $defaultAvatar = rtrim(env('FRONTEND_URL', 'https://numerosrojos.com.ar'), '/') . '/default-avatar.svg';
-                $right['player_avatar'] = $playerData['data']['player_avatar'] ?? $defaultAvatar;
+                $data = $playerFull['data'];
+                $right['player_avatar'] = $data['player_avatar'] ?? $defaultAvatar;
+                $right['country_flag']  = $data['country_flag'] ?? null;
+                $right['country']       = $data['country'] ?? null;
+                $team = $data['current_team'] ?? null;
+                $right['current_team_name'] = $team
+                    ? ($team['nameShow'] ?? $team['fullName'] ?? $team['name'] ?? null)
+                    : null;
             }
         }
         return $right;

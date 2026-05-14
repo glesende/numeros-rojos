@@ -88,20 +88,66 @@ class BeSoccerService
         });
     }
 
-    public function getPlayerMatches(string $playerId): array
+    public function getPlayerMatches(string $playerId, ?int $year = null): array
     {
         if (!$this->isEnabled()) {
             return ['success' => false, 'error' => 'Servicio de datos desactivado'];
         }
 
-        $cacheKey = "besoccer:player:{$playerId}:matches";
+        $cacheKey = $year
+            ? "besoccer:player:{$playerId}:matches:{$year}"
+            : "besoccer:player:{$playerId}:matches";
 
-        return $this->rememberOnSuccess($cacheKey, $this->cacheTtl['player_stats'], function () use ($playerId) {
-            return $this->request('/api.php', [
+        return $this->rememberOnSuccess($cacheKey, $this->cacheTtl['player_stats'], function () use ($playerId, $year) {
+            $params = [
                 'format' => 'json',
                 'req'    => 'player_matches',
                 'id'     => $playerId,
-            ]);
+            ];
+            if ($year !== null) {
+                $params['year'] = $year;
+            }
+            return $this->request('/api.php', $params);
+        });
+    }
+
+    public function getPlayerData(string $playerId): array
+    {
+        if (!$this->isEnabled()) {
+            return ['success' => false, 'error' => 'Servicio de datos desactivado'];
+        }
+
+        $cacheKey = "besoccer:player:{$playerId}:full_data";
+
+        return $this->rememberOnSuccess($cacheKey, $this->cacheTtl['player_stats'], function () use ($playerId) {
+            $playerData = $this->getPlayerByExternalId($playerId);
+            if (!($playerData['success'] ?? false)) {
+                return $playerData;
+            }
+
+            $result = $playerData['data'];
+            $teamId = isset($result['team_id']) ? (string) $result['team_id'] : null;
+            $ownTeamId = Setting::get('besoccer_team_id');
+
+            $result['current_team'] = null;
+
+            if ($teamId && $teamId !== $ownTeamId) {
+                $teamData = $this->getTeam($teamId);
+                if ($teamData['success'] ?? false) {
+                    $team = $teamData['data']['team'] ?? null;
+                    if ($team) {
+                        $result['current_team'] = $team;
+                    }
+                }
+            }
+
+            return [
+                'success'    => true,
+                'data'       => $result,
+                'source'     => 'besoccer',
+                'cached'     => false,
+                'fetched_at' => Carbon::now()->toIso8601String(),
+            ];
         });
     }
 

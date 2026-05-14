@@ -18,6 +18,8 @@ import AdminContractsPage from './pages/AdminContractsPage';
 import AdminContractFormPage from './pages/AdminContractFormPage';
 import AdminRightsPage from './pages/AdminRightsPage';
 import AdminRightFormPage from './pages/AdminRightFormPage';
+import AdminRumorsPage from './pages/AdminRumorsPage';
+import AdminRumorFormPage from './pages/AdminRumorFormPage';
 import AdminBalancesPage from './pages/AdminBalancesPage';
 import AdminBalanceFormPage from './pages/AdminBalanceFormPage';
 import AdminSettings from './pages/AdminSettings';
@@ -74,6 +76,9 @@ export default function App() {
         <Route path="/admin/derechos" element={<ProtectedRoute><AdminRightsPage /></ProtectedRoute>} />
         <Route path="/admin/derechos/nuevo" element={<ProtectedRoute><AdminRightFormPage /></ProtectedRoute>} />
         <Route path="/admin/derechos/:id/editar" element={<ProtectedRoute><AdminRightFormPage /></ProtectedRoute>} />
+        <Route path="/admin/rumores" element={<ProtectedRoute><AdminRumorsPage /></ProtectedRoute>} />
+        <Route path="/admin/rumores/nuevo" element={<ProtectedRoute><AdminRumorFormPage /></ProtectedRoute>} />
+        <Route path="/admin/rumores/:id/editar" element={<ProtectedRoute><AdminRumorFormPage /></ProtectedRoute>} />
         <Route path="/admin/balances" element={<ProtectedRoute><AdminBalancesPage /></ProtectedRoute>} />
         <Route path="/admin/balances/nuevo" element={<ProtectedRoute><AdminBalanceFormPage /></ProtectedRoute>} />
         <Route path="/admin/balances/:id/editar" element={<ProtectedRoute><AdminBalanceFormPage /></ProtectedRoute>} />

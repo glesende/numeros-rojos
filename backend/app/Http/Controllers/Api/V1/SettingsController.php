@@ -15,6 +15,12 @@ class SettingsController extends Controller
         'section_derechos_enabled',
         'section_balances_enabled',
         'section_estadio_enabled',
+        'section_rumores_enabled',
+    ];
+
+    // Sections that default to disabled when no setting exists in DB
+    private const SECTION_KEYS_DEFAULT_OFF = [
+        'section_rumores_enabled',
     ];
 
     private const CHART_SCALE_KEYS = [
@@ -36,7 +42,8 @@ class SettingsController extends Controller
 
         $result = [];
         foreach (self::SECTION_KEYS as $key) {
-            $result[$key] = ($settings->get($key, '1') === '1');
+            $default = in_array($key, self::SECTION_KEYS_DEFAULT_OFF) ? '0' : '1';
+            $result[$key] = ($settings->get($key, $default) === '1');
         }
         foreach (self::CHART_SCALE_KEYS as $key) {
             $raw = $settings->get($key);
@@ -60,6 +67,7 @@ class SettingsController extends Controller
             'section_derechos_enabled'   => 'sometimes|boolean',
             'section_balances_enabled'   => 'sometimes|boolean',
             'section_estadio_enabled'    => 'sometimes|boolean',
+            'section_rumores_enabled'    => 'sometimes|boolean',
             'balance_chart_default_items'   => 'sometimes|nullable|string',
             'balance_chart_filter_items'    => 'sometimes|nullable|string',
             'balance_chart_label_overrides' => 'sometimes|nullable|string',
@@ -72,7 +80,7 @@ class SettingsController extends Controller
             'data_service', 'besoccer_api_key', 'besoccer_team_id', 'openai_api_key', 'openai_model',
             'twitter_api_key',
             'section_economia_enabled', 'section_contratos_enabled', 'section_derechos_enabled',
-            'section_balances_enabled', 'section_estadio_enabled',
+            'section_balances_enabled', 'section_estadio_enabled', 'section_rumores_enabled',
             'balance_chart_default_items', 'balance_chart_filter_items', 'balance_chart_label_overrides',
             'chart_scale_usd', 'chart_scale_eur', 'chart_scale_ars',
         ];
