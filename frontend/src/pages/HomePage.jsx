@@ -443,7 +443,7 @@ export default function HomePage() {
   return (
     <>
     <PlayerMatchesModal player={selectedContractPlayer} showContract={true} onClose={() => setSelectedContractPlayer(null)} />
-    <PlayerMatchesModal player={selectedRumorPlayer} showContract={false} onClose={() => setSelectedRumorPlayer(null)} />
+    <PlayerMatchesModal player={selectedRumorPlayer} showContract={false} onClose={() => setSelectedRumorPlayer(null)} comparePool={rumors} />
     <div>
       {/* Hero */}
       <section className="bg-rojo text-white py-10 md:py-16">

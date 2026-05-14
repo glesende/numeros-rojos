@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Contract;
 use App\Models\EconomyRecord;
 use App\Models\Right;
+use App\Models\Rumor;
 use App\Models\Setting;
 use App\Models\TwitterAccount;
 use Carbon\Carbon;
@@ -195,17 +196,18 @@ Sos un asistente especializado en el seguimiento de actividad institucional de c
 El sistema gestiona los siguientes tipos de registros:
 - Contratos de jugadores profesionales (contratación, renovación, cláusulas, etc)
 - Registros económicos (compromisos de pago, transferencias, ingresos, egresos, cláusulas, etc)
-- Derechos ecónomicos de ex jugadores del club
+- Derechos económicos de ex jugadores del club
+- Rumores de mercado (jugadores vinculados o sondeados como posibles incorporaciones)
 
 Tu tarea es analizar una lista de tweets recientes y determinar cuáles son relevantes para alguno de estos dominios.
 
 REGLAS FUNDAMENTALES que debés respetar estrictamente:
 
-1. SOLO HECHOS CONFIRMADOS: Ignorá completamente cualquier tweet que hable de rumores, versiones no confirmadas, negociaciones en curso, posibles fichajes futuros, o situaciones hipotéticas. Solo son relevantes situaciones precisas, ya realizadas y confirmadas.
+1. CONFIRMADOS vs. RUMORES: Para contratos, economía y derechos, ignorá tweets sobre rumores o hechos no confirmados: solo hechos ya realizados. Para el dominio "rumor", SÍ son relevantes los tweets de cuentas [No oficial] que mencionen jugadores como posibles incorporaciones, refuerzos sondeados o fichajes en negociación. Los tweets de cuentas [OFICIAL] NUNCA generan rumores.
 
 2. FUENTE OFICIAL PARA CONTRATOS: Para que un tweet sea relevante respecto a la CREACIÓN o RESCISIÓN de un contrato, es imprescindible que provenga de una cuenta marcada como [OFICIAL]. Los tweets de cuentas [No oficial] solo pueden ser relevantes para agregar información complementaria (cláusulas, detalles, etc.) a un contrato ya existente, nunca para crear o rescindir uno.
 
-3. Las cuentas [No oficial] SÍ pueden ser fuente válida para registros económicos y derechos.
+3. Las cuentas [No oficial] SÍ pueden ser fuente válida para registros económicos, derechos y rumores.
 
 Para cada tweet relevante, indicá también qué términos de búsqueda conviene usar en nuestra base de datos para ver si ya tenemos información relacionada.
 
@@ -224,7 +226,7 @@ Respondé con este formato:
       "username": "@usuario",
       "text": "texto del tweet",
       "reason": "por qué es relevante",
-      "domain": "contract|economy_record|right|multiple"
+      "domain": "contract|economy_record|right|rumor|multiple"
     }
   ],
   "search_queries": [
@@ -293,6 +295,12 @@ PROMPT;
                         ->toArray();
                     break;
 
+                case 'rumor':
+                    $rows = Rumor::search($search)->limit(5)
+                        ->get(['id', 'full_name', 'status', 'external_id'])
+                        ->toArray();
+                    break;
+
                 default:
                     $rows = [];
             }
@@ -341,6 +349,7 @@ El sistema maneja:
 - Contratos: full_name, expiration_date, signing_date, termination_date, estimated_salary, currency (ARS/USD/EUR), clauses (array), links (array de {url, label, official}), loan (objeto o null), external_id (número de BeSoccer)
 - Registros económicos (EconomyRecord): description, entity, type (ingreso|egreso|transferencia|pase|otro), amount, currency, record_date, carried_out (bool), links
 - Derechos (Right): full_name, clauses, links, external_id (número de BeSoccer)
+- Rumores de mercado (Rumor): full_name, external_id (BeSoccer — OBLIGATORIO), status (rumor|contratado), links
 
 Tu tarea: dados los tweets relevantes y los resultados de búsqueda, determiná qué acciones concretas se deben tomar.
 
@@ -348,11 +357,12 @@ Acciones posibles:
 - create_contract / update_contract / add_source_to_contract
 - create_economy_record / update_economy_record / add_source_to_economy_record
 - create_right / update_right / add_source_to_right
+- create_rumor / update_rumor / add_source_to_rumor
 - no_action
 
 REGLAS FUNDAMENTALES que debés respetar estrictamente:
 
-1. SOLO HECHOS CONFIRMADOS: Nunca tomes acciones basadas en rumores, especulaciones, negociaciones en curso o situaciones futuras no confirmadas. Solo actuás sobre hechos ya realizados y confirmados.
+1. SOLO HECHOS CONFIRMADOS (excepto rumores): Nunca tomes acciones basadas en especulaciones para contratos, economía o derechos. Solo actuás sobre hechos ya realizados. Para rumores, las versiones no confirmadas SÍ son accionables.
 
 2. FUENTE OFICIAL OBLIGATORIA PARA CONTRATOS: Para create_contract o para registrar la rescisión/terminación de un contrato (update_contract con termination_date), la fuente DEBE ser una cuenta [OFICIAL]. Las cuentas [No oficial] solo pueden generar acciones de tipo add_source_to_contract o update_contract para agregar información complementaria (cláusulas, detalles, etc.), nunca para crear o rescindir contratos.
 
@@ -363,7 +373,12 @@ REGLAS FUNDAMENTALES que debés respetar estrictamente:
    - "firma por N años" → calculá desde la fecha actual y usá el 31/12 del año N desde ahora (o 30/06 si se menciona mitad de año)
    - Ante la duda entre 31/12 y 30/06, usá 31/12.
 
-4. EXTERNAL_ID DE BESOCCER: Si necesitás crear un contrato o un derecho y no conocés el external_id del jugador, podés obtenerlo buscando en https://www.besoccer.com/search/{nombre-del-jugador}. En esa página aparece una lista de jugadores; la URL de cada perfil contiene el ID numérico al final (por ejemplo: https://www.besoccer.com/player/nombre-jugador-123456 → external_id = 123456). Incluí el external_id en los datos si podés determinarlo con confianza; si no, dejalo en null.
+4. EXTERNAL_ID DE BESOCCER: Si necesitás crear un contrato, un derecho o un rumor y no conocés el external_id del jugador, podés obtenerlo buscando en https://www.besoccer.com/search/{nombre-del-jugador}. En esa página aparece una lista de jugadores; la URL de cada perfil contiene el ID numérico al final (por ejemplo: https://www.besoccer.com/player/nombre-jugador-123456 → external_id = 123456). Incluí el external_id en los datos si podés determinarlo con confianza; si no, dejalo en null.
+
+5. RUMORES — REGLAS ESPECÍFICAS:
+   - create_rumor y add_source_to_rumor SOLO pueden originarse en cuentas [No oficial]. Los tweets [OFICIAL] nunca crean rumores.
+   - El external_id de BeSoccer es OBLIGATORIO para create_rumor. Si no podés determinarlo con confianza, usá no_action en lugar de crear el rumor sin ID.
+   - Si un jugador ya está en la base como rumor y se confirma su fichaje, podés usar update_rumor con status="contratado"; esta acción SÍ puede provenir de cuentas [OFICIAL].
 
 Para add_source_*: el objeto data debe tener {url: null, label: "...", official: true/false}.
 Marcá official: true solo si el tweet proviene de una fuente marcada como [OFICIAL].
@@ -436,6 +451,9 @@ PROMPT;
                     'create_right'                 => $this->createRight($data),
                     'update_right'                 => $this->updateRight((int) $id, $data),
                     'add_source_to_right'          => $this->addSourceTo(Right::class, (int) $id, $data),
+                    'create_rumor'                 => $this->createRumor($data),
+                    'update_rumor'                 => $this->updateRumor((int) $id, $data),
+                    'add_source_to_rumor'          => $this->addSourceTo(Rumor::class, (int) $id, $data),
                     'no_action'                    => ['status' => 'skipped'],
                     default                        => ['status' => 'unknown_action'],
                 };
@@ -507,6 +525,24 @@ PROMPT;
         $right   = Right::findOrFail($id);
         $allowed = ['full_name', 'clauses', 'links'];
         $right->update(array_intersect_key($data, array_flip($allowed)));
+        return ['status' => 'updated', 'id' => $id];
+    }
+
+    private function createRumor(array $data): array
+    {
+        if (empty($data['external_id'])) {
+            throw new \RuntimeException('create_rumor requiere external_id (BeSoccer ID)');
+        }
+        $allowed = ['full_name', 'external_id', 'status', 'links'];
+        $rumor   = Rumor::create(array_intersect_key($data, array_flip($allowed)));
+        return ['status' => 'created', 'id' => $rumor->id];
+    }
+
+    private function updateRumor(int $id, array $data): array
+    {
+        $rumor   = Rumor::findOrFail($id);
+        $allowed = ['full_name', 'status', 'links'];
+        $rumor->update(array_intersect_key($data, array_flip($allowed)));
         return ['status' => 'updated', 'id' => $id];
     }
 

@@ -9,6 +9,16 @@ import { translatePosition } from '../../utils/positions';
 
 const ROLE_LABELS = { '1': 'Arqueros', '2': 'Defensores', '3': 'Mediocampistas', '4': 'Delanteros' };
 
+const STAT_COLS = [
+  { key: 'pj',      label: 'PJ' },
+  { key: 'wins',    label: 'Victorias' },
+  { key: 'goals',   label: 'Goles' },
+  { key: 'asis',    label: 'Asist.' },
+  { key: 'minutes', label: 'Minutos' },
+  { key: 'yc',      label: '🟨' },
+  { key: 'rc',      label: '🟥' },
+];
+
 function formatDate(dateStr) {
   if (!dateStr) return '-';
   const d = new Date(dateStr);
@@ -17,6 +27,64 @@ function formatDate(dateStr) {
   const year = d.getUTCFullYear();
   return `${day}-${month}-${year}`;
 }
+
+// ── Shared data-fetching hook ────────────────────────────────────────────────
+
+function usePlayerMatches(playerId) {
+  const [matches, setMatches] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!playerId) return;
+    setLoading(true);
+    setMatches(null);
+
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const prevYear = currentYear - 1;
+    const cutoff = new Date(now);
+    cutoff.setDate(cutoff.getDate() - 365);
+
+    Promise.all([
+      getPlayerMatches(playerId, currentYear).catch(() => null),
+      getPlayerMatches(playerId, prevYear).catch(() => null),
+    ])
+      .then(([currentRes, prevRes]) => {
+        const allMatches = [
+          ...(currentRes?.data?.data?.match || []),
+          ...(prevRes?.data?.data?.match || []),
+        ];
+        const filtered = allMatches.filter((m) => {
+          const d = new Date(m.shedule);
+          return !isNaN(d.getTime()) && d >= cutoff;
+        });
+        const unique = [...new Map(filtered.map((m) => [m.id, m])).values()];
+        unique.sort((a, b) => new Date(b.shedule) - new Date(a.shedule));
+        setMatches(unique);
+      })
+      .finally(() => setLoading(false));
+  }, [playerId]);
+
+  return { matches, loading };
+}
+
+function computeTotals(matches) {
+  if (!matches) return null;
+  return matches.reduce(
+    (acc, m) => ({
+      pj:      acc.pj + 1,
+      goals:   acc.goals   + (Number(m.goals)   || 0),
+      asis:    acc.asis    + (Number(m.asis)    || 0),
+      yc:      acc.yc      + (Number(m.yc)      || 0),
+      rc:      acc.rc      + (Number(m.rc)      || 0),
+      minutes: acc.minutes + (Number(m.minutes) > 0 ? Number(m.minutes) : 0),
+      wins:    acc.wins    + (m.player_winner === 'w' ? 1 : 0),
+    }),
+    { pj: 0, goals: 0, asis: 0, yc: 0, rc: 0, minutes: 0, wins: 0 }
+  );
+}
+
+// ── Tooltip for competition logo ─────────────────────────────────────────────
 
 function CompetitionTooltip({ logo, name }) {
   const [pos, setPos] = useState(null);
@@ -52,6 +120,8 @@ function CompetitionTooltip({ logo, name }) {
     </>
   );
 }
+
+// ── Team + player info block (global, above tabs) ────────────────────────────
 
 function PlayerInfoBlock({ playerData, currentTeam }) {
   if (!currentTeam && !playerData) return null;
@@ -120,80 +190,151 @@ function PlayerInfoBlock({ playerData, currentTeam }) {
   );
 }
 
-function PlayerMatchesSection({ player }) {
-  const [matches, setMatches] = useState(null);
-  const [loading, setLoading] = useState(true);
+// ── Stats grid (shared between main player and comparisons) ──────────────────
 
-  useEffect(() => {
-    setLoading(true);
-    setMatches(null);
-
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const prevYear = currentYear - 1;
-    const cutoff = new Date(now);
-    cutoff.setDate(cutoff.getDate() - 365);
-
-    Promise.all([
-      getPlayerMatches(player.id, currentYear).catch(() => null),
-      getPlayerMatches(player.id, prevYear).catch(() => null),
-    ])
-      .then(([currentRes, prevRes]) => {
-        const currentMatches = currentRes?.data?.data?.match || [];
-        const prevMatches = prevRes?.data?.data?.match || [];
-
-        const allMatches = [...currentMatches, ...prevMatches];
-        const filtered = allMatches.filter((m) => {
-          const d = new Date(m.shedule);
-          return !isNaN(d.getTime()) && d >= cutoff;
-        });
-        const unique = [...new Map(filtered.map((m) => [m.id, m])).values()];
-        unique.sort((a, b) => new Date(b.shedule) - new Date(a.shedule));
-
-        setMatches(unique);
-      })
-      .finally(() => setLoading(false));
-  }, [player.id]);
-
-  const totals = matches?.reduce(
-    (acc, m) => ({
-      pj: acc.pj + 1,
-      goals: acc.goals + (Number(m.goals) || 0),
-      asis: acc.asis + (Number(m.asis) || 0),
-      yc: acc.yc + (Number(m.yc) || 0),
-      rc: acc.rc + (Number(m.rc) || 0),
-      minutes: acc.minutes + (Number(m.minutes) > 0 ? Number(m.minutes) : 0),
-      wins: acc.wins + (m.player_winner === 'w' ? 1 : 0),
-    }),
-    { pj: 0, goals: 0, asis: 0, yc: 0, rc: 0, minutes: 0, wins: 0 }
+function StatGrid({ totals, cols = 4 }) {
+  if (!totals) return null;
+  return (
+    <div className={`grid grid-cols-4 md:grid-cols-${cols} gap-2`}>
+      {STAT_COLS.map(({ key, label }) => (
+        <div key={key} className="text-center p-2 bg-gray-50 rounded-xl">
+          <p className="text-xl font-bold">{totals[key]}</p>
+          <p className="text-xs text-gray-500 mt-0.5">{label}</p>
+        </div>
+      ))}
+    </div>
   );
+}
+
+// ── Comparison row ────────────────────────────────────────────────────────────
+
+function ComparisonRow({ player, onRemove }) {
+  const { matches, loading } = usePlayerMatches(player.id);
+  const totals = computeTotals(matches);
+
+  return (
+    <div className="pt-3">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <PlayerAvatar src={player.image} alt={player.nick} className="w-6 h-6" />
+          <span className="text-sm font-semibold text-gray-800">{player.nick}</span>
+        </div>
+        <button
+          onClick={onRemove}
+          className="text-gray-300 hover:text-red-400 transition-colors text-xs leading-none"
+          aria-label="Quitar comparación"
+        >
+          ✕
+        </button>
+      </div>
+      {loading ? (
+        <div className="py-3 flex justify-center"><Loader /></div>
+      ) : totals ? (
+        <StatGrid totals={totals} cols={7} />
+      ) : (
+        <p className="text-xs text-gray-400 text-center py-2">Sin datos</p>
+      )}
+    </div>
+  );
+}
+
+// ── Comparison panel ─────────────────────────────────────────────────────────
+
+function ComparisonPanel({ currentPlayerId, pool }) {
+  const [comparisons, setComparisons] = useState([]);
+  const [selectValue, setSelectValue] = useState('');
+
+  const available = (pool || []).filter(
+    (p) =>
+      p.external_id &&
+      String(p.external_id) !== String(currentPlayerId) &&
+      !comparisons.some((c) => String(c.id) === String(p.external_id))
+  );
+
+  const addComparison = () => {
+    if (!selectValue) return;
+    const p = pool.find((r) => String(r.external_id) === selectValue);
+    if (!p) return;
+    setComparisons((prev) => [
+      ...prev,
+      { id: p.external_id, nick: p.full_name, image: p.player_avatar },
+    ]);
+    setSelectValue('');
+  };
+
+  if (available.length === 0 && comparisons.length === 0) return null;
+
+  return (
+    <div className="mt-4 pt-4 border-t border-gray-200">
+      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Comparar con</p>
+
+      <div className="space-y-4 divide-y divide-gray-100">
+        {comparisons.map((p) => (
+          <ComparisonRow
+            key={p.id}
+            player={p}
+            onRemove={() => setComparisons((prev) => prev.filter((c) => c.id !== p.id))}
+          />
+        ))}
+      </div>
+
+      {available.length > 0 && (
+        <div className="flex gap-2 mt-4">
+          <select
+            value={selectValue}
+            onChange={(e) => setSelectValue(e.target.value)}
+            className="input-field flex-1 text-sm"
+          >
+            <option value="">Elegir jugador...</option>
+            {available.map((p) => (
+              <option key={p.external_id} value={String(p.external_id)}>
+                {p.full_name}
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={addComparison}
+            disabled={!selectValue}
+            className="btn-secondary text-sm disabled:opacity-40"
+          >
+            Agregar
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Stats tab content ─────────────────────────────────────────────────────────
+
+function PlayerMatchesSection({ player, comparePool }) {
+  const { matches, loading } = usePlayerMatches(player.id);
+  const totals = computeTotals(matches);
 
   if (loading) return <div className="py-8"><Loader /></div>;
 
   if (!matches || matches.length === 0) {
-    return <p className="text-sm text-gray-500 py-6 text-center">Sin partidos registrados en los últimos 365 días</p>;
+    return (
+      <>
+        <p className="text-sm text-gray-500 py-6 text-center">Sin partidos registrados en los últimos 365 días</p>
+        {comparePool && (
+          <ComparisonPanel currentPlayerId={player.id} pool={comparePool} />
+        )}
+      </>
+    );
   }
 
   return (
     <div>
-      <div className="grid grid-cols-4 md:grid-cols-7 gap-2 mb-6">
-        {[
-          { label: 'PJ', value: totals.pj },
-          { label: 'Victorias', value: totals.wins },
-          { label: 'Goles', value: totals.goals },
-          { label: 'Asist.', value: totals.asis },
-          { label: 'Minutos', value: totals.minutes },
-          { label: 'Amarillas', value: totals.yc },
-          { label: 'Rojas', value: totals.rc },
-        ].map(({ label, value }) => (
-          <div key={label} className="text-center p-2 bg-gray-50 rounded-xl">
-            <p className="text-xl font-bold">{value}</p>
-            <p className="text-xs text-gray-500 mt-0.5">{label}</p>
-          </div>
-        ))}
+      <div className="mb-6">
+        <StatGrid totals={totals} cols={7} />
       </div>
 
-      <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+      {comparePool && (
+        <ComparisonPanel currentPlayerId={player.id} pool={comparePool} />
+      )}
+
+      <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 mt-6">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-xs text-gray-400 border-b uppercase tracking-wide">
@@ -241,6 +382,8 @@ function PlayerMatchesSection({ player }) {
     </div>
   );
 }
+
+// ── Contract tab content ──────────────────────────────────────────────────────
 
 function PlayerContractSection({ player }) {
   const [contract, setContract] = useState(undefined);
@@ -377,12 +520,14 @@ function PlayerContractSection({ player }) {
   );
 }
 
+// ── Modal ─────────────────────────────────────────────────────────────────────
+
 const ALL_TABS = [
-  { key: 'stats', label: 'Estadísticas' },
+  { key: 'stats',    label: 'Estadísticas' },
   { key: 'contract', label: 'Contrato' },
 ];
 
-export default function PlayerMatchesModal({ player, onClose, showContract = true }) {
+export default function PlayerMatchesModal({ player, onClose, showContract = true, comparePool = null }) {
   const tabs = showContract ? ALL_TABS : ALL_TABS.filter((t) => t.key !== 'contract');
   const [tab, setTab] = useState('stats');
   const [playerData, setPlayerData] = useState(null);
@@ -446,7 +591,7 @@ export default function PlayerMatchesModal({ player, onClose, showContract = tru
           </button>
         </div>
 
-        {/* Player + Team Info Block — global, shown above tabs */}
+        {/* Player + Team Info Block */}
         <PlayerInfoBlock playerData={playerData} currentTeam={currentTeam} />
 
         {/* Tabs */}
@@ -468,8 +613,12 @@ export default function PlayerMatchesModal({ player, onClose, showContract = tru
 
         {/* Content */}
         <div className="p-4">
-          {tab === 'stats' && <PlayerMatchesSection player={player} />}
-          {tab === 'contract' && showContract && <PlayerContractSection player={player} />}
+          {tab === 'stats' && (
+            <PlayerMatchesSection player={player} comparePool={comparePool} />
+          )}
+          {tab === 'contract' && showContract && (
+            <PlayerContractSection player={player} />
+          )}
         </div>
       </div>
     </div>
