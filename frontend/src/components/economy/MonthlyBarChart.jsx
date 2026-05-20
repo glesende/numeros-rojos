@@ -208,7 +208,12 @@ export default function MonthlyBarChart() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Compromisos económicos</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-xl font-bold text-gray-900">Compromisos económicos</h2>
+            <Link to="/economia" className="text-sm text-rojo hover:underline font-medium">
+              Ver todos →
+            </Link>
+          </div>
           <p className="text-sm text-gray-500 mt-0.5">
             Últimos 24 meses · Mes actual · Próximos 24 meses
           </p>
