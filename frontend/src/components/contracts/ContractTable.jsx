@@ -92,10 +92,10 @@ export default function ContractTable({ contracts, sortBy = 'expiration_date', s
                   {c.full_name}
                 </Link>
                 {c.loan && (
-                  <div className="text-xs text-blue-600 mt-0.5">
+                  <div className="text-xs text-prestamo mt-0.5">
                     <p>A préstamo en {c.loan.club}{c.loan.until && ` · hasta ${formatDate(c.loan.until)}`}</p>
                     {c.loan.clauses?.map((clause, i) => (
-                      <p key={i} className="text-blue-500">— {clause}</p>
+                      <p key={i} className="text-prestamo">— {clause}</p>
                     ))}
                   </div>
                 )}
@@ -159,10 +159,10 @@ export default function ContractTable({ contracts, sortBy = 'expiration_date', s
                         {c.full_name}
                       </Link>
                       {c.loan && (
-                        <div className="text-xs text-blue-600">
+                        <div className="text-xs text-prestamo">
                           <p>A préstamo en {c.loan.club}{c.loan.until && ` · hasta ${formatDate(c.loan.until)}`}</p>
                           {c.loan.clauses?.map((clause, i) => (
-                            <p key={i} className="text-blue-500">— {clause}</p>
+                            <p key={i} className="text-prestamo">— {clause}</p>
                           ))}
                         </div>
                       )}
