@@ -57,7 +57,7 @@ function ContractCard({ contract, onClick }) {
             {contract.full_name}
           </p>
           {contract.loan && (
-            <span className="text-xs font-semibold text-blue-600">A préstamo en {contract.loan.club}</span>
+            <span className="text-xs font-semibold text-prestamo">A préstamo en {contract.loan.club}</span>
           )}
         </div>
       </div>
@@ -66,13 +66,13 @@ function ContractCard({ contract, onClick }) {
         {contract.loan?.until && (
           <div className="flex justify-between items-center">
             <span className="text-gray-500 text-xs">A préstamo hasta</span>
-            <span className="font-mono text-xs text-blue-600">{formatDate(contract.loan.until)}</span>
+            <span className="font-mono text-xs text-prestamo">{formatDate(contract.loan.until)}</span>
           </div>
         )}
         {contract.loan?.clauses?.length > 0 && (
           <div className="flex flex-col gap-0.5">
             {contract.loan.clauses.map((clause, i) => (
-              <span key={i} className="text-xs text-blue-500">— {clause}</span>
+              <span key={i} className="text-xs text-prestamo">— {clause}</span>
             ))}
           </div>
         )}
