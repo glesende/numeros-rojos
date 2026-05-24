@@ -208,31 +208,31 @@ export default function MonthlyBarChart() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <div>
-          <div className="flex items-center gap-3">
-            <h2 className="text-xl font-bold text-gray-900">Compromisos económicos</h2>
-            <Link to="/economia" className="text-sm text-rojo hover:underline font-medium">
-              Ver todos →
-            </Link>
-          </div>
+          <h2 className="text-xl font-bold text-gray-900">Compromisos económicos</h2>
           <p className="text-sm text-gray-500 mt-0.5">
             Últimos 24 meses · Mes actual · Próximos 24 meses
           </p>
         </div>
-        {/* Type toggle */}
-        <div className="flex gap-1 bg-gray-100 rounded-lg p-1 self-start sm:self-auto">
-          {['egresos', 'ingresos'].map((t) => (
-            <button
-              key={t}
-              onClick={() => setType(t)}
-              className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-all ${
-                type === t
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              {t.charAt(0).toUpperCase() + t.slice(1)}
-            </button>
-          ))}
+        <div className="flex items-center gap-3 self-start sm:self-auto">
+          <Link to="/economia" className="text-sm text-rojo hover:underline font-medium">
+            Ver todos →
+          </Link>
+          {/* Type toggle */}
+          <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+            {['egresos', 'ingresos'].map((t) => (
+              <button
+                key={t}
+                onClick={() => setType(t)}
+                className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-all ${
+                  type === t
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {t.charAt(0).toUpperCase() + t.slice(1)}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
