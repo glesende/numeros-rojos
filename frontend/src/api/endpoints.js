@@ -38,6 +38,14 @@ export const createRumor = (data) => client.post('/admin/rumors', data);
 export const updateRumor = (id, data) => client.put(`/admin/rumors/${id}`, data);
 export const deleteRumor = (id) => client.delete(`/admin/rumors/${id}`);
 
+// Markets
+export const getMarkets = () => client.get('/markets');
+export const createMarket = (data) => client.post('/admin/markets', data);
+export const updateMarket = (id, data) => client.put(`/admin/markets/${id}`, data);
+export const deleteMarket = (id) => client.delete(`/admin/markets/${id}`);
+export const activateMarket = (id) => client.post(`/admin/markets/${id}/activate`);
+export const deactivateMarket = () => client.post('/admin/markets/deactivate');
+
 // Settings
 export const getSettings = () => client.get('/admin/settings');
 export const updateSettings = (data) => client.put('/admin/settings', data);

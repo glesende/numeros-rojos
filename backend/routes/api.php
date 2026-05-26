@@ -21,6 +21,7 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
     $router->get('rights/{id}', 'RightController@show');
     $router->get('rumors', 'RumorController@index');
     $router->get('rumors/{id}', 'RumorController@show');
+    $router->get('markets', 'MarketController@index');
 
     // Balances (public)
     $router->get('balances', 'BalanceController@index');
@@ -78,6 +79,13 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
         $router->post('rumors', 'RumorController@store');
         $router->put('rumors/{id}', 'RumorController@update');
         $router->delete('rumors/{id}', 'RumorController@destroy');
+
+        // Markets CRUD
+        $router->post('markets', 'MarketController@store');
+        $router->put('markets/{id}', 'MarketController@update');
+        $router->delete('markets/{id}', 'MarketController@destroy');
+        $router->post('markets/{id}/activate', 'MarketController@activate');
+        $router->post('markets/deactivate', 'MarketController@deactivate');
 
         // Balances CRUD
         $router->post('balances', 'BalanceController@store');
