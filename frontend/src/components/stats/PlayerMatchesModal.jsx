@@ -1,11 +1,16 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
+} from 'recharts';
 import { getPlayerMatches, getPlayer, getContracts } from '../../api/endpoints';
 import Loader from '../common/Loader';
 import OfficialBadge from '../OfficialBadge';
 import SourceLabel from '../SourceLabel';
 import PlayerAvatar from '../PlayerAvatar';
 import { translatePosition } from '../../utils/positions';
+import { LINE_COLORS, CHART_THEME } from '../../constants/chartColors';
 
 const ROLE_LABELS = { '1': 'Arqueros', '2': 'Defensores', '3': 'Mediocampistas', '4': 'Delanteros' };
 
@@ -17,6 +22,15 @@ const STAT_COLS = [
   { key: 'minutes', label: 'Minutos' },
   { key: 'yc',      label: '🟨' },
   { key: 'rc',      label: '🟥' },
+];
+
+const CHART_STATS = [
+  { key: 'pj',    label: 'PJ' },
+  { key: 'goals', label: 'Goles' },
+  { key: 'asis',  label: 'Asist.' },
+  { key: 'wins',  label: 'Victorias' },
+  { key: 'yc',    label: 'T.Am.' },
+  { key: 'rc',    label: 'T.Ro.' },
 ];
 
 function formatDate(dateStr) {
@@ -206,11 +220,154 @@ function StatGrid({ totals, cols = 4 }) {
   );
 }
 
+// ── Comparison chart ─────────────────────────────────────────────────────────
+
+function ComparisonChart({ players }) {
+  const [chartType, setChartType] = useState('bar');
+
+  if (!players || players.length < 2) return null;
+
+  // Use indexed keys to avoid recharts path-notation issues with player names
+  const barData = CHART_STATS.map(({ key, label }) => {
+    const entry = { stat: label };
+    players.forEach((p, i) => {
+      entry[`p${i}`] = p.totals?.[key] ?? 0;
+    });
+    return entry;
+  });
+
+  // Radar: normalize each stat to 0-100 relative to best player in group
+  const radarData = CHART_STATS.map(({ key, label }) => {
+    const maxVal = Math.max(...players.map((p) => p.totals?.[key] ?? 0), 1);
+    const entry = { stat: label };
+    players.forEach((p, i) => {
+      entry[`p${i}`] = Math.round(((p.totals?.[key] ?? 0) / maxVal) * 100);
+    });
+    return entry;
+  });
+
+  return (
+    <div className="mt-5 pt-4 border-t border-gray-100">
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+          Gráfico comparativo
+        </p>
+        <div className="flex gap-1 bg-gray-100 rounded-lg p-0.5">
+          {[
+            { type: 'bar', label: 'Barras' },
+            { type: 'radar', label: 'Radar' },
+          ].map(({ type, label }) => (
+            <button
+              key={type}
+              onClick={() => setChartType(type)}
+              className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${
+                chartType === type
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ height: 260 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          {chartType === 'bar' ? (
+            <BarChart
+              data={barData}
+              margin={{ top: 8, right: 8, left: -20, bottom: 0 }}
+              barCategoryGap="25%"
+              barGap={2}
+            >
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_THEME.grid} />
+              <XAxis
+                dataKey="stat"
+                tick={{ fontSize: 10, fill: CHART_THEME.axisText }}
+                tickLine={false}
+                axisLine={{ stroke: CHART_THEME.axisLine }}
+              />
+              <YAxis
+                tick={{ fontSize: 10, fill: CHART_THEME.axisText }}
+                tickLine={false}
+                axisLine={false}
+                allowDecimals={false}
+              />
+              <Tooltip
+                contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
+                cursor={{ fill: CHART_THEME.tooltipCursor }}
+              />
+              <Legend wrapperStyle={{ fontSize: 11 }} />
+              {players.map((p, i) => (
+                <Bar
+                  key={i}
+                  dataKey={`p${i}`}
+                  name={p.nick}
+                  fill={LINE_COLORS[i % LINE_COLORS.length]}
+                  radius={[2, 2, 0, 0]}
+                  maxBarSize={28}
+                />
+              ))}
+            </BarChart>
+          ) : (
+            <RadarChart
+              data={radarData}
+              margin={{ top: 8, right: 30, bottom: 8, left: 30 }}
+            >
+              <PolarGrid stroke={CHART_THEME.axisLine} />
+              <PolarAngleAxis
+                dataKey="stat"
+                tick={{ fontSize: 10, fill: CHART_THEME.axisText }}
+              />
+              <PolarRadiusAxis
+                domain={[0, 100]}
+                tick={{ fontSize: 9, fill: CHART_THEME.axisText }}
+                tickCount={4}
+                tickFormatter={(v) => `${v}%`}
+              />
+              <Tooltip
+                formatter={(value, name) => [`${value}%`, name]}
+                contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
+              />
+              <Legend wrapperStyle={{ fontSize: 11 }} />
+              {players.map((p, i) => (
+                <Radar
+                  key={i}
+                  dataKey={`p${i}`}
+                  name={p.nick}
+                  stroke={LINE_COLORS[i % LINE_COLORS.length]}
+                  fill={LINE_COLORS[i % LINE_COLORS.length]}
+                  fillOpacity={0.15}
+                />
+              ))}
+            </RadarChart>
+          )}
+        </ResponsiveContainer>
+      </div>
+
+      {chartType === 'radar' && (
+        <p className="text-xs text-gray-400 text-center mt-1">
+          Valores normalizados respecto al mejor del grupo en cada estadística
+        </p>
+      )}
+    </div>
+  );
+}
+
 // ── Comparison row ────────────────────────────────────────────────────────────
 
-function ComparisonRow({ player, onRemove }) {
+function ComparisonRow({ player, onRemove, onTotalsLoaded }) {
   const { matches, loading } = usePlayerMatches(player.id);
-  const totals = computeTotals(matches);
+  const totals = useMemo(() => computeTotals(matches), [matches]);
+  const onTotalsLoadedRef = useRef(onTotalsLoaded);
+  onTotalsLoadedRef.current = onTotalsLoaded;
+
+  useEffect(() => {
+    if (!loading && matches !== null) {
+      onTotalsLoadedRef.current?.(player.id, totals);
+    }
+  }, [loading, matches, player.id, totals]);
 
   return (
     <div className="pt-3">
@@ -240,9 +397,14 @@ function ComparisonRow({ player, onRemove }) {
 
 // ── Comparison panel ─────────────────────────────────────────────────────────
 
-function ComparisonPanel({ currentPlayerId, pool }) {
+function ComparisonPanel({ currentPlayerId, pool, mainPlayerTotals, mainPlayerNick }) {
   const [comparisons, setComparisons] = useState([]);
   const [selectValue, setSelectValue] = useState('');
+  const [comparisonTotals, setComparisonTotals] = useState({});
+
+  const handleTotalsLoaded = useCallback((id, totals) => {
+    setComparisonTotals((prev) => ({ ...prev, [String(id)]: totals }));
+  }, []);
 
   const available = (pool || []).filter(
     (p) =>
@@ -262,6 +424,18 @@ function ComparisonPanel({ currentPlayerId, pool }) {
     setSelectValue('');
   };
 
+  const chartPlayers = useMemo(() => {
+    if (!mainPlayerTotals) return [];
+    const players = [{ id: currentPlayerId, nick: mainPlayerNick || 'Jugador', totals: mainPlayerTotals }];
+    for (const c of comparisons) {
+      const t = comparisonTotals[String(c.id)];
+      if (t !== undefined) {
+        players.push({ id: c.id, nick: c.nick, totals: t });
+      }
+    }
+    return players;
+  }, [mainPlayerTotals, mainPlayerNick, currentPlayerId, comparisons, comparisonTotals]);
+
   if (available.length === 0 && comparisons.length === 0) return null;
 
   return (
@@ -273,7 +447,15 @@ function ComparisonPanel({ currentPlayerId, pool }) {
           <ComparisonRow
             key={p.id}
             player={p}
-            onRemove={() => setComparisons((prev) => prev.filter((c) => c.id !== p.id))}
+            onRemove={() => {
+              setComparisons((prev) => prev.filter((c) => c.id !== p.id));
+              setComparisonTotals((prev) => {
+                const next = { ...prev };
+                delete next[String(p.id)];
+                return next;
+              });
+            }}
+            onTotalsLoaded={handleTotalsLoaded}
           />
         ))}
       </div>
@@ -301,6 +483,10 @@ function ComparisonPanel({ currentPlayerId, pool }) {
           </button>
         </div>
       )}
+
+      {chartPlayers.length >= 2 && (
+        <ComparisonChart players={chartPlayers} />
+      )}
     </div>
   );
 }
@@ -309,7 +495,7 @@ function ComparisonPanel({ currentPlayerId, pool }) {
 
 function PlayerMatchesSection({ player, comparePool }) {
   const { matches, loading } = usePlayerMatches(player.id);
-  const totals = computeTotals(matches);
+  const totals = useMemo(() => computeTotals(matches), [matches]);
 
   if (loading) return <div className="py-8"><Loader /></div>;
 
@@ -318,7 +504,12 @@ function PlayerMatchesSection({ player, comparePool }) {
       <>
         <p className="text-sm text-gray-500 py-6 text-center">Sin partidos registrados en los últimos 365 días</p>
         {comparePool && (
-          <ComparisonPanel currentPlayerId={player.id} pool={comparePool} />
+          <ComparisonPanel
+            currentPlayerId={player.id}
+            pool={comparePool}
+            mainPlayerTotals={totals}
+            mainPlayerNick={player.nick}
+          />
         )}
       </>
     );
@@ -331,7 +522,12 @@ function PlayerMatchesSection({ player, comparePool }) {
       </div>
 
       {comparePool && (
-        <ComparisonPanel currentPlayerId={player.id} pool={comparePool} />
+        <ComparisonPanel
+          currentPlayerId={player.id}
+          pool={comparePool}
+          mainPlayerTotals={totals}
+          mainPlayerNick={player.nick}
+        />
       )}
 
       <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 mt-6">
