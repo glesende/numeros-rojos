@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { getMarkets } from '../../api/endpoints';
 
 const emptyForm = {
+  market_id: '',
   external_id: '',
   full_name: '',
   status: 'rumor',
@@ -13,10 +15,18 @@ const normalizeLink = (l) =>
 export default function RumorForm({ initial, onSubmit, loading }) {
   const [form, setForm] = useState(emptyForm);
   const [linkInput, setLinkInput] = useState('');
+  const [markets, setMarkets] = useState([]);
+
+  useEffect(() => {
+    getMarkets()
+      .then((res) => setMarkets(res.data.data || []))
+      .catch(() => setMarkets([]));
+  }, []);
 
   useEffect(() => {
     if (initial) {
       setForm({
+        market_id: initial.market_id ? String(initial.market_id) : '',
         external_id: initial.external_id || '',
         full_name: initial.full_name || '',
         status: initial.status || 'rumor',
@@ -46,12 +56,32 @@ export default function RumorForm({ initial, onSubmit, loading }) {
     e.preventDefault();
     onSubmit({
       ...form,
+      market_id: form.market_id ? parseInt(form.market_id, 10) : null,
       links: form.links.length > 0 ? form.links : null,
     });
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label className="block text-xs font-medium text-gray-500 mb-1">Mercado</label>
+        <select
+          value={form.market_id}
+          onChange={(e) => set('market_id', e.target.value)}
+          className="input-field"
+        >
+          <option value="">Sin mercado</option>
+          {markets.map((m) => (
+            <option key={m.id} value={String(m.id)}>
+              {m.name}{m.is_active ? ' (activo)' : ''}
+            </option>
+          ))}
+        </select>
+        {markets.length === 0 && (
+          <p className="text-xs text-gray-400 mt-1">No hay mercados creados. <a href="/admin/mercados" className="text-rojo hover:underline">Crear mercados →</a></p>
+        )}
+      </div>
+
       <div>
         <label className="block text-xs font-medium text-gray-500 mb-1">ID Externo (BeSoccer)</label>
         <input
