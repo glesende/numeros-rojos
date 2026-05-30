@@ -462,7 +462,6 @@ function ComparisonRow({ player, onRemove, onTotalsLoaded }) {
 
 function ComparisonPanel({ currentPlayerId, pool, mainPlayerTotals, mainPlayerNick }) {
   const [comparisons, setComparisons] = useState([]);
-  const [selectValue, setSelectValue] = useState('');
   const [comparisonTotals, setComparisonTotals] = useState({});
 
   const handleTotalsLoaded = useCallback((id, totals) => {
@@ -476,15 +475,11 @@ function ComparisonPanel({ currentPlayerId, pool, mainPlayerTotals, mainPlayerNi
       !comparisons.some((c) => String(c.id) === String(p.external_id))
   );
 
-  const addComparison = () => {
-    if (!selectValue) return;
-    const p = pool.find((r) => String(r.external_id) === selectValue);
-    if (!p) return;
+  const addComparison = (player) => {
     setComparisons((prev) => [
       ...prev,
-      { id: p.external_id, nick: p.full_name, image: p.player_avatar },
+      { id: player.external_id, nick: player.full_name, image: player.player_avatar },
     ]);
-    setSelectValue('');
   };
 
   const chartPlayers = useMemo(() => {
@@ -505,6 +500,20 @@ function ComparisonPanel({ currentPlayerId, pool, mainPlayerTotals, mainPlayerNi
     <div className="mt-4 pt-4 border-t border-gray-200">
       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Comparar con</p>
 
+      {available.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-3">
+          {available.map((p) => (
+            <button
+              key={p.external_id}
+              onClick={() => addComparison(p)}
+              className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-full border border-gray-200 hover:border-gray-400 hover:bg-gray-50 text-gray-700 transition-colors"
+            >
+              <span className="text-gray-400 font-bold">+</span> {p.full_name}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="space-y-4 divide-y divide-gray-100">
         {comparisons.map((p) => (
           <ComparisonRow
@@ -522,30 +531,6 @@ function ComparisonPanel({ currentPlayerId, pool, mainPlayerTotals, mainPlayerNi
           />
         ))}
       </div>
-
-      {available.length > 0 && (
-        <div className="flex gap-2 mt-4">
-          <select
-            value={selectValue}
-            onChange={(e) => setSelectValue(e.target.value)}
-            className="input-field flex-1 text-sm"
-          >
-            <option value="">Elegir jugador...</option>
-            {available.map((p) => (
-              <option key={p.external_id} value={String(p.external_id)}>
-                {p.full_name}
-              </option>
-            ))}
-          </select>
-          <button
-            onClick={addComparison}
-            disabled={!selectValue}
-            className="btn-secondary text-sm disabled:opacity-40"
-          >
-            Agregar
-          </button>
-        </div>
-      )}
 
       {chartPlayers.length >= 2 && (
         <ComparisonChart players={chartPlayers} />
