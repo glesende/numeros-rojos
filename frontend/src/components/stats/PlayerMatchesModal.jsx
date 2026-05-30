@@ -792,9 +792,10 @@ export default function PlayerMatchesModal({ player, onClose, showContract = tru
   const [playerData, setPlayerData] = useState(null);
 
   useEffect(() => {
+    if (!player) return;
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = ''; };
-  }, []);
+  }, [player]);
 
   useEffect(() => {
     setTab('stats');
