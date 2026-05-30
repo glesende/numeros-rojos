@@ -330,7 +330,6 @@ function ComparisonChart({ players }) {
                 formatter={(value, name) => [`${value}%`, name]}
                 contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
               />
-              <Legend wrapperStyle={{ fontSize: 11 }} />
               {players.map((p, i) => (
                 <Radar
                   key={i}
@@ -347,6 +346,19 @@ function ComparisonChart({ players }) {
       </div>
 
       {chartType === 'radar' && (
+        <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-3 mb-1">
+          {players.map((p, i) => (
+            <div key={i} className="flex items-center gap-1.5 text-xs text-gray-700">
+              <span
+                className="inline-block w-3 h-1 rounded-full flex-shrink-0"
+                style={{ backgroundColor: LINE_COLORS[i % LINE_COLORS.length] }}
+              />
+              {p.nick}
+            </div>
+          ))}
+        </div>
+      )}
+      {chartType === 'radar' && (
         <p className="text-xs text-gray-400 text-center mt-1">
           Valores normalizados respecto al mejor del grupo en cada estadística
         </p>
@@ -362,6 +374,7 @@ function ComparisonRow({ player, onRemove, onTotalsLoaded }) {
   const totals = useMemo(() => computeTotals(matches), [matches]);
   const onTotalsLoadedRef = useRef(onTotalsLoaded);
   onTotalsLoadedRef.current = onTotalsLoaded;
+  const [playerData, setPlayerData] = useState(null);
 
   useEffect(() => {
     if (!loading && matches !== null) {
@@ -369,16 +382,66 @@ function ComparisonRow({ player, onRemove, onTotalsLoaded }) {
     }
   }, [loading, matches, player.id, totals]);
 
+  useEffect(() => {
+    if (player?.id) {
+      getPlayer(player.id)
+        .then((res) => setPlayerData(res?.data?.data || null))
+        .catch(() => null);
+    }
+  }, [player?.id]);
+
+  const currentTeam = playerData?.current_team || null;
+  const teamName = currentTeam ? (currentTeam.nameShow || currentTeam.fullName || currentTeam.name) : null;
+  const positions = playerData ? [
+    { pos: playerData.pos1, pct: playerData.pos1p },
+    { pos: playerData.pos2, pct: playerData.pos2p },
+    { pos: playerData.pos3, pct: playerData.pos3p },
+    { pos: playerData.pos4, pct: playerData.pos4p },
+  ].filter((p) => p.pos && Number(p.pct) > 40) : [];
+
   return (
     <div className="pt-3">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <PlayerAvatar src={player.image} alt={player.nick} className="w-6 h-6" />
-          <span className="text-sm font-semibold text-gray-800">{player.nick}</span>
+      <div className="flex items-start justify-between mb-2">
+        <div className="flex items-start gap-2">
+          <PlayerAvatar src={player.image} alt={player.nick} className="w-6 h-6 mt-0.5" />
+          <div>
+            <span className="text-sm font-semibold text-gray-800">{player.nick}</span>
+            {currentTeam && (
+              <div className="flex items-center gap-1.5 mt-0.5">
+                {currentTeam.shield && (
+                  <img src={currentTeam.shield} alt={teamName} className="h-4 w-auto flex-shrink-0" />
+                )}
+                <span className="text-xs text-gray-600">{teamName}</span>
+                {currentTeam.team_flag && (
+                  <img src={currentTeam.team_flag} alt="" className="h-3 w-auto flex-shrink-0 rounded-sm" />
+                )}
+              </div>
+            )}
+            {playerData && (playerData.age || playerData.height || playerData.weight) && (
+              <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-gray-600 mt-0.5">
+                {playerData.age && (
+                  <span><span className="font-medium text-gray-800">{playerData.age}</span> años</span>
+                )}
+                {playerData.height && (
+                  <span><span className="font-medium text-gray-800">{playerData.height}</span> cm</span>
+                )}
+                {playerData.weight && (
+                  <span><span className="font-medium text-gray-800">{playerData.weight}</span> kg</span>
+                )}
+              </div>
+            )}
+            {positions.length > 0 && (
+              <div className="text-xs mt-0.5">
+                {positions.map((p, i) => (
+                  <p key={i} className="font-medium text-gray-800">{translatePosition(p.pos)}</p>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
         <button
           onClick={onRemove}
-          className="text-gray-300 hover:text-red-400 transition-colors text-xs leading-none"
+          className="text-gray-300 hover:text-red-400 transition-colors text-xs leading-none mt-0.5"
           aria-label="Quitar comparación"
         >
           ✕
@@ -727,6 +790,11 @@ export default function PlayerMatchesModal({ player, onClose, showContract = tru
   const tabs = showContract ? ALL_TABS : ALL_TABS.filter((t) => t.key !== 'contract');
   const [tab, setTab] = useState('stats');
   const [playerData, setPlayerData] = useState(null);
+
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, []);
 
   useEffect(() => {
     setTab('stats');
