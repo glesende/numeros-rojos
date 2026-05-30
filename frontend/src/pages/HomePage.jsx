@@ -147,11 +147,12 @@ function ContractCard({ contract, onClick }) {
 }
 
 // Unified card for Rights and Rumors — both share the same structure
-function PlayerCard({ player, onClick, showPositions = false }) {
+function PlayerCard({ player, onClick, showPositions = false, previousMarkets = [] }) {
   const clickable = !!player.external_id && !!onClick;
   const isArgentine = player.country?.toLowerCase?.()?.includes('argentin');
   const contratado = player.status === 'contratado';
   const positions = showPositions && Array.isArray(player.positions) ? player.positions : [];
+  const prevMarkets = previousMarkets.length > 0 ? previousMarkets : (player.previous_markets || []);
 
   return (
     <div
@@ -220,6 +221,19 @@ function PlayerCard({ player, onClick, showPositions = false }) {
             {player.links.length > 2 && (
               <li className="text-gray-400">+{player.links.length - 2} más</li>
             )}
+          </ul>
+        </div>
+      )}
+
+      {prevMarkets.length > 0 && (
+        <div className="pt-1 border-t border-gray-100">
+          <p className="text-xs text-amber-600 font-semibold mb-1">También sonó en:</p>
+          <ul className="text-xs text-gray-600 space-y-0.5">
+            {prevMarkets.map((name, i) => (
+              <li key={i} className="bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full inline-block mr-1 mb-1">
+                {name}
+              </li>
+            ))}
           </ul>
         </div>
       )}
@@ -359,6 +373,7 @@ export default function HomePage() {
   const [rightsLoading, setRightsLoading] = useState(false);
   const [rumors, setRumors] = useState([]);
   const [rumoresLoading, setRumoresLoading] = useState(false);
+  const [activeMarket, setActiveMarket] = useState(null);
   const [selectedContractPlayer, setSelectedContractPlayer] = useState(null);
   const [selectedRumorPlayer, setSelectedRumorPlayer] = useState(null);
   const { sections } = useSectionSettings();
@@ -396,7 +411,10 @@ export default function HomePage() {
     if (sections.section_rumores_enabled !== true) return;
     setRumoresLoading(true);
     getRumors({ per_page: 100 })
-      .then((res) => setRumors(res.data.data || []))
+      .then((res) => {
+        setRumors(res.data.data || []);
+        setActiveMarket(res.data.active_market || null);
+      })
       .catch(() => setRumors([]))
       .finally(() => setRumoresLoading(false));
   }, [sections.section_rumores_enabled]);
@@ -462,7 +480,12 @@ export default function HomePage() {
       <section id="rumores" className="max-w-6xl mx-auto px-4 py-4">
         <div className="card overflow-hidden">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold">Rumores del mercado</h2>
+            <div>
+              <h2 className="text-xl font-bold">Rumores del mercado</h2>
+              {activeMarket && (
+                <span className="text-sm text-gray-500 font-medium">{activeMarket.name}</span>
+              )}
+            </div>
             <div className="flex items-center gap-2">
               <span className="text-xs text-gray-400">Compartir</span>
               <a
