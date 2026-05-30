@@ -142,6 +142,16 @@ function ContractCard({ contract, onClick }) {
           </ul>
         </div>
       )}
+
+      <div className="pt-2 border-t border-gray-100">
+        <Link
+          to={`/contratos/${contract.id}`}
+          onClick={(e) => e.stopPropagation()}
+          className="text-sm text-rojo hover:underline font-medium"
+        >
+          Ver detalle →
+        </Link>
+      </div>
     </div>
   );
 }
