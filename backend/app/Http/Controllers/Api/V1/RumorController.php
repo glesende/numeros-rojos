@@ -8,6 +8,7 @@ use App\Models\Rumor;
 use App\Services\BeSoccerService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class RumorController extends Controller
 {
@@ -122,9 +123,14 @@ class RumorController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        $marketId = $request->input('market_id');
+
         $this->validate($request, [
-            'market_id'        => 'nullable|exists:markets,id',
-            'external_id'      => 'nullable|string|max:255',
+            'market_id'        => 'required|exists:markets,id',
+            'external_id'      => [
+                'nullable', 'string', 'max:255',
+                Rule::unique('rumors')->where(fn($q) => $q->where('market_id', $marketId)),
+            ],
             'full_name'        => 'required|string|max:255',
             'status'           => 'nullable|in:rumor,contratado',
             'links'            => 'nullable|array',
@@ -141,9 +147,14 @@ class RumorController extends Controller
     {
         $rumor = Rumor::findOrFail($id);
 
+        $marketId = $request->input('market_id');
+
         $this->validate($request, [
-            'market_id'        => 'nullable|exists:markets,id',
-            'external_id'      => 'nullable|string|max:255',
+            'market_id'        => 'required|exists:markets,id',
+            'external_id'      => [
+                'nullable', 'string', 'max:255',
+                Rule::unique('rumors')->where(fn($q) => $q->where('market_id', $marketId))->ignore($id),
+            ],
             'full_name'        => 'sometimes|string|max:255',
             'status'           => 'nullable|in:rumor,contratado',
             'links'            => 'nullable|array',

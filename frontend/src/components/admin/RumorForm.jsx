@@ -64,13 +64,14 @@ export default function RumorForm({ initial, onSubmit, loading }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-xs font-medium text-gray-500 mb-1">Mercado</label>
+        <label className="block text-xs font-medium text-gray-500 mb-1">Mercado *</label>
         <select
           value={form.market_id}
           onChange={(e) => set('market_id', e.target.value)}
           className="input-field"
+          required
         >
-          <option value="">Sin mercado</option>
+          <option value="" disabled>Seleccionar mercado</option>
           {markets.map((m) => (
             <option key={m.id} value={String(m.id)}>
               {m.name}{m.is_active ? ' (activo)' : ''}
