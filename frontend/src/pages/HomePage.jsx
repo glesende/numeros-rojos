@@ -13,6 +13,7 @@ import ContractWidgets from '../components/contracts/ContractWidgets';
 import OfficialBadge from '../components/OfficialBadge';
 import SourceLabel from '../components/SourceLabel';
 import PlayerAvatar from '../components/PlayerAvatar';
+import { useDragScroll } from '../hooks/useDragScroll';
 
 const VIGENCIA_OPTIONS = [
   { value: '6m', label: '6 meses', days: 180 },
@@ -377,6 +378,9 @@ export default function HomePage() {
   const [selectedContractPlayer, setSelectedContractPlayer] = useState(null);
   const [selectedRumorPlayer, setSelectedRumorPlayer] = useState(null);
   const { sections } = useSectionSettings();
+  const rumoresCarousel = useDragScroll();
+  const contratosCarousel = useDragScroll();
+  const derechosCarousel = useDragScroll();
 
   const fetchContracts = useCallback(() => {
     setLoading(true);
@@ -525,7 +529,14 @@ export default function HomePage() {
           ) : (
             <>
               <p className="text-sm text-gray-500 mb-3">{rumors.length} jugadores</p>
-              <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
+              <div
+                ref={rumoresCarousel.ref}
+                className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory cursor-grab select-none"
+                onMouseDown={rumoresCarousel.onMouseDown}
+                onMouseUp={rumoresCarousel.onMouseUp}
+                onMouseLeave={rumoresCarousel.onMouseLeave}
+                onMouseMove={rumoresCarousel.onMouseMove}
+              >
                 {rumors.map((r) => (
                   <PlayerCard
                     key={r.id}
@@ -611,7 +622,14 @@ export default function HomePage() {
           ) : (
             <>
               <p className="text-sm text-gray-500 mb-3">{filteredContracts.length} contratos encontrados</p>
-              <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
+              <div
+                ref={contratosCarousel.ref}
+                className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory cursor-grab select-none"
+                onMouseDown={contratosCarousel.onMouseDown}
+                onMouseUp={contratosCarousel.onMouseUp}
+                onMouseLeave={contratosCarousel.onMouseLeave}
+                onMouseMove={contratosCarousel.onMouseMove}
+              >
                 {filteredContracts.map((c) => (
                   <ContractCard
                     key={c.id}
@@ -671,7 +689,14 @@ export default function HomePage() {
           ) : (
             <>
               <p className="text-sm text-gray-500 mb-3">{rights.length} jugadores</p>
-              <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
+              <div
+                ref={derechosCarousel.ref}
+                className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory cursor-grab select-none"
+                onMouseDown={derechosCarousel.onMouseDown}
+                onMouseUp={derechosCarousel.onMouseUp}
+                onMouseLeave={derechosCarousel.onMouseLeave}
+                onMouseMove={derechosCarousel.onMouseMove}
+              >
                 {rights.map((r) => (
                   <PlayerCard
                     key={r.id}
