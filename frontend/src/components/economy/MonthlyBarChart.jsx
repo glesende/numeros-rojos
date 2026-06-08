@@ -430,16 +430,16 @@ export default function MonthlyBarChart() {
                       <span className="text-xs font-bold text-gray-600">{label}</span>
                     </div>
                     <div className="grid grid-cols-3 gap-2">
-                      <div className="bg-green-50 border border-green-100 rounded-lg p-2 text-center">
+                      <div className="bg-ingreso-light border border-ingreso-light rounded-lg p-2 text-center">
                         <p className="text-xs text-gray-500 mb-1">Cobros</p>
-                        <p className="font-mono font-semibold text-xs text-green-700 leading-tight">
+                        <p className="font-mono font-semibold text-xs text-ingreso-dark leading-tight">
                           <span className="md:hidden">{formatCompact(cobros)}</span>
                           <span className="hidden md:inline">{formatDecimal(cobros)}</span>
                         </p>
                       </div>
-                      <div className="bg-red-50 border border-red-100 rounded-lg p-2 text-center">
+                      <div className="bg-egreso-light border border-egreso-light rounded-lg p-2 text-center">
                         <p className="text-xs text-gray-500 mb-1">Pagos</p>
-                        <p className="font-mono font-semibold text-xs text-red-700 leading-tight">
+                        <p className="font-mono font-semibold text-xs text-egreso-dark leading-tight">
                           <span className="md:hidden">{formatCompact(pagos)}</span>
                           <span className="hidden md:inline">{formatDecimal(pagos)}</span>
                         </p>
