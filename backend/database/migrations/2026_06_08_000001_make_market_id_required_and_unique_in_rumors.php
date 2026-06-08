@@ -11,9 +11,14 @@ return new class extends Migration
     {
         DB::table('rumors')->whereNull('market_id')->delete();
 
+        Schema::table('rumors', function (Blueprint $table) {
+            $table->dropForeign('rumors_market_id_foreign');
+        });
+
         DB::statement('ALTER TABLE rumors MODIFY COLUMN market_id BIGINT UNSIGNED NOT NULL');
 
         Schema::table('rumors', function (Blueprint $table) {
+            $table->foreign('market_id')->references('id')->on('markets')->cascadeOnDelete();
             $table->unique(['external_id', 'market_id'], 'rumors_external_id_market_id_unique');
         });
     }
@@ -22,8 +27,13 @@ return new class extends Migration
     {
         Schema::table('rumors', function (Blueprint $table) {
             $table->dropUnique('rumors_external_id_market_id_unique');
+            $table->dropForeign('rumors_market_id_foreign');
         });
 
         DB::statement('ALTER TABLE rumors MODIFY COLUMN market_id BIGINT UNSIGNED NULL');
+
+        Schema::table('rumors', function (Blueprint $table) {
+            $table->foreign('market_id')->references('id')->on('markets')->nullOnDelete();
+        });
     }
 };
