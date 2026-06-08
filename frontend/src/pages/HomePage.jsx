@@ -15,6 +15,9 @@ import SourceLabel from '../components/SourceLabel';
 import PlayerAvatar from '../components/PlayerAvatar';
 import { useDragScroll } from '../hooks/useDragScroll';
 
+const RUMOR_ROLE_LABELS = { '1': 'Arqueros', '2': 'Defensores', '3': 'Mediocampistas', '4': 'Delanteros' };
+const RUMOR_ROLE_ORDER = ['1', '2', '3', '4'];
+
 const VIGENCIA_OPTIONS = [
   { value: '6m', label: '6 meses', days: 180 },
   { value: '12m', label: '12 meses', days: 365 },
@@ -375,6 +378,7 @@ export default function HomePage() {
   const [rumors, setRumors] = useState([]);
   const [rumoresLoading, setRumoresLoading] = useState(false);
   const [activeMarket, setActiveMarket] = useState(null);
+  const [activeRumorRole, setActiveRumorRole] = useState(null);
   const [selectedContractPlayer, setSelectedContractPlayer] = useState(null);
   const [selectedRumorPlayer, setSelectedRumorPlayer] = useState(null);
   const { sections } = useSectionSettings();
@@ -453,6 +457,17 @@ export default function HomePage() {
     return result;
   }, [contracts, searchInput, vigencia]);
 
+  const rumorsByRole = useMemo(
+    () =>
+      RUMOR_ROLE_ORDER.reduce((acc, role) => {
+        acc[role] = rumors.filter((r) => String(r.role) === role);
+        return acc;
+      }, {}),
+    [rumors]
+  );
+  const rolesWithRumors = RUMOR_ROLE_ORDER.filter((r) => (rumorsByRole[r] || []).length > 0);
+  const displayedRumors = activeRumorRole !== null ? (rumorsByRole[activeRumorRole] || []) : rumors;
+
   const handleVigenciaClick = (value) => {
     setVigencia(vigencia === value ? '' : value);
   };
@@ -465,7 +480,7 @@ export default function HomePage() {
   return (
     <>
     <PlayerMatchesModal player={selectedContractPlayer} showContract={true} onClose={() => setSelectedContractPlayer(null)} />
-    <PlayerMatchesModal player={selectedRumorPlayer} showContract={false} onClose={() => setSelectedRumorPlayer(null)} comparePool={rumors} />
+    <PlayerMatchesModal player={selectedRumorPlayer} showContract={false} onClose={() => setSelectedRumorPlayer(null)} comparePool={selectedRumorPlayer?.role != null ? rumors.filter((r) => r.role === selectedRumorPlayer.role) : rumors} />
     <div>
       {/* Hero */}
       <section className="bg-rojo text-white py-10 md:py-16">
@@ -528,7 +543,25 @@ export default function HomePage() {
             </div>
           ) : (
             <>
-              <p className="text-sm text-gray-500 mb-3">{rumors.length} jugadores</p>
+              {rolesWithRumors.length > 0 && (
+                <div className="flex gap-2 mb-4 overflow-x-auto pb-1 scrollbar-hide">
+                  {rolesWithRumors.map((role) => (
+                    <button
+                      key={role}
+                      onClick={() => setActiveRumorRole(activeRumorRole === role ? null : role)}
+                      className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all border ${
+                        activeRumorRole === role
+                          ? 'bg-rojo text-white border-rojo'
+                          : 'bg-white text-gray-700 border-gray-200 hover:border-rojo/40 hover:text-rojo'
+                      }`}
+                    >
+                      {RUMOR_ROLE_LABELS[role]}
+                      <span className="ml-1 opacity-70">({rumorsByRole[role].length})</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              <p className="text-sm text-gray-500 mb-3">{displayedRumors.length} jugadores</p>
               <div
                 ref={rumoresCarousel.ref}
                 className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory cursor-grab select-none"
@@ -537,12 +570,12 @@ export default function HomePage() {
                 onMouseLeave={rumoresCarousel.onMouseLeave}
                 onMouseMove={rumoresCarousel.onMouseMove}
               >
-                {rumors.map((r) => (
+                {displayedRumors.map((r) => (
                   <PlayerCard
                     key={r.id}
                     player={r}
                     showPositions={true}
-                    onClick={r.external_id ? () => setSelectedRumorPlayer({ id: r.external_id, nick: r.full_name, image: r.player_avatar }) : undefined}
+                    onClick={r.external_id ? () => setSelectedRumorPlayer({ id: r.external_id, nick: r.full_name, image: r.player_avatar, role: r.role }) : undefined}
                   />
                 ))}
               </div>

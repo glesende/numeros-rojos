@@ -38,6 +38,7 @@ class RumorController extends Controller
                     ['pos' => $data['pos3'] ?? null, 'pct' => (int) ($data['pos3p'] ?? 0)],
                     ['pos' => $data['pos4'] ?? null, 'pct' => (int) ($data['pos4p'] ?? 0)],
                 ], fn ($p) => !empty($p['pos']) && $p['pct'] > 40));
+                $rumor['role'] = isset($data['role']) ? (int) $data['role'] : null;
             }
         }
         return $rumor;
