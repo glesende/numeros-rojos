@@ -33,12 +33,8 @@ class RumorController extends Controller
                 $rumor['current_team_name'] = $team
                     ? ($team['nameShow'] ?? $team['fullName'] ?? $team['name'] ?? null)
                     : null;
-                $rumor['positions'] = array_values(array_filter([
-                    ['pos' => $data['pos1'] ?? null, 'pct' => (int) ($data['pos1p'] ?? 0)],
-                    ['pos' => $data['pos2'] ?? null, 'pct' => (int) ($data['pos2p'] ?? 0)],
-                    ['pos' => $data['pos3'] ?? null, 'pct' => (int) ($data['pos3p'] ?? 0)],
-                    ['pos' => $data['pos4'] ?? null, 'pct' => (int) ($data['pos4p'] ?? 0)],
-                ], fn ($p) => !empty($p['pos']) && $p['pct'] > 40));
+                $pos1 = $data['pos1'] ?? null;
+                $rumor['positions'] = !empty($pos1) ? [['pos' => $pos1]] : [];
                 $rumor['role'] = isset($data['role']) ? (int) $data['role'] : null;
             }
         }

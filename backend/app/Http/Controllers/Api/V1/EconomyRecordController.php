@@ -147,6 +147,76 @@ class EconomyRecordController extends Controller
         return response()->json(['data' => array_values($months)]);
     }
 
+    public function overdueEvolution(): JsonResponse
+    {
+        $today = Carbon::today();
+        $from  = $today->copy()->subYears(4)->startOfMonth();
+
+        // Records that were delayed: record_date known AND (never confirmed OR confirmed > 1 month late)
+        // Include only records whose overdue window overlaps our 4-year range
+        $records = EconomyRecord::query()
+            ->whereNotNull('record_date')
+            ->where(function ($q) use ($from) {
+                // confirmed before our window started → contributes nothing
+                $q->whereNull('carried_out_date')
+                  ->orWhere('carried_out_date', '>=', $from->toDateString());
+            })
+            ->where(function ($q) {
+                // must be a delayed payment (confirmed > 1 month after due, or never confirmed)
+                $q->whereNull('carried_out_date')
+                  ->orWhereRaw('carried_out_date > DATE_ADD(record_date, INTERVAL 1 MONTH)');
+            })
+            ->get(['type', 'amount', 'currency', 'record_date', 'carried_out_date']);
+
+        // Build month buckets
+        $months = [];
+        $cursor = $from->copy();
+        while ($cursor->lte($today)) {
+            $key = $cursor->format('Y-m');
+            $months[$key] = [
+                'month'       => $key,
+                'month_label' => $cursor->locale('es')->isoFormat('MMM YY'),
+                '_last_day'   => $cursor->copy()->endOfMonth()->toDateString(),
+                'egresos_ars' => 0.0,
+                'egresos_usd' => 0.0,
+                'egresos_eur' => 0.0,
+                'ingresos_ars' => 0.0,
+                'ingresos_usd' => 0.0,
+                'ingresos_eur' => 0.0,
+            ];
+            $cursor->addMonth();
+        }
+
+        foreach ($records as $record) {
+            $recordDate    = Carbon::parse($record->record_date);
+            $confirmedDate = $record->carried_out_date ? Carbon::parse($record->carried_out_date) : null;
+            $currency      = strtolower($record->currency);
+            $field         = $record->type === 'cobro' ? "ingresos_{$currency}" : "egresos_{$currency}";
+            $amount        = (float) $record->amount;
+
+            foreach ($months as $key => &$month) {
+                $lastDay = Carbon::parse($month['_last_day']);
+                // Must be due by end of this month
+                if ($recordDate->gt($lastDay)) {
+                    continue;
+                }
+                // Must still be unconfirmed at end of this month
+                if ($confirmedDate !== null && $confirmedDate->lte($lastDay)) {
+                    continue;
+                }
+                $month[$field] += $amount;
+            }
+            unset($month);
+        }
+
+        $result = array_values(array_map(function ($m) {
+            unset($m['_last_day']);
+            return $m;
+        }, $months));
+
+        return response()->json(['data' => $result]);
+    }
+
     public function show(int $id): JsonResponse
     {
         $record = EconomyRecord::findOrFail($id);

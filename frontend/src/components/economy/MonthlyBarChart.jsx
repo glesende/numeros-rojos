@@ -10,7 +10,7 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from 'recharts';
-import { getEconomyMonthlySummary, getEconomyRecords, getSectionSettings } from '../../api/endpoints';
+import { getEconomyMonthlySummary, getEconomyRecords, getEconomyOverdueEvolution, getSectionSettings } from '../../api/endpoints';
 import Loader from '../common/Loader';
 import OfficialBadge from '../OfficialBadge';
 import EconomyRecordCard from './EconomyRecordCard';
@@ -129,11 +129,14 @@ export default function MonthlyBarChart() {
   const [type, setType] = useState('egresos');
   const [scales, setScales] = useState({ usd: null, eur: null, ars: null });
   const scrollRef = useRef(null);
+  const overdueScrollRef = useRef(null);
   const [upcoming, setUpcoming] = useState([]);
   const [pending, setPending] = useState([]);
   const [pendingTotals, setPendingTotals] = useState(null);
   const [upcomingOpen, setUpcomingOpen] = useState(false);
   const [pendingOpen, setPendingOpen] = useState(false);
+  const [overdueData, setOverdueData] = useState([]);
+  const [overdueType, setOverdueType] = useState('egresos');
 
   useEffect(() => {
     getSectionSettings()
@@ -155,6 +158,19 @@ export default function MonthlyBarChart() {
       .catch(() => setError('No se pudieron cargar los datos del gráfico.'))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    getEconomyOverdueEvolution()
+      .then((res) => setOverdueData(res.data.data || []))
+      .catch(() => setOverdueData([]));
+  }, []);
+
+  useEffect(() => {
+    if (overdueData.length > 0 && overdueScrollRef.current) {
+      const container = overdueScrollRef.current;
+      container.scrollLeft = container.scrollWidth;
+    }
+  }, [overdueData]);
 
   useEffect(() => {
     const today = new Date().toISOString().slice(0, 10);
@@ -191,6 +207,13 @@ export default function MonthlyBarChart() {
   const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
 
   const applyScale = (value, scale) => (scale ? (value || 0) / scale : (value || 0));
+
+  const overdueChartData = overdueData.map((d) => ({
+    ...d,
+    [`${overdueType}_usd_display`]: applyScale(d[`${overdueType}_usd`], scales.usd),
+    [`${overdueType}_eur_display`]: applyScale(d[`${overdueType}_eur`], scales.eur),
+    [`${overdueType}_ars_display`]: applyScale(d[`${overdueType}_ars`], scales.ars),
+  }));
 
   const chartData = data.map((d) => ({
     ...d,
@@ -455,6 +478,80 @@ export default function MonthlyBarChart() {
                   </div>
                 );
               })}
+          </div>
+        </div>
+      )}
+
+      {/* Overdue evolution chart */}
+      {overdueChartData.length > 0 && overdueChartData.some((d) => d[`${overdueType}_usd_display`] > 0 || d[`${overdueType}_eur_display`] > 0 || d[`${overdueType}_ars_display`] > 0) && (
+        <div className="mt-6 border-t border-gray-100 pt-5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+            <div>
+              <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide">
+                Evolución de atrasos
+              </h3>
+              <p className="text-xs text-gray-400 mt-0.5">Montos adeudados por mes · Últimos 4 años</p>
+            </div>
+            <div className="flex gap-1 bg-gray-100 rounded-lg p-1 self-start sm:self-auto">
+              {['egresos', 'ingresos'].map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setOverdueType(t)}
+                  className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${
+                    overdueType === t ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  {t.charAt(0).toUpperCase() + t.slice(1)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-4 mb-3 text-sm">
+            {[['usd', 'USD'], ['eur', 'EUR'], ['ars', 'ARS']].map(([key, label]) => (
+              <div key={key} className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-sm inline-block" style={{ backgroundColor: CURRENCY_COLORS[key] }} />
+                <span className="text-gray-600">{label}</span>
+              </div>
+            ))}
+          </div>
+
+          <div ref={overdueScrollRef} className="overflow-x-auto pb-2">
+            <div style={{ minWidth: `${overdueChartData.length * 52}px`, height: 260 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={overdueChartData}
+                  margin={{ top: 8, right: 8, left: 8, bottom: 40 }}
+                  barCategoryGap="20%"
+                  barGap={2}
+                >
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_THEME.grid} />
+                  <XAxis
+                    dataKey="month_label"
+                    tick={{ fontSize: 10, fill: CHART_THEME.axisText }}
+                    angle={-45}
+                    textAnchor="end"
+                    interval={0}
+                    tickLine={false}
+                    axisLine={{ stroke: CHART_THEME.axisLine }}
+                  />
+                  <YAxis
+                    tickFormatter={formatAxisValue}
+                    tick={{ fontSize: 10, fill: CHART_THEME.axisText }}
+                    tickLine={false}
+                    axisLine={false}
+                    width={60}
+                  />
+                  <Tooltip
+                    content={<CustomTooltip type={overdueType} />}
+                    cursor={{ fill: CHART_THEME.tooltipCursor }}
+                  />
+                  <Bar dataKey={`${overdueType}_usd_display`} name="USD" fill={CURRENCY_COLORS.usd} radius={[2, 2, 0, 0]} maxBarSize={24} />
+                  <Bar dataKey={`${overdueType}_eur_display`} name="EUR" fill={CURRENCY_COLORS.eur} radius={[2, 2, 0, 0]} maxBarSize={24} />
+                  <Bar dataKey={`${overdueType}_ars_display`} name="ARS" fill={CURRENCY_COLORS.ars} radius={[2, 2, 0, 0]} maxBarSize={24} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
       )}

@@ -4,6 +4,7 @@ import client from './client';
 export const getEconomyRecords = (params = {}) => client.get('/economy', { params });
 export const getEconomyRecord = (id) => client.get(`/economy/${id}`);
 export const getEconomyMonthlySummary = () => client.get('/economy/monthly-summary');
+export const getEconomyOverdueEvolution = () => client.get('/economy/overdue-evolution');
 export const createEconomyRecord = (data) => client.post('/admin/economy', data);
 export const updateEconomyRecord = (id, data) => client.put(`/admin/economy/${id}`, data);
 export const deleteEconomyRecord = (id) => client.delete(`/admin/economy/${id}`);
