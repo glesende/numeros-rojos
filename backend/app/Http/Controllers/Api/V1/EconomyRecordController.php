@@ -152,21 +152,20 @@ class EconomyRecordController extends Controller
         $today = Carbon::today();
         $from  = $today->copy()->subYears(4)->startOfMonth();
 
-        // Records that were delayed: record_date known AND (never confirmed OR confirmed > 1 month late)
-        // Include only records whose overdue window overlaps our 4-year range
+        // Records that are unconfirmed or were confirmed late.
+        // Records without record_date are included using created_at as their start.
         $records = EconomyRecord::query()
-            ->whereNotNull('record_date')
             ->where(function ($q) use ($from) {
                 // confirmed before our window started → contributes nothing
                 $q->whereNull('carried_out_date')
                   ->orWhere('carried_out_date', '>=', $from->toDateString());
             })
             ->where(function ($q) {
-                // must be a delayed payment (confirmed > 1 month after due, or never confirmed)
+                // never confirmed, or confirmed > 1 month after due date (only applicable when record_date exists)
                 $q->whereNull('carried_out_date')
                   ->orWhereRaw('carried_out_date > DATE_ADD(record_date, INTERVAL 1 MONTH)');
             })
-            ->get(['type', 'amount', 'currency', 'record_date', 'carried_out_date']);
+            ->get(['type', 'amount', 'currency', 'record_date', 'carried_out_date', 'created_at']);
 
         // Build month buckets
         $months = [];
@@ -188,7 +187,9 @@ class EconomyRecordController extends Controller
         }
 
         foreach ($records as $record) {
-            $recordDate    = Carbon::parse($record->record_date);
+            $recordDate    = $record->record_date
+                ? Carbon::parse($record->record_date)
+                : Carbon::parse($record->created_at)->startOfMonth();
             $confirmedDate = $record->carried_out_date ? Carbon::parse($record->carried_out_date) : null;
             $currency      = strtolower($record->currency);
             $field         = $record->type === 'cobro' ? "ingresos_{$currency}" : "egresos_{$currency}";
