@@ -17,18 +17,6 @@ class StatsController extends Controller
         $this->besoccer = $besoccer;
     }
 
-    public function standings(Request $request): JsonResponse
-    {
-        $params = $request->only(['league', 'season', 'round']);
-        $data = $this->besoccer->getStandings($params);
-
-        if (!($data['success'] ?? false)) {
-            return response()->json($data, 502);
-        }
-
-        return response()->json($data);
-    }
-
     public function playerStats(string $id): JsonResponse
     {
         $data = $this->besoccer->getPlayerStats($id);

@@ -34,12 +34,8 @@ class WarmCacheCommand extends Command
 
         $this->info('Warming BeSoccer cache...');
 
-        // Team + standings
         $this->line('  → Team data');
         $teamResult = $this->besoccer->getTeam($teamId);
-
-        $this->line('  → Standings');
-        $this->besoccer->getStandings(['team' => $teamId]);
 
         // Collect all unique external IDs across every source
         $squadIds = collect($teamResult['data']['team']['squad'] ?? [])

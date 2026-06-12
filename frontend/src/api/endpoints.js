@@ -25,7 +25,6 @@ export const updateRight = (id, data) => client.put(`/admin/rights/${id}`, data)
 export const deleteRight = (id) => client.delete(`/admin/rights/${id}`);
 
 // Stats
-export const getStandings = (params = {}) => client.get('/standings', { params });
 export const getPlayerStats = (id) => client.get(`/player/${id}/stats`);
 export const getLeagueStats = (params = {}) => client.get('/league/stats', { params });
 export const getTeam = (params = {}) => client.get('/team', { params });

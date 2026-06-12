@@ -40,7 +40,6 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
     $router->post('contact', 'ContactController@send');
 
     // Stats (BeSoccer proxy)
-    $router->get('standings', 'StatsController@standings');
     $router->get('player/{id}/stats', 'StatsController@playerStats');
     $router->get('player/{id}/matches', 'StatsController@playerMatches');
     $router->get('player/{id}', 'StatsController@playerData');

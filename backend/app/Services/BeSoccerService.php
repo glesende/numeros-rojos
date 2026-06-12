@@ -39,19 +39,6 @@ class BeSoccerService
         return Setting::get('data_service', 'disabled') === 'besoccer' && !empty($this->apiKey);
     }
 
-    public function getStandings(array $params = []): array
-    {
-        if (!$this->isEnabled()) {
-            return ['success' => false, 'error' => 'Servicio de datos desactivado'];
-        }
-
-        $cacheKey = 'besoccer:standings:' . md5(json_encode($params));
-
-        return $this->rememberOnSuccess($cacheKey, $this->randomTtl(), function () use ($params) {
-            return $this->request('/standings', $params);
-        });
-    }
-
     public function getPlayerStats(string $playerId): array
     {
         if (!$this->isEnabled()) {
