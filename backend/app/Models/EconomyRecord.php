@@ -85,8 +85,10 @@ class EconomyRecord extends Model
         if (!$overdue) {
             return $query;
         }
-        return $query->whereNotNull('record_date')
-                     ->where('record_date', '<', Carbon::today()->toDateString());
+        return $query->where(function ($q) {
+            $q->whereNull('record_date')
+              ->orWhere('record_date', '<', Carbon::today()->toDateString());
+        });
     }
 
     public function scopeSearch($query, ?string $search): mixed
