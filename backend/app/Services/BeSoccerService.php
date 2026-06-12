@@ -13,8 +13,9 @@ class BeSoccerService
 {
     private Client $client;
     private ?string $apiKey;
-    private array $cacheTtl;
     private string $baseUrl;
+    private int $cacheTtlMin;
+    private int $cacheTtlMax;
 
     public function __construct()
     {
@@ -24,7 +25,13 @@ class BeSoccerService
         ]);
         $settingKey = Setting::get('besoccer_api_key');
         $this->apiKey = $settingKey ?: config('besoccer.api_key') ?: null;
-        $this->cacheTtl = config('besoccer.cache_ttl');
+        $this->cacheTtlMin = config('besoccer.cache_ttl.min');
+        $this->cacheTtlMax = config('besoccer.cache_ttl.max');
+    }
+
+    private function randomTtl(): int
+    {
+        return rand($this->cacheTtlMin, $this->cacheTtlMax);
     }
 
     public function isEnabled(): bool
@@ -40,7 +47,7 @@ class BeSoccerService
 
         $cacheKey = 'besoccer:standings:' . md5(json_encode($params));
 
-        return $this->rememberOnSuccess($cacheKey, $this->cacheTtl['standings'], function () use ($params) {
+        return $this->rememberOnSuccess($cacheKey, $this->randomTtl(), function () use ($params) {
             return $this->request('/standings', $params);
         });
     }
@@ -53,7 +60,7 @@ class BeSoccerService
 
         $cacheKey = "besoccer:player:{$playerId}:stats";
 
-        return $this->rememberOnSuccess($cacheKey, $this->cacheTtl['player_stats'], function () use ($playerId) {
+        return $this->rememberOnSuccess($cacheKey, $this->randomTtl(), function () use ($playerId) {
             return $this->request("/player/{$playerId}/stats");
         });
     }
@@ -66,7 +73,7 @@ class BeSoccerService
 
         $cacheKey = 'besoccer:league:stats:' . md5(json_encode($params));
 
-        return $this->rememberOnSuccess($cacheKey, $this->cacheTtl['league_stats'], function () use ($params) {
+        return $this->rememberOnSuccess($cacheKey, $this->randomTtl(), function () use ($params) {
             return $this->request('/league/stats', $params);
         });
     }
@@ -79,7 +86,7 @@ class BeSoccerService
 
         $cacheKey = "besoccer:team:{$teamId}";
 
-        return $this->rememberOnSuccess($cacheKey, $this->cacheTtl['standings'], function () use ($teamId) {
+        return $this->rememberOnSuccess($cacheKey, $this->randomTtl(), function () use ($teamId) {
             return $this->request('/api.php', [
                 'format' => 'json',
                 'req'    => 'team',
@@ -98,7 +105,7 @@ class BeSoccerService
             ? "besoccer:player:{$playerId}:matches:{$year}"
             : "besoccer:player:{$playerId}:matches";
 
-        return $this->rememberOnSuccess($cacheKey, $this->cacheTtl['player_stats'], function () use ($playerId, $year) {
+        return $this->rememberOnSuccess($cacheKey, $this->randomTtl(), function () use ($playerId, $year) {
             $params = [
                 'format' => 'json',
                 'req'    => 'player_matches',
@@ -119,7 +126,7 @@ class BeSoccerService
 
         $cacheKey = "besoccer:player:{$playerId}:full_data";
 
-        return $this->rememberOnSuccess($cacheKey, $this->cacheTtl['player_stats'], function () use ($playerId) {
+        return $this->rememberOnSuccess($cacheKey, $this->randomTtl(), function () use ($playerId) {
             $playerData = $this->getPlayerByExternalId($playerId);
             if (!($playerData['success'] ?? false)) {
                 return $playerData;
@@ -157,16 +164,11 @@ class BeSoccerService
             return ['success' => false, 'error' => 'Servicio de datos desactivado'];
         }
 
-        $cacheKey = "besoccer:player:{$externalId}:data";
-        $ttl = rand(172800, 432000);
-
-        return $this->rememberOnSuccess($cacheKey, $ttl, function () use ($externalId) {
-            return $this->request('/api.php', [
-                'format' => 'json',
-                'req'    => 'player',
-                'id'     => $externalId,
-            ]);
-        });
+        return $this->request('/api.php', [
+            'format' => 'json',
+            'req'    => 'player',
+            'id'     => $externalId,
+        ]);
     }
 
     private function rememberOnSuccess(string $cacheKey, int $ttl, callable $callback): array

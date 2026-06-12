@@ -31,6 +31,8 @@ class RightController extends Controller
                 $right['current_team_name'] = $team
                     ? ($team['nameShow'] ?? $team['fullName'] ?? $team['name'] ?? null)
                     : null;
+                $pos1 = $data['pos1'] ?? null;
+                $right['positions'] = !empty($pos1) ? [['pos' => $pos1]] : [];
             }
         }
         return $right;

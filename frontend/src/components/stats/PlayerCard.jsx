@@ -1,4 +1,5 @@
 import PlayerAvatar from '../PlayerAvatar';
+import { translatePosition } from '../../utils/positions';
 
 export default function PlayerCard({ player, selected, onClick }) {
   return (
@@ -17,6 +18,9 @@ export default function PlayerCard({ player, selected, onClick }) {
         </div>
         <div className="overflow-hidden min-w-0">
           <p className="font-semibold text-sm leading-tight truncate">{player.nick}</p>
+          {player.pos1 && (
+            <p className="text-xs text-gray-400 mt-0.5">{translatePosition(player.pos1)}</p>
+          )}
           {player.birthdate && (
             <p className="text-xs text-gray-400">
               {new Date().getFullYear() - new Date(player.birthdate).getFullYear()} años

@@ -10,6 +10,7 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         Commands\ExportCsvCommand::class,
         Commands\MonitorXAccountsCommand::class,
+        Commands\WarmCacheCommand::class,
     ];
 
     protected function schedule(Schedule $schedule): void

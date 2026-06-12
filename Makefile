@@ -138,6 +138,9 @@ prod-migrate: ## Ejecutar migraciones en producción
 	@docker compose -f docker-compose.prod.yml --env-file .env.prod exec api php artisan migrate --force
 	@echo "$(GREEN)Migraciones aplicadas$(NC)"
 
+cache-warm: ## Precalentar caché de BeSoccer en producción
+	docker compose -f docker-compose.prod.yml --env-file .env.prod exec api php artisan besoccer:warm-cache
+
 prod-status: ## Ver estado de producción
 	docker compose -f docker-compose.prod.yml --env-file .env.prod ps
 
@@ -179,5 +182,7 @@ deploy: ## Deploy a producción (usage: make deploy TAG=x.x.x)
 		echo '🗄️  Ejecutando migraciones...' && \
 		make prod-migrate && \
 		echo '🧹 Limpiando imágenes antiguas...' && \
-		docker image prune -f"
+		docker image prune -f && \
+		echo '🔥 Precalentando caché de BeSoccer...' && \
+		docker compose -f docker-compose.prod.yml --env-file .env.prod exec api php artisan besoccer:warm-cache"
 	@echo "✅ Deploy completado exitosamente!"

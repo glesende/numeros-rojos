@@ -5,9 +5,7 @@ return [
     'api_key'  => env('BESOCCER_API_KEY'),
 
     'cache_ttl' => [
-        'standings'    => (int) env('CACHE_TTL_STANDINGS', 3600),
-        'player_stats' => (int) env('CACHE_TTL_PLAYER_STATS', 1800),
-        'league_stats' => (int) env('CACHE_TTL_LEAGUE_STATS', 3600),
-        'player_data'  => (int) env('CACHE_TTL_PLAYER_DATA', 86400),
+        'min' => (int) env('CACHE_TTL_MIN', 43200),
+        'max' => (int) env('CACHE_TTL_MAX', 129600),
     ],
 ];

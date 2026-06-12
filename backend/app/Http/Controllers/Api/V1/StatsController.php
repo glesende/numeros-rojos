@@ -70,6 +70,13 @@ class StatsController extends Controller
             $defaultAvatar = rtrim(env('FRONTEND_URL', 'https://numerosrojos.com.ar'), '/') . '/default-avatar.svg';
             $data['data']['team']['squad'] = array_map(function ($player) use ($defaultAvatar) {
                 $player['image'] = $player['image'] ?? $defaultAvatar;
+                if (!empty($player['id'])) {
+                    $playerFull = $this->besoccer->getPlayerData((string) $player['id']);
+                    if ($playerFull['success'] ?? false) {
+                        $pos1 = $playerFull['data']['pos1'] ?? null;
+                        $player['pos1'] = !empty($pos1) ? $pos1 : null;
+                    }
+                }
                 return $player;
             }, $data['data']['team']['squad']);
         }

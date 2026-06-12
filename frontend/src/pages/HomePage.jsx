@@ -60,6 +60,13 @@ function ContractCard({ contract, onClick }) {
           <p className="font-bold text-gray-900 text-sm leading-tight line-clamp-2">
             {contract.full_name}
           </p>
+          {Array.isArray(contract.positions) && contract.positions.length > 0 && (
+            <div className="text-xs text-gray-400 mt-0.5">
+              {contract.positions.map((p, i) => (
+                <p key={i}>{translatePosition(p.pos)}</p>
+              ))}
+            </div>
+          )}
           {contract.loan && (
             <span className="text-xs font-semibold text-prestamo">A préstamo en {contract.loan.club}</span>
           )}
@@ -734,6 +741,7 @@ export default function HomePage() {
                   <PlayerCard
                     key={r.id}
                     player={r}
+                    showPositions={true}
                     onClick={r.external_id ? () => setSelectedRumorPlayer({ id: r.external_id, nick: r.full_name, image: r.player_avatar }) : undefined}
                   />
                 ))}

@@ -21,10 +21,13 @@ class ContractController extends Controller
     private function enrichWithPlayerAvatar(array $contract): array
     {
         if (!empty($contract['external_id'])) {
-            $playerData = $this->besoccerService->getPlayerByExternalId($contract['external_id']);
-            if ($playerData['success'] ?? false) {
+            $playerFull = $this->besoccerService->getPlayerData($contract['external_id']);
+            if ($playerFull['success'] ?? false) {
                 $defaultAvatar = rtrim(env('FRONTEND_URL', 'https://numerosrojos.com.ar'), '/') . '/default-avatar.svg';
-                $contract['player_avatar'] = $playerData['data']['player_avatar'] ?? $defaultAvatar;
+                $data = $playerFull['data'];
+                $contract['player_avatar'] = $data['player_avatar'] ?? $defaultAvatar;
+                $pos1 = $data['pos1'] ?? null;
+                $contract['positions'] = !empty($pos1) ? [['pos' => $pos1]] : [];
             }
         }
         return $contract;
