@@ -94,8 +94,8 @@ export default function EconomyTable({ records, sortBy, sortDir, onSort }) {
                   {formatMoney(r.amount, r.currency)}
                 </td>
                 <td className="py-3">
-                  {r.carried_out ? (
-                    <span className="text-ingreso text-xs font-semibold">Si</span>
+                  {r.carried_out_date ? (
+                    <span className="text-ingreso text-xs font-semibold">{formatDate(r.carried_out_date)}</span>
                   ) : (
                     <span className="text-gray-400 text-xs">No</span>
                   )}

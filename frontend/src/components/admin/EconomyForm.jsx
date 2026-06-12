@@ -8,7 +8,7 @@ const emptyForm = {
   amount: '',
   currency: 'ARS',
   record_date: '',
-  carried_out: false,
+  carried_out_date: '',
   links: [],
 };
 
@@ -27,6 +27,7 @@ export default function EconomyForm({ initial, onSubmit, loading }) {
     ...emptyForm,
     ...initial,
     record_date: normalizeDate(initial?.record_date),
+    carried_out_date: normalizeDate(initial?.carried_out_date),
     amount: initial?.amount ?? '',
     links: Array.isArray(initial?.links) ? initial.links.map(normalizeLink) : [],
   });
@@ -54,8 +55,8 @@ export default function EconomyForm({ initial, onSubmit, loading }) {
     onSubmit({
       ...form,
       amount: parseFloat(form.amount),
-      carried_out: !!form.carried_out,
       record_date: form.record_date || null,
+      carried_out_date: form.carried_out_date || null,
     });
   };
 
@@ -137,15 +138,13 @@ export default function EconomyForm({ initial, onSubmit, loading }) {
       </div>
 
       <div>
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={form.carried_out}
-            onChange={(e) => set('carried_out', e.target.checked)}
-            className="rounded border-gray-300 text-rojo focus:ring-rojo"
-          />
-          Efectuado
-        </label>
+        <label className="block text-xs font-medium text-gray-500 mb-1">Fecha de confirmación</label>
+        <input
+          type="date"
+          value={form.carried_out_date}
+          onChange={(e) => set('carried_out_date', e.target.value)}
+          className="input-field"
+        />
       </div>
 
       <div>

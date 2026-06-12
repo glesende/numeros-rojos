@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -19,15 +20,15 @@ class EconomyRecord extends Model
         'amount',
         'currency',
         'record_date',
-        'carried_out',
+        'carried_out_date',
         'links',
     ];
 
     protected $casts = [
-        'amount'      => 'decimal:2',
-        'carried_out' => 'boolean',
-        'links'       => 'array',
-        'record_date' => 'date',
+        'amount'           => 'decimal:2',
+        'carried_out_date' => 'date',
+        'links'            => 'array',
+        'record_date'      => 'date',
     ];
 
     public function scopeOfficial($query, ?bool $official): mixed
@@ -73,7 +74,19 @@ class EconomyRecord extends Model
         if ($carriedOut === null) {
             return $query;
         }
-        return $query->where('carried_out', $carriedOut);
+        if ($carriedOut) {
+            return $query->whereNotNull('carried_out_date');
+        }
+        return $query->whereNull('carried_out_date');
+    }
+
+    public function scopeOverdue($query, ?bool $overdue): mixed
+    {
+        if (!$overdue) {
+            return $query;
+        }
+        return $query->whereNotNull('record_date')
+                     ->where('record_date', '<', Carbon::today()->toDateString());
     }
 
     public function scopeSearch($query, ?string $search): mixed

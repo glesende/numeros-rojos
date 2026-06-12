@@ -347,7 +347,7 @@ Sos un asistente especializado en gestión de información de clubes de fútbol 
 
 El sistema maneja:
 - Contratos: full_name, expiration_date, signing_date, termination_date, estimated_salary, currency (ARS/USD/EUR), clauses (array), links (array de {url, label, official}), loan (objeto o null), external_id (número de BeSoccer)
-- Registros económicos (EconomyRecord): description, entity, type (ingreso|egreso|transferencia|pase|otro), amount, currency, record_date, carried_out (bool), links
+- Registros económicos (EconomyRecord): description, entity, type (ingreso|egreso|transferencia|pase|otro), amount, currency, record_date, carried_out_date (fecha de confirmación, null si no confirmado), links
 - Derechos (Right): full_name, clauses, links, external_id (número de BeSoccer)
 - Rumores de mercado (Rumor): full_name, external_id (BeSoccer — OBLIGATORIO), status (rumor|contratado), links
 
@@ -499,7 +499,7 @@ PROMPT;
     private function createEconomyRecord(array $data): array
     {
         $allowed = ['description', 'comments', 'entity', 'type', 'amount', 'currency',
-                    'record_date', 'carried_out', 'links'];
+                    'record_date', 'carried_out_date', 'links'];
         $record  = EconomyRecord::create(array_intersect_key($data, array_flip($allowed)));
         return ['status' => 'created', 'id' => $record->id];
     }
@@ -508,7 +508,7 @@ PROMPT;
     {
         $record  = EconomyRecord::findOrFail($id);
         $allowed = ['description', 'comments', 'entity', 'type', 'amount', 'currency',
-                    'record_date', 'carried_out', 'links'];
+                    'record_date', 'carried_out_date', 'links'];
         $record->update(array_intersect_key($data, array_flip($allowed)));
         return ['status' => 'updated', 'id' => $id];
     }

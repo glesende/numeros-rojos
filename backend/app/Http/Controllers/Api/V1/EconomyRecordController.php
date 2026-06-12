@@ -15,6 +15,7 @@ class EconomyRecordController extends Controller
     {
         $official   = $request->has('official')    ? filter_var($request->input('official'),    FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : null;
         $carriedOut = $request->has('carried_out') ? filter_var($request->input('carried_out'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : null;
+        $overdue    = $request->has('overdue')     ? filter_var($request->input('overdue'),     FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : null;
 
         $query = EconomyRecord::query()
             ->search($request->input('search'))
@@ -23,7 +24,8 @@ class EconomyRecordController extends Controller
             ->currency($request->input('currency'))
             ->dateFrom($request->input('date_from'))
             ->dateTo($request->input('date_to'))
-            ->carriedOut($carriedOut);
+            ->carriedOut($carriedOut)
+            ->overdue($overdue);
 
         $sortDir = in_array(strtolower($request->input('sort_dir', 'desc')), ['asc', 'desc'])
             ? strtolower($request->input('sort_dir', 'desc'))
@@ -48,6 +50,7 @@ class EconomyRecordController extends Controller
             ->dateFrom($request->input('date_from'))
             ->dateTo($request->input('date_to'))
             ->carriedOut($carriedOut)
+            ->overdue($overdue)
             ->official($official);
 
         $totals = [
@@ -154,22 +157,22 @@ class EconomyRecordController extends Controller
     public function store(Request $request): JsonResponse
     {
         $this->validate($request, [
-            'description'    => 'required|string',
-            'type'           => 'required|in:cobro,pago',
-            'amount'         => 'required|numeric|min:0',
-            'currency'       => 'required|in:ARS,USD,EUR',
-            'record_date'    => 'nullable|date',
-            'carried_out'    => 'sometimes|boolean',
-            'entity'         => 'nullable|string',
-            'comments'       => 'nullable|string',
-            'links'          => 'nullable|array',
-            'links.*.url'    => 'required|url',
+            'description'      => 'required|string',
+            'type'             => 'required|in:cobro,pago',
+            'amount'           => 'required|numeric|min:0',
+            'currency'         => 'required|in:ARS,USD,EUR',
+            'record_date'      => 'nullable|date',
+            'carried_out_date' => 'nullable|date',
+            'entity'           => 'nullable|string',
+            'comments'         => 'nullable|string',
+            'links'            => 'nullable|array',
+            'links.*.url'      => 'required|url',
             'links.*.official' => 'required|boolean',
         ]);
 
         $record = EconomyRecord::create($request->only([
             'description', 'type', 'amount', 'currency',
-            'record_date', 'carried_out', 'entity', 'comments', 'links',
+            'record_date', 'carried_out_date', 'entity', 'comments', 'links',
         ]));
 
         return response()->json(['data' => $record], 201);
@@ -180,22 +183,22 @@ class EconomyRecordController extends Controller
         $record = EconomyRecord::findOrFail($id);
 
         $this->validate($request, [
-            'description'    => 'sometimes|string',
-            'type'          => 'sometimes|in:cobro,pago',
-            'amount'        => 'sometimes|numeric|min:0',
-            'currency'      => 'sometimes|in:ARS,USD,EUR',
-            'record_date'   => 'nullable|date',
-            'carried_out'   => 'sometimes|boolean',
-            'entity'        => 'nullable|string',
-            'comments'      => 'nullable|string',
-            'links'         => 'nullable|array',
-            'links.*.url'   => 'required|url',
+            'description'      => 'sometimes|string',
+            'type'             => 'sometimes|in:cobro,pago',
+            'amount'           => 'sometimes|numeric|min:0',
+            'currency'         => 'sometimes|in:ARS,USD,EUR',
+            'record_date'      => 'nullable|date',
+            'carried_out_date' => 'nullable|date',
+            'entity'           => 'nullable|string',
+            'comments'         => 'nullable|string',
+            'links'            => 'nullable|array',
+            'links.*.url'      => 'required|url',
             'links.*.official' => 'required|boolean',
         ]);
 
         $record->update($request->only([
             'description', 'type', 'amount', 'currency',
-            'record_date', 'carried_out', 'entity', 'comments', 'links',
+            'record_date', 'carried_out_date', 'entity', 'comments', 'links',
         ]));
 
         return response()->json(['data' => $record]);

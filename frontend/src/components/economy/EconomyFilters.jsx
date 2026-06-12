@@ -39,15 +39,15 @@ export default function EconomyFilters({ filters, onFilter, onReset }) {
         </select>
       </div>
       <div>
-        <label className="block text-xs font-medium text-gray-500 mb-1">Efectuado</label>
+        <label className="block text-xs font-medium text-gray-500 mb-1">Confirmado</label>
         <select
           value={filters.carried_out ?? ''}
           onChange={(e) => onFilter('carried_out', e.target.value === '' ? null : e.target.value)}
           className="input-field"
         >
           <option value="">Todos</option>
-          <option value="1">Efectuado</option>
-          <option value="0">No efectuado</option>
+          <option value="1">Confirmado</option>
+          <option value="0">Sin confirmar</option>
         </select>
       </div>
       <div>

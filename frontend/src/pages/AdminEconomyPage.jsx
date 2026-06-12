@@ -20,6 +20,8 @@ export default function AdminEconomyPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [filterUnconfirmed, setFilterUnconfirmed] = useState(false);
+  const [filterOverdue, setFilterOverdue] = useState(false);
   const debounceRef = useRef(null);
   const navigate = useNavigate();
 
@@ -37,12 +39,19 @@ export default function AdminEconomyPage() {
     setLoading(true);
     const params = { page, per_page: 20 };
     if (debouncedSearch) params.search = debouncedSearch;
+    if (filterUnconfirmed) params.carried_out = 0;
+    if (filterOverdue) params.overdue = 1;
     getEconomyRecords(params)
       .then((res) => setData(res.data))
       .finally(() => setLoading(false));
   };
 
-  useEffect(fetchData, [page, debouncedSearch]);
+  useEffect(fetchData, [page, debouncedSearch, filterUnconfirmed, filterOverdue]);
+
+  const toggleFilter = (setter) => {
+    setter((prev) => !prev);
+    setPage(1);
+  };
 
   const handleDelete = async (id) => {
     if (!window.confirm('Eliminar este registro?')) return;
@@ -64,7 +73,7 @@ export default function AdminEconomyPage() {
         </button>
       </div>
 
-      <div className="mb-4">
+      <div className="mb-4 flex flex-wrap items-center gap-3">
         <input
           type="text"
           value={search}
@@ -72,6 +81,24 @@ export default function AdminEconomyPage() {
           placeholder="Buscar por descripción..."
           className="w-full sm:w-96 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-rojo"
         />
+        <label className="flex items-center gap-1.5 text-sm cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={filterUnconfirmed}
+            onChange={() => toggleFilter(setFilterUnconfirmed)}
+            className="rounded border-gray-300 text-rojo focus:ring-rojo"
+          />
+          Sin confirmar
+        </label>
+        <label className="flex items-center gap-1.5 text-sm cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={filterOverdue}
+            onChange={() => toggleFilter(setFilterOverdue)}
+            className="rounded border-gray-300 text-rojo focus:ring-rojo"
+          />
+          Vencidos
+        </label>
       </div>
 
       {loading ? (
@@ -103,8 +130,8 @@ export default function AdminEconomyPage() {
                     {r.currency} {Number(r.amount).toLocaleString('es-AR')}
                   </td>
                   <td className="py-2 pr-4">
-                    {r.carried_out ? (
-                      <span className="text-ingreso text-xs font-semibold">Si</span>
+                    {r.carried_out_date ? (
+                      <span className="text-ingreso text-xs font-semibold">{formatDate(r.carried_out_date)}</span>
                     ) : (
                       <span className="text-gray-400 text-xs">No</span>
                     )}
