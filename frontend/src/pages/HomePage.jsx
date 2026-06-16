@@ -395,7 +395,7 @@ export default function HomePage() {
 
   const fetchContracts = useCallback(() => {
     setLoading(true);
-    getContracts({ per_page: 100, sort_dir: 'asc' })
+    getContracts({ per_page: 100, sort_dir: 'asc', status: 'vigente' })
       .then((res) => {
         setContracts(res.data.data || []);
         setContractTotals(res.data.totals || null);
