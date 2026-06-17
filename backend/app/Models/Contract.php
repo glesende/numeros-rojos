@@ -87,10 +87,16 @@ class Contract extends Model
         }
         $today = Carbon::now()->startOfDay();
         return match ($status) {
-            'vigente' => $query->whereNull('termination_date')->where('expiration_date', '>=', $today),
+            'vigente' => $query->where(function ($q) use ($today) {
+                $q->whereNull('termination_date')
+                  ->orWhere('termination_date', '>=', $today);
+            })->where('expiration_date', '>=', $today),
             'vencido' => $query->where(function ($q) use ($today) {
-                $q->whereNotNull('termination_date')
-                  ->orWhere('expiration_date', '<', $today);
+                $q->where('expiration_date', '<', $today)
+                  ->orWhere(function ($q2) use ($today) {
+                      $q2->whereNotNull('termination_date')
+                         ->where('termination_date', '<', $today);
+                  });
             }),
             default   => $query,
         };
