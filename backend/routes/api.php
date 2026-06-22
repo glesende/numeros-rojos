@@ -17,6 +17,7 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
     $router->get('economy/{id}', 'EconomyRecordController@show');
     $router->get('contracts', 'ContractController@index');
     $router->get('contracts/stats', 'ContractController@stats');
+    $router->get('contracts/recent-moves', 'ContractController@recentMoves');
     $router->get('contracts/{id}', 'ContractController@show');
     $router->get('rights', 'RightController@index');
     $router->get('rights/{id}', 'RightController@show');
