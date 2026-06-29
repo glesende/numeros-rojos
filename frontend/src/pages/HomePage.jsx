@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { getContracts, getRights, getRumors, getStadium, sendContact } from '../api/endpoints';
+import { getContracts, getRights, getRumors, getStadium, sendContact, getContractRecentMoves } from '../api/endpoints';
 import { usePageMeta } from '../hooks/usePageMeta';
 import PlayerMatchesModal from '../components/stats/PlayerMatchesModal';
 import Loader from '../components/common/Loader';
@@ -388,6 +388,7 @@ export default function HomePage() {
   const [activeRumorRole, setActiveRumorRole] = useState(null);
   const [selectedContractPlayer, setSelectedContractPlayer] = useState(null);
   const [selectedRumorPlayer, setSelectedRumorPlayer] = useState(null);
+  const [recentMoves, setRecentMoves] = useState({ altas: [], bajas: [] });
   const { sections } = useSectionSettings();
   const rumoresCarousel = useDragScroll();
   const contratosCarousel = useDragScroll();
@@ -421,6 +422,13 @@ export default function HomePage() {
       .catch(() => setRights([]))
       .finally(() => setRightsLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (sections.section_contratos_enabled === false) return;
+    getContractRecentMoves()
+      .then((res) => setRecentMoves(res.data.data || { altas: [], bajas: [] }))
+      .catch(() => setRecentMoves({ altas: [], bajas: [] }));
+  }, [sections.section_contratos_enabled]);
 
   useEffect(() => {
     if (sections.section_rumores_enabled !== true) return;
@@ -625,7 +633,7 @@ export default function HomePage() {
       )}
 
       {/* Contracts carousel */}
-      {sections.section_contratos_enabled !== false && (
+      {sections.section_contratos_enabled !== false && (<>
       <section id="contratos" className="max-w-6xl mx-auto px-4 py-4">
         <div className="card overflow-hidden">
           <div className="flex items-center justify-between mb-4">
@@ -636,6 +644,47 @@ export default function HomePage() {
           </div>
 
           <ContractWidgets stats={contractTotals} />
+
+          {/* Últimas novedades */}
+          {(() => {
+            const combinedMoves = [
+              ...recentMoves.altas.map((c) => ({ ...c, tipo: 'alta', _date: c.signing_date })),
+              ...recentMoves.bajas.map((c) => ({ ...c, tipo: 'baja', _date: c.termination_date })),
+            ].sort((a, b) => new Date(b._date) - new Date(a._date));
+
+            if (combinedMoves.length === 0) return null;
+
+            return (
+              <div className="mb-5">
+                <p className="text-xs font-medium text-gray-500 mb-3">Últimas novedades</p>
+                <div className="flex gap-4 overflow-x-auto pb-1">
+                  {combinedMoves.map((item) => (
+                    <div
+                      key={`${item.tipo}-${item.id}`}
+                      onClick={item.external_id ? () => setSelectedContractPlayer({ id: item.external_id, nick: item.full_name, image: item.player_avatar }) : undefined}
+                      className={`flex flex-col items-center gap-1.5 flex-shrink-0 w-24 group ${item.external_id ? 'cursor-pointer' : 'cursor-default'}`}
+                    >
+                      <div className="relative">
+                        <img
+                          src={item.player_avatar || '/default-avatar.svg'}
+                          alt={item.full_name}
+                          className="w-12 h-12 rounded-full object-cover border-2 border-gray-100 group-hover:border-rojo transition-colors"
+                          onError={(e) => { e.target.src = '/default-avatar.svg'; }}
+                        />
+                        <span className={`absolute -bottom-1 left-1/2 -translate-x-1/2 text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase whitespace-nowrap ${
+                          item.tipo === 'alta' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-rojo'
+                        }`}>
+                          {item.tipo === 'alta' ? 'Alta' : 'Baja'}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-gray-700 text-center leading-tight w-full truncate mt-1">{item.full_name}</span>
+                      <span className="text-xs text-gray-400 font-mono">{formatDate(item._date)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Search bar */}
           <form onSubmit={(e) => e.preventDefault()} className="flex gap-2 mb-4">
@@ -707,7 +756,8 @@ export default function HomePage() {
           )}
         </div>
         </section>
-      )}
+
+      </>)}
 
       {/* Derechos carousel */}
       {sections.section_derechos_enabled !== false && (

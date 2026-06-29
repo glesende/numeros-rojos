@@ -147,6 +147,36 @@ class ContractController extends Controller
         ]);
     }
 
+    public function recentMoves(): JsonResponse
+    {
+        $fiveMonthsAgo = Carbon::now()->subMonths(5)->startOfDay();
+
+        $altas = Contract::query()
+            ->whereNotNull('signing_date')
+            ->where('signing_date', '>=', $fiveMonthsAgo)
+            ->orderBy('signing_date', 'desc')
+            ->get()
+            ->map(fn($c) => array_merge($this->enrichWithPlayerAvatar($c->toArray()), ['tipo' => 'alta']))
+            ->values()
+            ->toArray();
+
+        $bajas = Contract::query()
+            ->whereNotNull('termination_date')
+            ->where('termination_date', '>=', $fiveMonthsAgo)
+            ->orderBy('termination_date', 'desc')
+            ->get()
+            ->map(fn($c) => array_merge($this->enrichWithPlayerAvatar($c->toArray()), ['tipo' => 'baja']))
+            ->values()
+            ->toArray();
+
+        return response()->json([
+            'data' => [
+                'altas' => $altas,
+                'bajas' => $bajas,
+            ],
+        ]);
+    }
+
     public function show(int $id): JsonResponse
     {
         $contract = Contract::findOrFail($id);
