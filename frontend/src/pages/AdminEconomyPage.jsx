@@ -4,15 +4,7 @@ import { getEconomyRecords, deleteEconomyRecord } from '../api/endpoints';
 import Loader from '../components/common/Loader';
 import Pagination from '../components/common/Pagination';
 import SectionEnableToggle from '../components/admin/SectionEnableToggle';
-
-function formatDate(dateStr) {
-  if (!dateStr) return '-';
-  const d = new Date(dateStr);
-  const day = String(d.getUTCDate()).padStart(2, '0');
-  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
-  const year = d.getUTCFullYear();
-  return `${day}-${month}-${year}`;
-}
+import { formatLocalDate as formatDate } from '../utils/dates';
 
 export default function AdminEconomyPage() {
   const [data, setData] = useState({ data: [], meta: null });

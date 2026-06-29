@@ -16,6 +16,7 @@ import OfficialBadge from '../OfficialBadge';
 import EconomyRecordCard from './EconomyRecordCard';
 import SourceLabel from '../SourceLabel';
 import { CHART_THEME } from '../../constants/chartColors';
+import { formatLocalDate as formatDate } from '../../utils/dates';
 
 const CURRENCY_COLORS = {
   usd: '#16a34a',
@@ -90,15 +91,6 @@ function CustomTooltip({ active, payload, label, type }) {
       )}
     </div>
   );
-}
-
-function formatDate(dateStr) {
-  if (!dateStr) return '-';
-  const d = new Date(dateStr);
-  const day = String(d.getUTCDate()).padStart(2, '0');
-  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
-  const year = d.getUTCFullYear();
-  return `${day}-${month}-${year}`;
 }
 
 function formatMoney(amount, currency) {

@@ -1,15 +1,7 @@
 import { Link } from 'react-router-dom';
 import OfficialBadge from '../OfficialBadge';
 import SourceLabel from '../SourceLabel';
-
-function formatDate(dateStr) {
-  if (!dateStr) return '-';
-  const d = new Date(dateStr);
-  const day = String(d.getUTCDate()).padStart(2, '0');
-  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
-  const year = d.getUTCFullYear();
-  return `${day}-${month}-${year}`;
-}
+import { formatLocalDate as formatDate } from '../../utils/dates';
 
 function formatMoney(amount, currency) {
   return new Intl.NumberFormat('es-AR', {

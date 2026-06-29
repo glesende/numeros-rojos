@@ -14,6 +14,7 @@ import OfficialBadge from '../components/OfficialBadge';
 import SourceLabel from '../components/SourceLabel';
 import PlayerAvatar from '../components/PlayerAvatar';
 import { useDragScroll } from '../hooks/useDragScroll';
+import { formatLocalDate as formatDate } from '../utils/dates';
 
 const RUMOR_ROLE_LABELS = { '1': 'Arqueros', '2': 'Defensores', '3': 'Mediocampistas', '4': 'Delanteros' };
 const RUMOR_ROLE_ORDER = ['1', '2', '3', '4'];
@@ -24,15 +25,6 @@ const VIGENCIA_OPTIONS = [
   { value: '18m', label: '18 meses', days: 540 },
   { value: '24m', label: '24 meses', days: 730 },
 ];
-
-function formatDate(dateStr) {
-  if (!dateStr) return '-';
-  const d = new Date(dateStr);
-  const day = String(d.getUTCDate()).padStart(2, '0');
-  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
-  const year = d.getUTCFullYear();
-  return `${day}-${month}-${year}`;
-}
 
 function getDaysUntil(dateStr) {
   const today = new Date();

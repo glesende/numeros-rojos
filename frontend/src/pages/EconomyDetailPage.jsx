@@ -5,15 +5,7 @@ import { usePageMeta } from '../hooks/usePageMeta';
 import Loader from '../components/common/Loader';
 import OfficialBadge from '../components/OfficialBadge';
 import SourceLabel from '../components/SourceLabel';
-
-function formatDate(dateStr) {
-  if (!dateStr) return '-';
-  const d = new Date(dateStr);
-  const day = String(d.getUTCDate()).padStart(2, '0');
-  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
-  const year = d.getUTCFullYear();
-  return `${day}-${month}-${year}`;
-}
+import { formatLocalDate as formatDate } from '../utils/dates';
 
 export default function EconomyDetailPage() {
   const { id } = useParams();

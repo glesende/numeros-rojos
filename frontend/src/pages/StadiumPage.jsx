@@ -2,17 +2,7 @@ import { useState, useEffect } from 'react';
 import { getStadium } from '../api/endpoints';
 import { usePageMeta } from '../hooks/usePageMeta';
 import Loader from '../components/common/Loader';
-
-function formatDate(dateStr) {
-  if (!dateStr) return '-';
-  const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('es-AR', {
-    weekday: 'long',
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-  });
-}
+import { formatLocalDateLong as formatDate } from '../utils/dates';
 
 function formatPrice(price, currency) {
   return new Intl.NumberFormat('es-AR', {

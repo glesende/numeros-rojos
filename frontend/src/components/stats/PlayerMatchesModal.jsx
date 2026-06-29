@@ -10,6 +10,7 @@ import OfficialBadge from '../OfficialBadge';
 import SourceLabel from '../SourceLabel';
 import PlayerAvatar from '../PlayerAvatar';
 import { translatePosition } from '../../utils/positions';
+import { formatLocalDate as formatDate } from '../../utils/dates';
 import { LINE_COLORS, CHART_THEME } from '../../constants/chartColors';
 
 const ROLE_LABELS = { '1': 'Arqueros', '2': 'Defensores', '3': 'Mediocampistas', '4': 'Delanteros' };
@@ -32,15 +33,6 @@ const CHART_STATS = [
   { key: 'yc',    label: 'T.Am.' },
   { key: 'rc',    label: 'T.Ro.' },
 ];
-
-function formatDate(dateStr) {
-  if (!dateStr) return '-';
-  const d = new Date(dateStr);
-  const day = String(d.getUTCDate()).padStart(2, '0');
-  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
-  const year = d.getUTCFullYear();
-  return `${day}-${month}-${year}`;
-}
 
 // ── Shared data-fetching hook ────────────────────────────────────────────────
 
