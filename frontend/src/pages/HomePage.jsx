@@ -620,6 +620,47 @@ export default function HomePage() {
 
           <ContractWidgets stats={contractTotals} />
 
+          {/* Últimas novedades */}
+          {(() => {
+            const combinedMoves = [
+              ...recentMoves.altas.map((c) => ({ ...c, tipo: 'alta', _date: c.signing_date })),
+              ...recentMoves.bajas.map((c) => ({ ...c, tipo: 'baja', _date: c.termination_date })),
+            ].sort((a, b) => new Date(b._date) - new Date(a._date));
+
+            if (combinedMoves.length === 0) return null;
+
+            return (
+              <div className="mb-5">
+                <p className="text-xs font-medium text-gray-500 mb-3">Últimas novedades</p>
+                <div className="flex gap-4 overflow-x-auto pb-1">
+                  {combinedMoves.map((item) => (
+                    <div
+                      key={`${item.tipo}-${item.id}`}
+                      onClick={item.external_id ? () => setSelectedContractPlayer({ id: item.external_id, nick: item.full_name, image: item.player_avatar }) : undefined}
+                      className={`flex flex-col items-center gap-1.5 flex-shrink-0 w-24 group ${item.external_id ? 'cursor-pointer' : 'cursor-default'}`}
+                    >
+                      <div className="relative">
+                        <img
+                          src={item.player_avatar || '/default-avatar.svg'}
+                          alt={item.full_name}
+                          className="w-12 h-12 rounded-full object-cover border-2 border-gray-100 group-hover:border-rojo transition-colors"
+                          onError={(e) => { e.target.src = '/default-avatar.svg'; }}
+                        />
+                        <span className={`absolute -bottom-1 left-1/2 -translate-x-1/2 text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase whitespace-nowrap ${
+                          item.tipo === 'alta' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-rojo'
+                        }`}>
+                          {item.tipo === 'alta' ? 'Alta' : 'Baja'}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-gray-700 text-center leading-tight w-full truncate mt-1">{item.full_name}</span>
+                      <span className="text-xs text-gray-400 font-mono">{formatDate(item._date)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Search bar */}
           <form onSubmit={(e) => e.preventDefault()} className="flex gap-2 mb-4">
             <input
@@ -691,48 +732,6 @@ export default function HomePage() {
         </div>
         </section>
 
-      {/* Últimas altas y bajas */}
-      {(() => {
-        const combinedMoves = [
-          ...recentMoves.altas.map((c) => ({ ...c, tipo: 'alta', _date: c.signing_date })),
-          ...recentMoves.bajas.map((c) => ({ ...c, tipo: 'baja', _date: c.termination_date })),
-        ].sort((a, b) => new Date(b._date) - new Date(a._date));
-
-        if (combinedMoves.length === 0) return null;
-
-        return (
-          <section id="ultimas-altas-bajas" className="max-w-6xl mx-auto px-4 pb-4">
-            <div className="card overflow-hidden">
-              <h2 className="text-xl font-bold mb-4">Últimas altas y bajas</h2>
-              <ul className="divide-y divide-gray-100">
-                {combinedMoves.map((item) => (
-                  <li key={`${item.tipo}-${item.id}`} className="flex items-center gap-3 py-2.5">
-                    <span className={`flex-shrink-0 text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wide ${
-                      item.tipo === 'alta'
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-red-100 text-rojo'
-                    }`}>
-                      {item.tipo === 'alta' ? 'Alta' : 'Baja'}
-                    </span>
-                    <span className="flex-1 text-sm font-medium text-gray-800 truncate">
-                      {item.full_name}
-                      {item.loan && item.tipo === 'alta' && (
-                        <span className="ml-1.5 text-xs font-normal text-prestamo">(préstamo de {item.loan.club})</span>
-                      )}
-                      {item.loan && item.tipo === 'baja' && (
-                        <span className="ml-1.5 text-xs font-normal text-prestamo">(fin de préstamo en {item.loan.club})</span>
-                      )}
-                    </span>
-                    <span className="flex-shrink-0 text-xs text-gray-400 font-mono">
-                      {formatDate(item._date)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </section>
-        );
-      })()}
       </>)}
 
       {/* Derechos carousel */}

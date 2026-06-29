@@ -2,7 +2,7 @@ COMPOSE := docker compose
 
 -include .env.local
 
-.PHONY: help up down build restart logs shell-api shell-frontend migrate seed fresh test lint fresh-start
+.PHONY: help up down build restart logs shell-api shell-frontend migrate seed fresh test lint fresh-start db-pull
 
 # Colors for output
 GREEN=\033[0;32m
@@ -146,6 +146,22 @@ prod-status: ## Ver estado de producción
 
 ssh-vps: ## Conectar al VPS
 	ssh $(SERVER)
+
+db-pull: ## Descargar BD de producción a local. Uso: make db-pull [TABLE=tabla] [FORCE=1]
+	@if [ -z "$(FORCE)" ]; then \
+		read -p "Esto reemplazara datos en la BD local. Continuar? [y/N] " confirm && \
+		{ [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; } || { echo "Cancelado."; exit 1; }; \
+	fi
+	@if [ -n "$(TABLE)" ]; then \
+		echo "Descargando tabla '$(TABLE)' desde produccion..."; \
+		ssh $(SERVER) "cd $(DEPLOY_PATH) && docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T mysql sh -c 'mysqldump -u root -p\$$MYSQL_ROOT_PASSWORD --add-drop-table \$$MYSQL_DATABASE $(TABLE)'" \
+		| $(COMPOSE) exec -T mysql sh -c "mysql -u \$$MYSQL_USER -p\$$MYSQL_PASSWORD \$$MYSQL_DATABASE"; \
+	else \
+		echo "Descargando base de datos completa desde produccion..."; \
+		ssh $(SERVER) "cd $(DEPLOY_PATH) && docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T mysql sh -c 'mysqldump -u root -p\$$MYSQL_ROOT_PASSWORD --add-drop-table \$$MYSQL_DATABASE'" \
+		| $(COMPOSE) exec -T mysql sh -c "mysql -u \$$MYSQL_USER -p\$$MYSQL_PASSWORD \$$MYSQL_DATABASE"; \
+	fi
+	@echo "$(GREEN)Base de datos local actualizada$(NC)"
 
 deploy: ## Deploy a producción (usage: make deploy TAG=x.x.x)
 	@if [ -z "$(TAG)" ]; then \

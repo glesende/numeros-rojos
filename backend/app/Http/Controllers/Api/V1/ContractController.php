@@ -149,23 +149,23 @@ class ContractController extends Controller
 
     public function recentMoves(): JsonResponse
     {
-        $sixMonthsAgo = Carbon::now()->subMonths(6)->startOfDay();
+        $fiveMonthsAgo = Carbon::now()->subMonths(5)->startOfDay();
 
         $altas = Contract::query()
             ->whereNotNull('signing_date')
-            ->where('signing_date', '>=', $sixMonthsAgo)
+            ->where('signing_date', '>=', $fiveMonthsAgo)
             ->orderBy('signing_date', 'desc')
             ->get()
-            ->map(fn($c) => array_merge($c->toArray(), ['tipo' => 'alta']))
+            ->map(fn($c) => array_merge($this->enrichWithPlayerAvatar($c->toArray()), ['tipo' => 'alta']))
             ->values()
             ->toArray();
 
         $bajas = Contract::query()
             ->whereNotNull('termination_date')
-            ->where('termination_date', '>=', $sixMonthsAgo)
+            ->where('termination_date', '>=', $fiveMonthsAgo)
             ->orderBy('termination_date', 'desc')
             ->get()
-            ->map(fn($c) => array_merge($c->toArray(), ['tipo' => 'baja']))
+            ->map(fn($c) => array_merge($this->enrichWithPlayerAvatar($c->toArray()), ['tipo' => 'baja']))
             ->values()
             ->toArray();
 
