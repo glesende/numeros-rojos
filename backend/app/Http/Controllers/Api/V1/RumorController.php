@@ -74,26 +74,31 @@ class RumorController extends Controller
 
         $isAdminAll = filter_var($request->input('all'), FILTER_VALIDATE_BOOLEAN);
 
+        $currentMarketId = null;
+
         if ($isAdminAll) {
             // Admin view: optionally filter by a specific market
             if ($request->has('market_id') && $request->input('market_id') !== '') {
-                $query->where('market_id', (int) $request->input('market_id'));
+                $currentMarketId = (int) $request->input('market_id');
+                $query->where('market_id', $currentMarketId);
             }
         } else {
-            // Public view: filter by active market if one is set
-            if ($activeMarket) {
-                $query->where('market_id', $activeMarket->id);
+            // Public view: filter by specified market_id or fall back to active market
+            if ($request->has('market_id') && $request->input('market_id') !== '') {
+                $currentMarketId = (int) $request->input('market_id');
+                $query->where('market_id', $currentMarketId);
+            } elseif ($activeMarket) {
+                $currentMarketId = $activeMarket->id;
+                $query->where('market_id', $currentMarketId);
             }
         }
 
         $perPage = min((int) $request->input('per_page', 100), 100);
         $rumors = $query->orderBy('full_name', 'asc')->paginate($perPage);
 
-        $activeMarketId = $isAdminAll ? null : $activeMarket?->id;
-
-        $rumorsData = array_map(function ($rumor) use ($activeMarketId) {
+        $rumorsData = array_map(function ($rumor) use ($currentMarketId) {
             $data = $this->enrichWithPlayerAvatar($rumor->toArray());
-            $data['previous_markets'] = $this->getPreviousMarkets($data, $activeMarketId);
+            $data['previous_markets'] = $this->getPreviousMarkets($data, $currentMarketId);
             return $data;
         }, $rumors->items());
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { getContracts, getRights, getRumors, getStadium, sendContact, getContractRecentMoves } from '../api/endpoints';
+import { getContracts, getRights, getRumors, getMarkets, getStadium, sendContact, getContractRecentMoves } from '../api/endpoints';
 import { usePageMeta } from '../hooks/usePageMeta';
 import PlayerMatchesModal from '../components/stats/PlayerMatchesModal';
 import Loader from '../components/common/Loader';
@@ -385,6 +385,8 @@ export default function HomePage() {
   const [rumors, setRumors] = useState([]);
   const [rumoresLoading, setRumoresLoading] = useState(false);
   const [activeMarket, setActiveMarket] = useState(null);
+  const [markets, setMarkets] = useState([]);
+  const [selectedMarket, setSelectedMarket] = useState(null);
   const [activeRumorRole, setActiveRumorRole] = useState(null);
   const [selectedContractPlayer, setSelectedContractPlayer] = useState(null);
   const [selectedRumorPlayer, setSelectedRumorPlayer] = useState(null);
@@ -432,15 +434,24 @@ export default function HomePage() {
 
   useEffect(() => {
     if (sections.section_rumores_enabled !== true) return;
+    getMarkets()
+      .then((res) => setMarkets(res.data.data || []))
+      .catch(() => setMarkets([]));
+  }, [sections.section_rumores_enabled]);
+
+  useEffect(() => {
+    if (sections.section_rumores_enabled !== true) return;
     setRumoresLoading(true);
-    getRumors({ per_page: 100 })
+    const params = { per_page: 100 };
+    if (selectedMarket) params.market_id = selectedMarket.id;
+    getRumors(params)
       .then((res) => {
         setRumors(res.data.data || []);
         setActiveMarket(res.data.active_market || null);
       })
       .catch(() => setRumors([]))
       .finally(() => setRumoresLoading(false));
-  }, [sections.section_rumores_enabled]);
+  }, [sections.section_rumores_enabled, selectedMarket]);
 
   const filteredContracts = useMemo(() => {
     let result = contracts;
@@ -541,8 +552,10 @@ export default function HomePage() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-xl font-bold">Rumores del mercado</h2>
-              {activeMarket && (
-                <span className="text-sm text-gray-500 font-medium">{activeMarket.name}</span>
+              {(selectedMarket || activeMarket) && (
+                <span className="text-sm text-gray-500 font-medium">
+                  {selectedMarket ? selectedMarket.name : activeMarket.name}
+                </span>
               )}
             </div>
             <div className="flex items-center gap-2">
@@ -572,6 +585,30 @@ export default function HomePage() {
             </div>
           </div>
           <p className="text-sm text-gray-500 -mt-2 mb-4">Las estadísticas de los jugadores mencionados como posibles refuerzos</p>
+
+          {markets.length >= 2 && (
+            <div className="flex gap-2 mb-4 overflow-x-auto pb-1 scrollbar-hide">
+              {markets.map((market) => {
+                const isSelected = selectedMarket ? selectedMarket.id === market.id : market.is_active;
+                return (
+                  <button
+                    key={market.id}
+                    onClick={() => {
+                      setSelectedMarket(market.is_active ? null : market);
+                      setActiveRumorRole(null);
+                    }}
+                    className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition-all border ${
+                      isSelected
+                        ? 'bg-rojo text-white border-rojo'
+                        : 'bg-white text-gray-700 border-gray-200 hover:border-rojo/40 hover:text-rojo'
+                    }`}
+                  >
+                    {market.name}
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {rumoresLoading ? (
             <div className="py-12">
