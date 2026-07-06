@@ -765,7 +765,11 @@ export default function HomePage() {
         <div className="card overflow-hidden">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold">Derechos sobre jugadores</h2>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
+              <Link to="/derechos" className="text-sm text-rojo hover:underline font-medium">
+                Ver todos →
+              </Link>
+              <div className="flex items-center gap-2">
               <span className="text-xs text-gray-400">Compartir</span>
               <a
                 href={`https://wa.me/?text=${encodeURIComponent('¡Mirá los derechos económicos que tiene Independiente sobre sus jugadores! Datos en Números Rojos 👉 https://www.numerosrojos.net/#derechos')}`}
@@ -789,6 +793,7 @@ export default function HomePage() {
                   <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                 </svg>
               </a>
+              </div>
             </div>
           </div>
           <p className="text-sm text-gray-500 -mt-2 mb-4">No incluye derechos de formación</p>

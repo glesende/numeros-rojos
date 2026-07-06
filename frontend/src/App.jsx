@@ -27,6 +27,7 @@ import AdminSettings from './pages/AdminSettings';
 import AdminStadiumPage from './pages/AdminStadiumPage';
 import StadiumPage from './pages/StadiumPage';
 import StatsPage from './pages/StatsPage';
+import RightsPage from './pages/RightsPage';
 import Loader from './components/common/Loader';
 
 function ScrollToTop() {
@@ -62,6 +63,7 @@ export default function App() {
         <Route path="/balances/:id" element={<BalanceDetailPage />} />
         <Route path="/estadisticas" element={<StatsPage />} />
         <Route path="/estadio" element={<StadiumPage />} />
+        <Route path="/derechos" element={<RightsPage />} />
 
         {/* Auth */}
         <Route path="/admin/login" element={<LoginPage />} />
