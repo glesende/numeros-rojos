@@ -389,6 +389,7 @@ export default function HomePage() {
   const [selectedContractPlayer, setSelectedContractPlayer] = useState(null);
   const [selectedRumorPlayer, setSelectedRumorPlayer] = useState(null);
   const [recentMoves, setRecentMoves] = useState({ altas: [], bajas: [] });
+  const [moveFilter, setMoveFilter] = useState(null);
   const { sections } = useSectionSettings();
   const rumoresCarousel = useDragScroll();
   const contratosCarousel = useDragScroll();
@@ -647,16 +648,42 @@ export default function HomePage() {
 
           {/* Últimas novedades */}
           {(() => {
-            const combinedMoves = [
+            const allMoves = [
               ...recentMoves.altas.map((c) => ({ ...c, tipo: 'alta', _date: c.signing_date })),
               ...recentMoves.bajas.map((c) => ({ ...c, tipo: 'baja', _date: c.termination_date })),
             ].sort((a, b) => new Date(b._date) - new Date(a._date));
 
-            if (combinedMoves.length === 0) return null;
+            if (allMoves.length === 0) return null;
+
+            const combinedMoves = moveFilter ? allMoves.filter((m) => m.tipo === moveFilter) : allMoves;
 
             return (
               <div className="mb-5">
-                <p className="text-xs font-medium text-gray-500 mb-3">Últimas novedades</p>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs font-medium text-gray-500">Últimas novedades</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setMoveFilter(moveFilter === 'alta' ? null : 'alta')}
+                      className={`px-3 py-1 rounded-full text-xs font-semibold transition-all border ${
+                        moveFilter === 'alta'
+                          ? 'bg-green-600 text-white border-green-600'
+                          : 'bg-white text-gray-700 border-gray-200 hover:border-green-400 hover:text-green-700'
+                      }`}
+                    >
+                      Altas
+                    </button>
+                    <button
+                      onClick={() => setMoveFilter(moveFilter === 'baja' ? null : 'baja')}
+                      className={`px-3 py-1 rounded-full text-xs font-semibold transition-all border ${
+                        moveFilter === 'baja'
+                          ? 'bg-rojo text-white border-rojo'
+                          : 'bg-white text-gray-700 border-gray-200 hover:border-rojo/40 hover:text-rojo'
+                      }`}
+                    >
+                      Bajas
+                    </button>
+                  </div>
+                </div>
                 <div className="flex gap-4 overflow-x-auto pb-1">
                   {combinedMoves.map((item) => (
                     <div
@@ -686,19 +713,8 @@ export default function HomePage() {
             );
           })()}
 
-          {/* Search bar */}
-          <form onSubmit={(e) => e.preventDefault()} className="flex gap-2 mb-4">
-            <input
-              type="text"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Buscar jugador..."
-              className="input-field flex-1"
-            />
-          </form>
-
           {/* Vigencia buttons */}
-          <div className="mb-6">
+          <div className="mb-4">
           <p className="text-xs font-medium text-gray-500 mb-2">Vencimiento</p>
           <div className="flex gap-2 flex-wrap">
             {VIGENCIA_OPTIONS.map((opt) => (
@@ -714,16 +730,28 @@ export default function HomePage() {
                 {opt.label}
               </button>
             ))}
+          </div>
+          </div>
+
+          {/* Search bar */}
+          <form onSubmit={(e) => e.preventDefault()} className="flex gap-2 mb-6">
+            <input
+              type="text"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Buscar jugador..."
+              className="input-field flex-1"
+            />
             {(vigencia || searchInput) && (
               <button
+                type="button"
                 onClick={handleClear}
-                className="px-4 py-2 rounded-full text-sm font-semibold bg-gray-100 text-gray-500 hover:bg-gray-200 border border-transparent transition-all"
+                className="px-4 py-2 rounded-full text-sm font-semibold bg-gray-100 text-gray-500 hover:bg-gray-200 border border-transparent transition-all whitespace-nowrap"
               >
-                Limpiar filtros
+                Limpiar
               </button>
             )}
-          </div>
-          </div>
+          </form>
 
           {loading ? (
             <div className="py-12">
