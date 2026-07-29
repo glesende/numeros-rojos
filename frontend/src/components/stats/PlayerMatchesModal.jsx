@@ -4,7 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
 } from 'recharts';
-import { getPlayerMatches, getPlayer, getContracts } from '../../api/endpoints';
+import { getPlayerMatches, getPlayer, getContracts, getContract } from '../../api/endpoints';
 import Loader from '../common/Loader';
 import OfficialBadge from '../OfficialBadge';
 import SourceLabel from '../SourceLabel';
@@ -40,6 +40,87 @@ function formatDate(dateStr) {
   const month = String(d.getUTCMonth() + 1).padStart(2, '0');
   const year = d.getUTCFullYear();
   return `${day}-${month}-${year}`;
+}
+
+// ── Contract diff helpers ────────────────────────────────────────────────────
+
+const CONTRACT_FIELD_LABELS = {
+  full_name: 'Nombre',
+  signing_date: 'Fecha de firma',
+  expiration_date: 'Fecha de vencimiento',
+  termination_date: 'Fecha de rescisión',
+  club_pass_percentage: '% Pase club',
+  estimated_salary: 'Salario estimado',
+  currency: 'Moneda',
+};
+
+const CONTRACT_DATE_FIELDS = new Set(['signing_date', 'expiration_date', 'termination_date']);
+
+function normalizeDate(val) {
+  if (!val) return null;
+  return String(val).split('T')[0];
+}
+
+function formatDiffValue(field, value) {
+  if (value === null || value === undefined) return 'No disponible';
+  if (CONTRACT_DATE_FIELDS.has(field)) return formatDate(normalizeDate(value)) === '-' ? '-' : formatDate(normalizeDate(value));
+  if (field === 'club_pass_percentage') return `${parseFloat(value)}%`;
+  return String(value);
+}
+
+function computeContractDiff(from, to) {
+  const changes = [];
+
+  for (const [field, label] of Object.entries(CONTRACT_FIELD_LABELS)) {
+    let fromVal = from[field];
+    let toVal = to[field];
+
+    if (CONTRACT_DATE_FIELDS.has(field)) {
+      fromVal = normalizeDate(fromVal);
+      toVal = normalizeDate(toVal);
+    } else if (field === 'club_pass_percentage' || field === 'estimated_salary') {
+      fromVal = fromVal != null ? parseFloat(fromVal) : null;
+      toVal = toVal != null ? parseFloat(toVal) : null;
+    }
+
+    if (fromVal !== toVal) {
+      changes.push({ type: 'scalar', field, label, from: formatDiffValue(field, fromVal), to: formatDiffValue(field, toVal) });
+    }
+  }
+
+  const fromClauses = from.clauses || [];
+  const toClauses = to.clauses || [];
+  const addedClauses = toClauses.filter((c) => !fromClauses.includes(c));
+  const removedClauses = fromClauses.filter((c) => !toClauses.includes(c));
+  if (addedClauses.length > 0 || removedClauses.length > 0) {
+    changes.push({ type: 'array', label: 'Cláusulas', added: addedClauses, removed: removedClauses });
+  }
+
+  const fromLoan = from.loan;
+  const toLoan = to.loan;
+  if (!fromLoan && toLoan) {
+    changes.push({ type: 'scalar', field: 'loan', label: 'Préstamo', from: 'Sin préstamo', to: `Cedido a ${toLoan.club}` });
+  } else if (fromLoan && !toLoan) {
+    changes.push({ type: 'scalar', field: 'loan', label: 'Préstamo', from: `Cedido a ${fromLoan.club}`, to: 'Sin préstamo' });
+  } else if (fromLoan && toLoan) {
+    if (fromLoan.club !== toLoan.club) {
+      changes.push({ type: 'scalar', field: 'loan.club', label: 'Club de préstamo', from: fromLoan.club, to: toLoan.club });
+    }
+    const fromUntil = normalizeDate(fromLoan.until);
+    const toUntil = normalizeDate(toLoan.until);
+    if (fromUntil !== toUntil) {
+      changes.push({ type: 'scalar', field: 'loan.until', label: 'Hasta (préstamo)', from: formatDate(fromUntil), to: formatDate(toUntil) });
+    }
+    const fromLC = fromLoan.clauses || [];
+    const toLC = toLoan.clauses || [];
+    const addedLC = toLC.filter((c) => !fromLC.includes(c));
+    const removedLC = fromLC.filter((c) => !toLC.includes(c));
+    if (addedLC.length > 0 || removedLC.length > 0) {
+      changes.push({ type: 'array', label: 'Cláusulas del préstamo', added: addedLC, removed: removedLC });
+    }
+  }
+
+  return changes;
 }
 
 // ── Shared data-fetching hook ────────────────────────────────────────────────
@@ -631,15 +712,26 @@ function PlayerMatchesSection({ player, comparePool }) {
 
 function PlayerContractSection({ player }) {
   const [contract, setContract] = useState(undefined);
+  const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
     setContract(undefined);
+    setHistory([]);
     getContracts({ external_id: player.id, status: 'vigente', per_page: 1 })
       .then((res) => {
         const results = res.data?.data || [];
-        setContract(results.length > 0 ? results[0] : null);
+        if (results.length === 0) {
+          setContract(null);
+          return;
+        }
+        const basic = results[0];
+        setContract(basic);
+        return getContract(basic.id).then((detail) => {
+          setContract(detail.data.data);
+          setHistory(detail.data.history || []);
+        });
       })
       .catch(() => setContract(null))
       .finally(() => setLoading(false));
@@ -725,6 +817,50 @@ function PlayerContractSection({ player }) {
               </li>
             ))}
           </ul>
+        </div>
+      )}
+
+      {history.length > 0 && (
+        <div className="pt-2 border-t border-gray-100">
+          <p className="text-xs font-semibold text-gray-500 mb-3">Historial de modificaciones</p>
+          {[...history].reverse().map((snapshot, idx, arr) => {
+            const nextVersion = idx === 0 ? contract : arr[idx - 1];
+            const changes = computeContractDiff(snapshot, nextVersion);
+            if (changes.length === 0) return null;
+            return (
+              <div key={snapshot.id} className="border-l-2 border-gray-200 pl-3 mb-4 last:mb-0">
+                <p className="text-xs text-gray-400 mb-1">
+                  Registrado el {formatDate(snapshot.created_at)}
+                </p>
+                <ul className="space-y-1">
+                  {changes.map((change, i) => (
+                    <li key={i} className="text-xs">
+                      {change.type === 'scalar' && (
+                        <span>
+                          <span className="font-medium text-gray-700">{change.label}:</span>
+                          {' '}
+                          <span className="text-red-500 line-through">{change.from}</span>
+                          {' → '}
+                          <span className="text-green-600">{change.to}</span>
+                        </span>
+                      )}
+                      {change.type === 'array' && (
+                        <div>
+                          <span className="font-medium text-gray-700">{change.label}:</span>
+                          {change.added?.map((item, j) => (
+                            <p key={`a${j}`} className="ml-2 text-green-600">+ {item}</p>
+                          ))}
+                          {change.removed?.map((item, j) => (
+                            <p key={`r${j}`} className="ml-2 text-red-500 line-through">- {item}</p>
+                          ))}
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
         </div>
       )}
 
