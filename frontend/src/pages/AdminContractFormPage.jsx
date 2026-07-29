@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { getContract, createContract, updateContract } from '../api/endpoints';
+import { getContract, createContract, updateContract, saveContractAsChange } from '../api/endpoints';
 import ContractForm from '../components/admin/ContractForm';
 import Loader from '../components/common/Loader';
 
@@ -38,6 +38,19 @@ export default function AdminContractFormPage() {
     }
   };
 
+  const handleSubmitAsChange = async (data) => {
+    setSaving(true);
+    setError('');
+    try {
+      await saveContractAsChange(id, data);
+      navigate('/admin/contratos');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Error al guardar como cambio de condiciones');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (loading) return <Loader />;
 
   return (
@@ -52,7 +65,12 @@ export default function AdminContractFormPage() {
       {error && <p className="text-red-600 text-sm mb-4 bg-red-50 rounded-lg p-3">{error}</p>}
 
       <div className="card">
-        <ContractForm initial={initial} onSubmit={handleSubmit} loading={saving} />
+        <ContractForm
+          initial={initial}
+          onSubmit={handleSubmit}
+          onSubmitAsChange={isEdit ? handleSubmitAsChange : undefined}
+          loading={saving}
+        />
       </div>
     </div>
   );

@@ -17,6 +17,7 @@ export const getContract = (id) => client.get(`/contracts/${id}`);
 export const createContract = (data) => client.post('/admin/contracts', data);
 export const updateContract = (id, data) => client.put(`/admin/contracts/${id}`, data);
 export const deleteContract = (id) => client.delete(`/admin/contracts/${id}`);
+export const saveContractAsChange = (id, data) => client.post(`/admin/contracts/${id}/save-as-change`, data);
 
 // Rights
 export const getRights = (params = {}) => client.get('/rights', { params });

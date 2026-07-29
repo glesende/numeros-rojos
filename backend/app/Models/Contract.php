@@ -13,6 +13,7 @@ class Contract extends Model
     protected $table = 'contracts';
 
     protected $fillable = [
+        'parent_id',
         'external_id',
         'full_name',
         'expiration_date',
@@ -36,6 +37,16 @@ class Contract extends Model
         'signing_date'        => 'date',
         'termination_date'    => 'date',
     ];
+
+    public function parent(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Contract::class, 'parent_id');
+    }
+
+    public function children(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Contract::class, 'parent_id')->orderBy('created_at', 'asc');
+    }
 
     public function scopeOfficial($query, ?bool $official): mixed
     {

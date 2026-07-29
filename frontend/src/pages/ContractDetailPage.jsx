@@ -15,16 +15,105 @@ function formatDate(dateStr) {
   return `${day}-${month}-${year}`;
 }
 
+function formatDateLocal(dateStr) {
+  if (!dateStr) return null;
+  const d = new Date(dateStr);
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const year = d.getUTCFullYear();
+  return `${day}-${month}-${year}`;
+}
+
+const FIELD_LABELS = {
+  full_name: 'Nombre',
+  signing_date: 'Fecha de firma',
+  expiration_date: 'Fecha de vencimiento',
+  termination_date: 'Fecha de rescisión',
+  club_pass_percentage: '% Pase club',
+  estimated_salary: 'Salario estimado',
+  currency: 'Moneda',
+};
+
+const DATE_FIELDS = new Set(['signing_date', 'expiration_date', 'termination_date']);
+
+function normalizeDate(val) {
+  if (!val) return null;
+  return String(val).split('T')[0];
+}
+
+function formatDiffValue(field, value) {
+  if (value === null || value === undefined) return 'No disponible';
+  if (DATE_FIELDS.has(field)) return formatDateLocal(value) ?? '-';
+  if (field === 'club_pass_percentage') return `${parseFloat(value)}%`;
+  return String(value);
+}
+
+function computeContractDiff(from, to) {
+  const changes = [];
+
+  for (const [field, label] of Object.entries(FIELD_LABELS)) {
+    let fromVal = from[field];
+    let toVal = to[field];
+
+    if (DATE_FIELDS.has(field)) {
+      fromVal = normalizeDate(fromVal);
+      toVal = normalizeDate(toVal);
+    } else if (field === 'club_pass_percentage' || field === 'estimated_salary') {
+      fromVal = fromVal != null ? parseFloat(fromVal) : null;
+      toVal = toVal != null ? parseFloat(toVal) : null;
+    }
+
+    if (fromVal !== toVal) {
+      changes.push({ type: 'scalar', field, label, from: formatDiffValue(field, fromVal), to: formatDiffValue(field, toVal) });
+    }
+  }
+
+  const fromClauses = from.clauses || [];
+  const toClauses = to.clauses || [];
+  const addedClauses = toClauses.filter((c) => !fromClauses.includes(c));
+  const removedClauses = fromClauses.filter((c) => !toClauses.includes(c));
+  if (addedClauses.length > 0 || removedClauses.length > 0) {
+    changes.push({ type: 'array', label: 'Cláusulas', added: addedClauses, removed: removedClauses });
+  }
+
+  const fromLoan = from.loan;
+  const toLoan = to.loan;
+  if (!fromLoan && toLoan) {
+    changes.push({ type: 'scalar', field: 'loan', label: 'Préstamo', from: 'Sin préstamo', to: `Cedido a ${toLoan.club}` });
+  } else if (fromLoan && !toLoan) {
+    changes.push({ type: 'scalar', field: 'loan', label: 'Préstamo', from: `Cedido a ${fromLoan.club}`, to: 'Sin préstamo' });
+  } else if (fromLoan && toLoan) {
+    if (fromLoan.club !== toLoan.club) {
+      changes.push({ type: 'scalar', field: 'loan.club', label: 'Club de préstamo', from: fromLoan.club, to: toLoan.club });
+    }
+    const fromUntil = normalizeDate(fromLoan.until);
+    const toUntil = normalizeDate(toLoan.until);
+    if (fromUntil !== toUntil) {
+      changes.push({ type: 'scalar', field: 'loan.until', label: 'Hasta (préstamo)', from: formatDateLocal(fromUntil) ?? '-', to: formatDateLocal(toUntil) ?? '-' });
+    }
+    const fromLC = fromLoan.clauses || [];
+    const toLC = toLoan.clauses || [];
+    const addedLC = toLC.filter((c) => !fromLC.includes(c));
+    const removedLC = fromLC.filter((c) => !toLC.includes(c));
+    if (addedLC.length > 0 || removedLC.length > 0) {
+      changes.push({ type: 'array', label: 'Cláusulas del préstamo', added: addedLC, removed: removedLC });
+    }
+  }
+
+  return changes;
+}
+
 export default function ContractDetailPage() {
   const { id } = useParams();
   const [contract, setContract] = useState(null);
+  const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     getContract(id)
       .then((contractRes) => {
-        const c = contractRes.data.data;
-        setContract(c);
+        setContract(contractRes.data.data);
+        setHistory(contractRes.data.history || []);
       })
       .finally(() => setLoading(false));
   }, [id]);
@@ -246,6 +335,50 @@ export default function ContractDetailPage() {
           </div>
         )}
       </div>
+
+      {history.length > 0 && (
+        <div className="card mt-4">
+          <h2 className="text-base font-bold mb-4">Historial de modificaciones</h2>
+          {[...history].reverse().map((snapshot, idx, arr) => {
+            const nextVersion = idx === 0 ? contract : arr[idx - 1];
+            const changes = computeContractDiff(snapshot, nextVersion);
+            if (changes.length === 0) return null;
+            return (
+              <div key={snapshot.id} className="border-l-2 border-gray-200 pl-4 mb-5 last:mb-0">
+                <p className="text-xs text-gray-400 mb-2">
+                  Cambio registrado el {formatDate(snapshot.created_at)}
+                </p>
+                <ul className="space-y-1">
+                  {changes.map((change, i) => (
+                    <li key={i} className="text-sm">
+                      {change.type === 'scalar' && (
+                        <span>
+                          <span className="font-medium text-gray-700">{change.label}:</span>
+                          {' '}
+                          <span className="text-red-500 line-through">{change.from}</span>
+                          {' → '}
+                          <span className="text-green-600">{change.to}</span>
+                        </span>
+                      )}
+                      {change.type === 'array' && (
+                        <div>
+                          <span className="font-medium text-gray-700">{change.label}:</span>
+                          {change.added?.map((item, j) => (
+                            <p key={`a${j}`} className="ml-3 text-green-600">+ {item}</p>
+                          ))}
+                          {change.removed?.map((item, j) => (
+                            <p key={`r${j}`} className="ml-3 text-red-500 line-through">- {item}</p>
+                          ))}
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
