@@ -70,6 +70,7 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
         $router->post('contracts', 'ContractController@store');
         $router->put('contracts/{id}', 'ContractController@update');
         $router->delete('contracts/{id}', 'ContractController@destroy');
+        $router->post('contracts/{id}/save-as-change', 'ContractController@saveAsChange');
 
         // Rights CRUD
         $router->post('rights', 'RightController@store');

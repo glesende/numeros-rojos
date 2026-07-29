@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const emptyForm = {
   external_id: '',
@@ -17,8 +17,9 @@ const emptyForm = {
 const normalizeLink = (l) =>
   typeof l === 'string' ? { url: l, official: false } : { ...l, official: !!l.official };
 
-export default function ContractForm({ initial, onSubmit, loading }) {
+export default function ContractForm({ initial, onSubmit, onSubmitAsChange, loading }) {
   const [form, setForm] = useState(emptyForm);
+  const pendingAction = useRef('save');
   const [clausulaInput, setClausulaInput] = useState('');
   const [linkInput, setLinkInput] = useState('');
   const [loanClausulaInput, setLoanClausulaInput] = useState('');
@@ -91,17 +92,24 @@ export default function ContractForm({ initial, onSubmit, loading }) {
     setLoan('clauses', (form.loan.clauses || []).filter((_, idx) => idx !== i));
   };
 
+  const buildFormData = () => ({
+    ...form,
+    club_pass_percentage: parseFloat(form.club_pass_percentage),
+    estimated_salary: form.estimated_salary ? parseFloat(form.estimated_salary) : null,
+    currency: form.estimated_salary ? form.currency : null,
+    signing_date: form.signing_date || null,
+    termination_date: form.termination_date || null,
+    loan: form.loan?.club ? form.loan : null,
+  });
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit({
-      ...form,
-      club_pass_percentage: parseFloat(form.club_pass_percentage),
-      estimated_salary: form.estimated_salary ? parseFloat(form.estimated_salary) : null,
-      currency: form.estimated_salary ? form.currency : null,
-      signing_date: form.signing_date || null,
-      termination_date: form.termination_date || null,
-      loan: form.loan?.club ? form.loan : null,
-    });
+    const data = buildFormData();
+    if (pendingAction.current === 'saveAsChange' && onSubmitAsChange) {
+      onSubmitAsChange(data);
+    } else {
+      onSubmit(data);
+    }
   };
 
   return (
@@ -326,9 +334,27 @@ export default function ContractForm({ initial, onSubmit, loading }) {
         )}
       </div>
 
-      <button type="submit" disabled={loading} className="btn-primary w-full">
-        {loading ? 'Guardando...' : 'Guardar'}
-      </button>
+      <div className="flex flex-col gap-2">
+        <button
+          type="submit"
+          onClick={() => { pendingAction.current = 'save'; }}
+          disabled={loading}
+          className="btn-primary w-full"
+        >
+          {loading ? 'Guardando...' : 'Guardar'}
+        </button>
+
+        {onSubmitAsChange && (
+          <button
+            type="submit"
+            onClick={() => { pendingAction.current = 'saveAsChange'; }}
+            disabled={loading}
+            className="btn-secondary w-full"
+          >
+            Guardar como cambio de condiciones
+          </button>
+        )}
+      </div>
     </form>
   );
 }

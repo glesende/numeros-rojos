@@ -38,6 +38,7 @@ class ContractController extends Controller
         $official = $request->has('official') ? filter_var($request->input('official'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : null;
 
         $query = Contract::query()
+            ->whereNull('parent_id')
             ->search($request->input('search'))
             ->externalId($request->input('external_id'))
             ->official($official)
@@ -69,6 +70,7 @@ class ContractController extends Controller
 
         // Aggregates
         $aggQuery = Contract::query()
+            ->whereNull('parent_id')
             ->search($request->input('search'))
             ->externalId($request->input('external_id'))
             ->official($official)
@@ -128,7 +130,7 @@ class ContractController extends Controller
     {
         $now = Carbon::now();
 
-        $base = Contract::query()->where(function ($q) use ($now) {
+        $base = Contract::query()->whereNull('parent_id')->where(function ($q) use ($now) {
             $q->whereNull('termination_date')
               ->orWhere('termination_date', '>=', $now);
         })->where('expiration_date', '>=', $now);
@@ -152,6 +154,7 @@ class ContractController extends Controller
         $fiveMonthsAgo = Carbon::now()->subMonths(5)->startOfDay();
 
         $altas = Contract::query()
+            ->whereNull('parent_id')
             ->whereNotNull('signing_date')
             ->where('signing_date', '>=', $fiveMonthsAgo)
             ->orderBy('signing_date', 'desc')
@@ -161,6 +164,7 @@ class ContractController extends Controller
             ->toArray();
 
         $bajas = Contract::query()
+            ->whereNull('parent_id')
             ->whereNotNull('termination_date')
             ->where('termination_date', '>=', $fiveMonthsAgo)
             ->orderBy('termination_date', 'desc')
@@ -182,7 +186,65 @@ class ContractController extends Controller
         $contract = Contract::findOrFail($id);
         $contractData = $this->enrichWithPlayerAvatar($contract->toArray());
 
-        return response()->json(['data' => $contractData]);
+        $history = $contract->children()
+            ->orderBy('created_at', 'asc')
+            ->get()
+            ->map(fn($c) => $c->toArray())
+            ->toArray();
+
+        return response()->json([
+            'data'    => $contractData,
+            'history' => $history,
+        ]);
+    }
+
+    public function saveAsChange(Request $request, int $id): JsonResponse
+    {
+        $contract = Contract::findOrFail($id);
+
+        $this->validate($request, [
+            'external_id'          => 'nullable|string|max:255',
+            'full_name'            => 'sometimes|string|max:255',
+            'expiration_date'      => 'sometimes|date',
+            'signing_date'         => 'nullable|date',
+            'termination_date'     => 'nullable|date',
+            'club_pass_percentage' => 'sometimes|numeric|min:0|max:100',
+            'estimated_salary'     => 'nullable|numeric|min:0',
+            'currency'             => 'nullable|in:ARS,USD,EUR',
+            'clauses'              => 'nullable|array',
+            'links'                => 'nullable|array',
+            'links.*.url'          => 'required|url',
+            'links.*.official'     => 'required|boolean',
+            'loan'                 => 'nullable|array',
+            'loan.club'            => 'required_with:loan|string|max:255',
+            'loan.until'           => 'nullable|date',
+            'loan.clauses'         => 'nullable|array',
+        ]);
+
+        // Snapshot current state as a historical child row
+        Contract::create([
+            'parent_id'            => $contract->id,
+            'external_id'          => $contract->external_id,
+            'full_name'            => $contract->full_name,
+            'expiration_date'      => $contract->expiration_date?->toDateString(),
+            'signing_date'         => $contract->signing_date?->toDateString(),
+            'termination_date'     => $contract->termination_date?->toDateString(),
+            'club_pass_percentage' => $contract->club_pass_percentage,
+            'estimated_salary'     => $contract->estimated_salary,
+            'currency'             => $contract->currency,
+            'clauses'              => $contract->clauses,
+            'links'                => $contract->links,
+            'loan'                 => $contract->loan,
+        ]);
+
+        // Apply new data to the parent contract
+        $contract->update($request->only([
+            'external_id', 'full_name', 'expiration_date', 'signing_date', 'termination_date',
+            'club_pass_percentage', 'estimated_salary', 'currency',
+            'clauses', 'links', 'loan',
+        ]));
+
+        return response()->json(['data' => $contract->fresh()]);
     }
 
     public function store(Request $request): JsonResponse
