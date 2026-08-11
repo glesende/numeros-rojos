@@ -12,6 +12,7 @@ const emptyForm = {
   clauses: [],
   links: [],
   loan: null,
+  loan_date: '',
 };
 
 const normalizeLink = (l) =>
@@ -41,6 +42,7 @@ export default function ContractForm({ initial, onSubmit, onSubmitAsChange, load
         loan: initial.loan
           ? { ...initial.loan, clauses: initial.loan.clauses || [] }
           : null,
+        loan_date: formatDate(initial.loan_date),
       });
     }
   }, [initial]);
@@ -92,15 +94,19 @@ export default function ContractForm({ initial, onSubmit, onSubmitAsChange, load
     setLoan('clauses', (form.loan.clauses || []).filter((_, idx) => idx !== i));
   };
 
-  const buildFormData = () => ({
-    ...form,
-    club_pass_percentage: parseFloat(form.club_pass_percentage),
-    estimated_salary: form.estimated_salary ? parseFloat(form.estimated_salary) : null,
-    currency: form.estimated_salary ? form.currency : null,
-    signing_date: form.signing_date || null,
-    termination_date: form.termination_date || null,
-    loan: form.loan?.club ? form.loan : null,
-  });
+  const buildFormData = () => {
+    const hasLoan = !!form.loan?.club;
+    return {
+      ...form,
+      club_pass_percentage: parseFloat(form.club_pass_percentage),
+      estimated_salary: form.estimated_salary ? parseFloat(form.estimated_salary) : null,
+      currency: form.estimated_salary ? form.currency : null,
+      signing_date: form.signing_date || null,
+      termination_date: form.termination_date || null,
+      loan: hasLoan ? form.loan : null,
+      loan_date: hasLoan ? (form.loan_date || null) : null,
+    };
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -280,7 +286,7 @@ export default function ContractForm({ initial, onSubmit, onSubmitAsChange, load
 
         {form.loan && (
           <div className="mt-4 space-y-3">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">Club *</label>
                 <input
@@ -290,6 +296,15 @@ export default function ContractForm({ initial, onSubmit, onSubmitAsChange, load
                   className="input-field"
                   placeholder="Nombre del club"
                   required
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Fecha de inicio</label>
+                <input
+                  type="date"
+                  value={form.loan_date}
+                  onChange={(e) => set('loan_date', e.target.value)}
+                  className="input-field"
                 />
               </div>
               <div>
