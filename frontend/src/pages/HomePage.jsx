@@ -452,11 +452,13 @@ export default function HomePage() {
     });
 
     if (searchInput.trim()) {
-      const query = searchInput.toLowerCase();
+      const normalize = (str) =>
+        str?.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') ?? '';
+      const query = normalize(searchInput);
       result = result.filter(
         (c) =>
-          c.full_name?.toLowerCase().includes(query) ||
-          c.club_name?.toLowerCase().includes(query)
+          normalize(c.full_name).includes(query) ||
+          normalize(c.club_name).includes(query)
       );
     }
 
