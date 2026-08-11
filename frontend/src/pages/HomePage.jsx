@@ -651,7 +651,7 @@ export default function HomePage() {
           {/* Últimas novedades */}
           {(() => {
             const allMoves = [
-              ...recentMoves.altas.map((c) => ({ ...c, tipo: 'alta', _date: c.signing_date })),
+              ...recentMoves.altas.map((c) => ({ ...c, tipo: 'alta', _date: c.signing_date || c.loan_return_date })),
               ...recentMoves.bajas.map((c) => ({ ...c, tipo: 'baja', _date: c.termination_date || c.loan_date })),
             ].sort((a, b) => new Date(b._date) - new Date(a._date));
 

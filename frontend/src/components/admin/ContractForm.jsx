@@ -13,6 +13,7 @@ const emptyForm = {
   links: [],
   loan: null,
   loan_date: '',
+  loan_return_date: '',
 };
 
 const normalizeLink = (l) =>
@@ -43,6 +44,7 @@ export default function ContractForm({ initial, onSubmit, onSubmitAsChange, load
           ? { ...initial.loan, clauses: initial.loan.clauses || [] }
           : null,
         loan_date: formatDate(initial.loan_date),
+        loan_return_date: formatDate(initial.loan_return_date),
       });
     }
   }, [initial]);
@@ -105,6 +107,7 @@ export default function ContractForm({ initial, onSubmit, onSubmitAsChange, load
       termination_date: form.termination_date || null,
       loan: hasLoan ? form.loan : null,
       loan_date: hasLoan ? (form.loan_date || null) : null,
+      loan_return_date: !hasLoan ? (form.loan_return_date || null) : null,
     };
   };
 
@@ -283,6 +286,18 @@ export default function ContractForm({ initial, onSubmit, onSubmitAsChange, load
           />
           <span className="text-sm font-medium text-gray-700">Jugador a préstamo</span>
         </label>
+
+        {!form.loan && initial?.loan && (
+          <div className="mt-3">
+            <label className="block text-xs font-medium text-gray-500 mb-1">Fecha de regreso al plantel</label>
+            <input
+              type="date"
+              value={form.loan_return_date}
+              onChange={(e) => set('loan_return_date', e.target.value)}
+              className="input-field"
+            />
+          </div>
+        )}
 
         {form.loan && (
           <div className="mt-4 space-y-3">

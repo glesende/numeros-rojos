@@ -153,13 +153,23 @@ class ContractController extends Controller
     {
         $fiveMonthsAgo = Carbon::now()->subMonths(5)->startOfDay();
 
-        $altas = Contract::query()
+        $altasPorFirma = Contract::query()
             ->whereNull('parent_id')
             ->whereNotNull('signing_date')
             ->where('signing_date', '>=', $fiveMonthsAgo)
-            ->orderBy('signing_date', 'desc')
             ->get()
-            ->map(fn($c) => array_merge($this->enrichWithPlayerAvatar($c->toArray()), ['tipo' => 'alta']))
+            ->map(fn($c) => array_merge($this->enrichWithPlayerAvatar($c->toArray()), ['tipo' => 'alta']));
+
+        $altasPorRegresoDePrestamo = Contract::query()
+            ->whereNull('parent_id')
+            ->whereNotNull('loan_return_date')
+            ->where('loan_return_date', '>=', $fiveMonthsAgo)
+            ->get()
+            ->map(fn($c) => array_merge($this->enrichWithPlayerAvatar($c->toArray()), ['tipo' => 'alta']));
+
+        $altas = $altasPorFirma
+            ->concat($altasPorRegresoDePrestamo)
+            ->sortByDesc(fn($c) => $c['signing_date'] ?? $c['loan_return_date'])
             ->values()
             ->toArray();
 
@@ -230,6 +240,7 @@ class ContractController extends Controller
             'loan.until'           => 'nullable|date',
             'loan.clauses'         => 'nullable|array',
             'loan_date'            => 'nullable|date',
+            'loan_return_date'     => 'nullable|date',
         ]);
 
         // Snapshot current state as a historical child row
@@ -247,13 +258,14 @@ class ContractController extends Controller
             'links'                => $contract->links,
             'loan'                 => $contract->loan,
             'loan_date'            => $contract->loan_date?->toDateString(),
+            'loan_return_date'     => $contract->loan_return_date?->toDateString(),
         ]);
 
         // Apply new data to the parent contract
         $contract->update($request->only([
             'external_id', 'full_name', 'expiration_date', 'signing_date', 'termination_date',
             'club_pass_percentage', 'estimated_salary', 'currency',
-            'clauses', 'links', 'loan', 'loan_date',
+            'clauses', 'links', 'loan', 'loan_date', 'loan_return_date',
         ]));
 
         return response()->json(['data' => $contract->fresh()]);

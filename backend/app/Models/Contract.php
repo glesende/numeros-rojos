@@ -26,6 +26,7 @@ class Contract extends Model
         'links',
         'loan',
         'loan_date',
+        'loan_return_date',
     ];
 
     protected $casts = [
@@ -38,6 +39,7 @@ class Contract extends Model
         'signing_date'        => 'date',
         'termination_date'    => 'date',
         'loan_date'           => 'date',
+        'loan_return_date'    => 'date',
     ];
 
     public function parent(): \Illuminate\Database\Eloquent\Relations\BelongsTo
