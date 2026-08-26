@@ -45,6 +45,10 @@ export default function AdminDashboard() {
           <h2 className="text-lg font-bold mb-1">Estadio</h2>
           <p className="text-sm text-gray-500">Gestionar estadio, sectores y precios de entradas</p>
         </Link>
+        <Link to="/admin/elecciones" className="card hover:shadow-md transition-shadow">
+          <h2 className="text-lg font-bold mb-1">Elecciones</h2>
+          <p className="text-sm text-gray-500">Gestionar listas, candidatos y propuestas</p>
+        </Link>
         <Link to="/admin/configuracion" className="card hover:shadow-md transition-shadow">
           <h2 className="text-lg font-bold mb-1">Configuracion</h2>
           <p className="text-sm text-gray-500">Cambiar contrasena y API Keys</p>

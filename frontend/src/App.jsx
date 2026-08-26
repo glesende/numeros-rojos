@@ -25,9 +25,12 @@ import AdminBalancesPage from './pages/AdminBalancesPage';
 import AdminBalanceFormPage from './pages/AdminBalanceFormPage';
 import AdminSettings from './pages/AdminSettings';
 import AdminStadiumPage from './pages/AdminStadiumPage';
+import AdminElectionsPage from './pages/AdminElectionsPage';
+import AdminElectionListFormPage from './pages/AdminElectionListFormPage';
 import StadiumPage from './pages/StadiumPage';
 import StatsPage from './pages/StatsPage';
 import RightsPage from './pages/RightsPage';
+import ElectionListPage from './pages/ElectionListPage';
 import Loader from './components/common/Loader';
 
 function ScrollToTop() {
@@ -64,6 +67,7 @@ export default function App() {
         <Route path="/estadisticas" element={<StatsPage />} />
         <Route path="/estadio" element={<StadiumPage />} />
         <Route path="/derechos" element={<RightsPage />} />
+        <Route path="/elecciones/:token" element={<ElectionListPage />} />
 
         {/* Auth */}
         <Route path="/admin/login" element={<LoginPage />} />
@@ -88,6 +92,9 @@ export default function App() {
         <Route path="/admin/balances/:id/editar" element={<ProtectedRoute><AdminBalanceFormPage /></ProtectedRoute>} />
         <Route path="/admin/configuracion" element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
         <Route path="/admin/estadio" element={<ProtectedRoute><AdminStadiumPage /></ProtectedRoute>} />
+        <Route path="/admin/elecciones" element={<ProtectedRoute><AdminElectionsPage /></ProtectedRoute>} />
+        <Route path="/admin/elecciones/nuevo" element={<ProtectedRoute><AdminElectionListFormPage /></ProtectedRoute>} />
+        <Route path="/admin/elecciones/:id/editar" element={<ProtectedRoute><AdminElectionListFormPage /></ProtectedRoute>} />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

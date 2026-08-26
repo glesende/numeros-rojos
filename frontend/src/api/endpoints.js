@@ -48,6 +48,33 @@ export const deleteMarket = (id) => client.delete(`/admin/markets/${id}`);
 export const activateMarket = (id) => client.post(`/admin/markets/${id}/activate`);
 export const deactivateMarket = () => client.post('/admin/markets/deactivate');
 
+// Elections (public)
+export const getElections = () => client.get('/elections');
+export const getElectionByToken = (token) => client.get(`/elections/token/${token}`);
+export const getElectionListLogoUrl = (id) => `${client.defaults.baseURL}/elections/lists/${id}/logo`;
+export const getElectionCandidatePhotoUrl = (id) => `${client.defaults.baseURL}/elections/candidates/${id}/photo`;
+export const getElectionCandidateCvUrl = (id) => `${client.defaults.baseURL}/elections/candidates/${id}/cv`;
+
+// Elections lists (admin)
+export const createElectionList = (formData) => client.post('/admin/elections/lists', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+export const updateElectionList = (id, formData) => client.post(`/admin/elections/lists/${id}/update`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+export const deleteElectionList = (id) => client.delete(`/admin/elections/lists/${id}`);
+
+// Elections candidates (admin)
+export const createElectionCandidate = (listId, formData) => client.post(`/admin/elections/lists/${listId}/candidates`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+export const updateElectionCandidate = (id, formData) => client.post(`/admin/elections/candidates/${id}/update`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+export const deleteElectionCandidate = (id) => client.delete(`/admin/elections/candidates/${id}`);
+
+// Elections proposals (admin)
+export const createElectionProposal = (listId, data) => client.post(`/admin/elections/lists/${listId}/proposals`, data);
+export const updateElectionProposal = (id, data) => client.put(`/admin/elections/proposals/${id}`, data);
+export const deleteElectionProposal = (id) => client.delete(`/admin/elections/proposals/${id}`);
+
+// Elections commitments (admin)
+export const createElectionCommitment = (proposalId, data) => client.post(`/admin/elections/proposals/${proposalId}/commitments`, data);
+export const updateElectionCommitment = (id, data) => client.put(`/admin/elections/commitments/${id}`, data);
+export const deleteElectionCommitment = (id) => client.delete(`/admin/elections/commitments/${id}`);
+
 // Settings
 export const getSettings = () => client.get('/admin/settings');
 export const updateSettings = (data) => client.put('/admin/settings', data);

@@ -24,6 +24,11 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
     $router->get('rumors', 'RumorController@index');
     $router->get('rumors/{id}', 'RumorController@show');
     $router->get('markets', 'MarketController@index');
+    $router->get('elections', 'ElectionController@index');
+    $router->get('elections/token/{token}', 'ElectionController@showByToken');
+    $router->get('elections/lists/{id}/logo', 'ElectionController@logo');
+    $router->get('elections/candidates/{id}/photo', 'ElectionController@candidatePhoto');
+    $router->get('elections/candidates/{id}/cv', 'ElectionController@candidateCv');
 
     // Balances (public)
     $router->get('balances', 'BalanceController@index');
@@ -112,6 +117,20 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
         $router->post('stadium/sectors', 'StadiumController@storeSector');
         $router->put('stadium/sectors/{id}', 'StadiumController@updateSector');
         $router->delete('stadium/sectors/{id}', 'StadiumController@destroySector');
+
+        // Elections CRUD
+        $router->post('elections/lists', 'ElectionController@storeList');
+        $router->post('elections/lists/{id}/update', 'ElectionController@updateList');
+        $router->delete('elections/lists/{id}', 'ElectionController@destroyList');
+        $router->post('elections/lists/{listId}/candidates', 'ElectionController@storeCandidate');
+        $router->post('elections/candidates/{id}/update', 'ElectionController@updateCandidate');
+        $router->delete('elections/candidates/{id}', 'ElectionController@destroyCandidate');
+        $router->post('elections/lists/{listId}/proposals', 'ElectionController@storeProposal');
+        $router->put('elections/proposals/{id}', 'ElectionController@updateProposal');
+        $router->delete('elections/proposals/{id}', 'ElectionController@destroyProposal');
+        $router->post('elections/proposals/{proposalId}/commitments', 'ElectionController@storeCommitment');
+        $router->put('elections/commitments/{id}', 'ElectionController@updateCommitment');
+        $router->delete('elections/commitments/{id}', 'ElectionController@destroyCommitment');
 
         // Twitter accounts CRUD
         $router->get('twitter/accounts', 'TwitterController@index');
