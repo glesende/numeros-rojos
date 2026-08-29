@@ -57,6 +57,9 @@ export function useInstallPrompt() {
 
   async function promptInstall() {
     if (!deferredPrompt) return;
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', 'pwa_install_banner_click');
+    }
     deferredPrompt.prompt();
     await deferredPrompt.userChoice;
     setDeferredPrompt(null);
