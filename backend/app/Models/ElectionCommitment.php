@@ -10,8 +10,16 @@ class ElectionCommitment extends Model
 
     protected $fillable = [
         'election_proposal_id',
+        'kind',
         'description',
+        'metric_value',
+        'metric_unit',
+        'deadline',
         'order',
+    ];
+
+    protected $casts = [
+        'metric_value' => 'decimal:2',
     ];
 
     public function proposal()

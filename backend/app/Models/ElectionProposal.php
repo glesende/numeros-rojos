@@ -12,6 +12,7 @@ class ElectionProposal extends Model
         'election_list_id',
         'title',
         'description',
+        'no_commitments_reason',
         'order',
     ];
 

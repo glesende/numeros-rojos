@@ -22,7 +22,7 @@ export default function ElectionListPage() {
 
   usePageMeta({
     title: list ? `${list.name} | Elecciones | Números Rojos` : 'Elecciones | Números Rojos',
-    description: list ? `Candidatos, propuestas y compromisos comprobables de ${list.name}.` : null,
+    description: list ? `Candidatos, propuestas y compromisos de ${list.name}.` : null,
     path: `/elecciones/${token}`,
   });
 

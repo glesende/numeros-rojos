@@ -41,10 +41,11 @@ class ElectionController extends Controller
     private function serializeList(ElectionList $list): array
     {
         return [
-            'id'       => $list->id,
-            'token'    => $list->token,
-            'name'     => $list->name,
-            'has_logo' => !empty($list->logo_path),
+            'id'         => $list->id,
+            'token'      => $list->token,
+            'name'       => $list->name,
+            'source_url' => $list->source_url,
+            'has_logo'   => !empty($list->logo_path),
             'candidates' => $list->candidates->map(function (ElectionCandidate $candidate) {
                 return [
                     'id'         => $candidate->id,
@@ -58,15 +59,20 @@ class ElectionController extends Controller
             }),
             'proposals' => $list->proposals->map(function (ElectionProposal $proposal) {
                 return [
-                    'id'          => $proposal->id,
-                    'title'       => $proposal->title,
-                    'description' => $proposal->description,
-                    'order'       => $proposal->order,
+                    'id'                     => $proposal->id,
+                    'title'                  => $proposal->title,
+                    'description'            => $proposal->description,
+                    'no_commitments_reason'  => $proposal->no_commitments_reason,
+                    'order'                  => $proposal->order,
                     'commitments' => $proposal->commitments->map(function (ElectionCommitment $commitment) {
                         return [
-                            'id'          => $commitment->id,
-                            'description' => $commitment->description,
-                            'order'       => $commitment->order,
+                            'id'           => $commitment->id,
+                            'kind'         => $commitment->kind,
+                            'description'  => $commitment->description,
+                            'metric_value' => $commitment->metric_value,
+                            'metric_unit'  => $commitment->metric_unit,
+                            'deadline'     => $commitment->deadline,
+                            'order'        => $commitment->order,
                         ];
                     }),
                 ];
@@ -115,8 +121,9 @@ class ElectionController extends Controller
     public function storeList(Request $request): JsonResponse
     {
         $this->validate($request, [
-            'name' => 'required|string|max:255',
-            'logo' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:5120',
+            'name'       => 'required|string|max:255',
+            'source_url' => 'nullable|string|max:500',
+            'logo'       => 'nullable|file|mimes:jpg,jpeg,png,webp|max:5120',
         ]);
 
         $logoPath         = null;
@@ -131,6 +138,7 @@ class ElectionController extends Controller
         $list = ElectionList::create([
             'token'               => $this->generateUniqueToken(),
             'name'                => $request->input('name'),
+            'source_url'          => $request->input('source_url'),
             'logo_path'           => $logoPath,
             'logo_original_name'  => $logoOriginalName,
         ]);
@@ -143,8 +151,9 @@ class ElectionController extends Controller
         $list = ElectionList::findOrFail($id);
 
         $this->validate($request, [
-            'name' => 'sometimes|string|max:255',
-            'logo' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:5120',
+            'name'       => 'sometimes|string|max:255',
+            'source_url' => 'nullable|string|max:500',
+            'logo'       => 'nullable|file|mimes:jpg,jpeg,png,webp|max:5120',
         ]);
 
         if ($request->hasFile('logo') && $request->file('logo')->isValid()) {
@@ -156,7 +165,7 @@ class ElectionController extends Controller
             $list->logo_path          = $this->storeFile($logo, 'elections/logos');
         }
 
-        $list->fill($request->only(['name']));
+        $list->fill($request->only(['name', 'source_url']));
         $list->save();
 
         return response()->json(['data' => $list]);
@@ -289,12 +298,13 @@ class ElectionController extends Controller
         $list = ElectionList::findOrFail($listId);
 
         $this->validate($request, [
-            'title'       => 'required|string|max:255',
-            'description' => 'required|string',
-            'order'       => 'sometimes|integer|min:0',
+            'title'                  => 'required|string|max:255',
+            'description'            => 'required|string',
+            'no_commitments_reason'  => 'nullable|string',
+            'order'                  => 'sometimes|integer|min:0',
         ]);
 
-        $proposal = $list->proposals()->create($request->only(['title', 'description', 'order']));
+        $proposal = $list->proposals()->create($request->only(['title', 'description', 'no_commitments_reason', 'order']));
 
         return response()->json(['data' => $proposal], 201);
     }
@@ -304,12 +314,13 @@ class ElectionController extends Controller
         $proposal = ElectionProposal::findOrFail($id);
 
         $this->validate($request, [
-            'title'       => 'sometimes|string|max:255',
-            'description' => 'sometimes|string',
-            'order'       => 'sometimes|integer|min:0',
+            'title'                  => 'sometimes|string|max:255',
+            'description'            => 'sometimes|string',
+            'no_commitments_reason'  => 'nullable|string',
+            'order'                  => 'sometimes|integer|min:0',
         ]);
 
-        $proposal->update($request->only(['title', 'description', 'order']));
+        $proposal->update($request->only(['title', 'description', 'no_commitments_reason', 'order']));
 
         return response()->json(['data' => $proposal]);
     }
@@ -329,11 +340,17 @@ class ElectionController extends Controller
         $proposal = ElectionProposal::findOrFail($proposalId);
 
         $this->validate($request, [
-            'description' => 'required|string',
-            'order'       => 'sometimes|integer|min:0',
+            'kind'         => 'sometimes|in:compromiso,meta',
+            'description'  => 'required|string',
+            'metric_value' => 'nullable|numeric',
+            'metric_unit'  => 'nullable|string|max:100',
+            'deadline'     => 'nullable|string|max:100',
+            'order'        => 'sometimes|integer|min:0',
         ]);
 
-        $commitment = $proposal->commitments()->create($request->only(['description', 'order']));
+        $commitment = $proposal->commitments()->create(
+            $request->only(['kind', 'description', 'metric_value', 'metric_unit', 'deadline', 'order'])
+        );
 
         return response()->json(['data' => $commitment], 201);
     }
@@ -343,11 +360,15 @@ class ElectionController extends Controller
         $commitment = ElectionCommitment::findOrFail($id);
 
         $this->validate($request, [
-            'description' => 'sometimes|string',
-            'order'       => 'sometimes|integer|min:0',
+            'kind'         => 'sometimes|in:compromiso,meta',
+            'description'  => 'sometimes|string',
+            'metric_value' => 'nullable|numeric',
+            'metric_unit'  => 'nullable|string|max:100',
+            'deadline'     => 'nullable|string|max:100',
+            'order'        => 'sometimes|integer|min:0',
         ]);
 
-        $commitment->update($request->only(['description', 'order']));
+        $commitment->update($request->only(['kind', 'description', 'metric_value', 'metric_unit', 'deadline', 'order']));
 
         return response()->json(['data' => $commitment]);
     }

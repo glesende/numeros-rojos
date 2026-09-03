@@ -21,7 +21,8 @@ import Loader from '../components/common/Loader';
 import ErrorMessage from '../components/common/ErrorMessage';
 
 const emptyCandidateForm = { first_name: '', last_name: '', position: '', order: '0' };
-const emptyProposalForm = { title: '', description: '', order: '0' };
+const emptyProposalForm = { title: '', description: '', no_commitments_reason: '', order: '0' };
+const emptyCommitmentForm = { kind: 'compromiso', description: '', metric_value: '', metric_unit: '', deadline: '' };
 
 const fileInputClass =
   'block w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-rojo file:text-white hover:file:bg-red-800 cursor-pointer';
@@ -36,6 +37,7 @@ export default function AdminElectionListFormPage() {
 
   // List basic form
   const [listName, setListName] = useState('');
+  const [listSourceUrl, setListSourceUrl] = useState('');
   const [listLogoFile, setListLogoFile] = useState(null);
   const [listLoading, setListLoading] = useState(false);
   const [listError, setListError] = useState('');
@@ -57,7 +59,7 @@ export default function AdminElectionListFormPage() {
   const [propError, setPropError] = useState('');
 
   // Commitment form (nested under the proposal being edited)
-  const [commitmentText, setCommitmentText] = useState('');
+  const [commitForm, setCommitForm] = useState(emptyCommitmentForm);
   const [editingCommitment, setEditingCommitment] = useState(null);
   const [commitLoading, setCommitLoading] = useState(false);
   const [commitError, setCommitError] = useState('');
@@ -69,7 +71,10 @@ export default function AdminElectionListFormPage() {
       .then((res) => {
         const found = (res.data.data || []).find((l) => String(l.id) === String(id));
         setList(found || null);
-        if (found) setListName(found.name || '');
+        if (found) {
+          setListName(found.name || '');
+          setListSourceUrl(found.source_url || '');
+        }
       })
       .finally(() => setLoading(false));
   }, [id, isEdit]);
@@ -93,6 +98,7 @@ export default function AdminElectionListFormPage() {
     try {
       const formData = new FormData();
       formData.append('name', listName);
+      formData.append('source_url', listSourceUrl);
       if (listLogoFile) formData.append('logo', listLogoFile);
 
       if (isEdit) {
@@ -181,6 +187,7 @@ export default function AdminElectionListFormPage() {
       const payload = {
         title: propForm.title,
         description: propForm.description,
+        no_commitments_reason: propForm.no_commitments_reason || null,
         order: propForm.order !== '' ? parseInt(propForm.order, 10) : 0,
       };
 
@@ -203,6 +210,7 @@ export default function AdminElectionListFormPage() {
     setPropForm({
       title: p.title || '',
       description: p.description || '',
+      no_commitments_reason: p.no_commitments_reason || '',
       order: String(p.order ?? 0),
     });
     setPropError('');
@@ -218,7 +226,7 @@ export default function AdminElectionListFormPage() {
 
   const resetCommitmentForm = () => {
     setEditingCommitment(null);
-    setCommitmentText('');
+    setCommitForm(emptyCommitmentForm);
     setCommitError('');
   };
 
@@ -227,14 +235,19 @@ export default function AdminElectionListFormPage() {
     setCommitError('');
     setCommitLoading(true);
     try {
-      const payload = { description: commitmentText };
+      const payload = {
+        kind: commitForm.kind,
+        description: commitForm.description,
+        metric_value: commitForm.kind === 'meta' && commitForm.metric_value !== '' ? commitForm.metric_value : null,
+        metric_unit: commitForm.kind === 'meta' && commitForm.metric_unit !== '' ? commitForm.metric_unit : null,
+        deadline: commitForm.kind === 'meta' && commitForm.deadline !== '' ? commitForm.deadline : null,
+      };
       if (editingCommitment) {
         await updateElectionCommitment(editingCommitment.id, payload);
       } else {
         await createElectionCommitment(editingProposal.id, payload);
       }
-      setCommitmentText('');
-      setEditingCommitment(null);
+      resetCommitmentForm();
       fetchData();
     } catch (err) {
       setCommitError(err.response?.data?.message || 'Error al guardar el compromiso');
@@ -245,7 +258,13 @@ export default function AdminElectionListFormPage() {
 
   const handleEditCommitment = (c) => {
     setEditingCommitment(c);
-    setCommitmentText(c.description || '');
+    setCommitForm({
+      kind: c.kind || 'compromiso',
+      description: c.description || '',
+      metric_value: c.metric_value ?? '',
+      metric_unit: c.metric_unit || '',
+      deadline: c.deadline || '',
+    });
     setCommitError('');
   };
 
@@ -312,6 +331,20 @@ export default function AdminElectionListFormPage() {
                 placeholder="Ej: Lista Azul y Blanco"
                 required
               />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Fuente (URL) *</label>
+              <input
+                type="url"
+                value={listSourceUrl}
+                onChange={(e) => setListSourceUrl(e.target.value)}
+                className="input-field w-full"
+                placeholder="https://ejemplo.com/propuestas"
+                required
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                Página exacta de donde se extrajeron las propuestas. Queda guardada para poder verificar contra el original.
+              </p>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Logo</label>
@@ -501,7 +534,7 @@ export default function AdminElectionListFormPage() {
                     <thead>
                       <tr className="border-b text-left text-xs text-gray-500 uppercase">
                         <th className="pb-3 pr-4">Título</th>
-                        <th className="pb-3 pr-4">Compromisos comprobables</th>
+                        <th className="pb-3 pr-4">Compromisos</th>
                         <th className="pb-3 pr-4 text-right">Orden</th>
                         <th className="pb-3">Acciones</th>
                       </tr>
@@ -559,6 +592,21 @@ export default function AdminElectionListFormPage() {
                   />
                 </div>
                 <div>
+                  <label className="block text-xs font-medium mb-1">
+                    Motivo si no hay compromisos/metas
+                  </label>
+                  <textarea
+                    value={propForm.no_commitments_reason}
+                    onChange={(e) => setPropForm((f) => ({ ...f, no_commitments_reason: e.target.value }))}
+                    className="input-field w-full"
+                    rows={2}
+                    placeholder="Ej: Declara una intención general sin describir acciones, obras o mecanismos concretos."
+                  />
+                  <p className="text-xs text-gray-400 mt-1">
+                    Completar solo si esta propuesta queda sin compromisos ni metas — explica por qué no se pudo extraer nada verificable.
+                  </p>
+                </div>
+                <div>
                   <label className="block text-xs font-medium mb-1">Orden</label>
                   <input
                     type="number"
@@ -583,7 +631,7 @@ export default function AdminElectionListFormPage() {
               {editingProposal && (
                 <div className="border-t pt-4 mt-4">
                   <h3 className="text-sm font-semibold text-gray-700 mb-3">
-                    Compromisos comprobables de: {editingProposal.title}
+                    Compromisos de: {editingProposal.title}
                   </h3>
                   <p className="text-xs text-gray-400 mb-3">
                     Un compromiso comprobable es una acción concreta y comprobable (crear algo, alcanzar una meta indiscutible). Incluí en el texto la forma de evaluarlo.
@@ -593,7 +641,24 @@ export default function AdminElectionListFormPage() {
                     <ul className="space-y-2 mb-4">
                       {editingProposal.commitments.map((c) => (
                         <li key={c.id} className="flex items-start gap-2 text-sm bg-gray-50 rounded px-3 py-2">
-                          <span className="flex-1">{c.description}</span>
+                          <span
+                            className={`shrink-0 mt-0.5 text-[10px] font-bold uppercase tracking-wide rounded px-1.5 py-0.5 ${
+                              c.kind === 'meta' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-rojo'
+                            }`}
+                          >
+                            {c.kind === 'meta' ? 'Meta' : 'Compromiso'}
+                          </span>
+                          <span className="flex-1">
+                            {c.description}
+                            {c.kind === 'meta' && (c.metric_value || c.metric_unit || c.deadline) && (
+                              <span className="block text-xs text-amber-700 mt-0.5">
+                                {[
+                                  c.metric_value != null ? `${c.metric_value}${c.metric_unit ? ` ${c.metric_unit}` : ''}` : c.metric_unit,
+                                  c.deadline,
+                                ].filter(Boolean).join(' · ')}
+                              </span>
+                            )}
+                          </span>
                           <div className="flex gap-2 shrink-0">
                             <button
                               type="button"
@@ -617,14 +682,60 @@ export default function AdminElectionListFormPage() {
 
                   <form onSubmit={handleCommitmentSubmit} className="space-y-2">
                     {commitError && <ErrorMessage message={commitError} />}
+                    <div>
+                      <label className="block text-xs font-medium mb-1">Tipo</label>
+                      <select
+                        value={commitForm.kind}
+                        onChange={(e) => setCommitForm((f) => ({ ...f, kind: e.target.value }))}
+                        className="input-field w-full sm:w-48"
+                      >
+                        <option value="compromiso">Compromiso comprobable</option>
+                        <option value="meta">Meta (con métrica)</option>
+                      </select>
+                    </div>
                     <textarea
-                      value={commitmentText}
-                      onChange={(e) => setCommitmentText(e.target.value)}
+                      value={commitForm.description}
+                      onChange={(e) => setCommitForm((f) => ({ ...f, description: e.target.value }))}
                       className="input-field w-full"
                       rows={2}
                       placeholder="Ej: Creación de la Secretaría Técnica como área responsable del proyecto futbolístico del club."
                       required
                     />
+                    {commitForm.kind === 'meta' && (
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                          <label className="block text-xs font-medium mb-1">Valor</label>
+                          <input
+                            type="number"
+                            step="any"
+                            value={commitForm.metric_value}
+                            onChange={(e) => setCommitForm((f) => ({ ...f, metric_value: e.target.value }))}
+                            className="input-field w-full"
+                            placeholder="Ej: 30"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium mb-1">Unidad</label>
+                          <input
+                            type="text"
+                            value={commitForm.metric_unit}
+                            onChange={(e) => setCommitForm((f) => ({ ...f, metric_unit: e.target.value }))}
+                            className="input-field w-full"
+                            placeholder="Ej: % de adopción"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium mb-1">Plazo</label>
+                          <input
+                            type="text"
+                            value={commitForm.deadline}
+                            onChange={(e) => setCommitForm((f) => ({ ...f, deadline: e.target.value }))}
+                            className="input-field w-full"
+                            placeholder="Ej: primer año de gestión"
+                          />
+                        </div>
+                      </div>
+                    )}
                     <div className="flex gap-2">
                       <button type="submit" disabled={commitLoading} className="btn-primary text-sm">
                         {commitLoading ? 'Guardando...' : editingCommitment ? 'Actualizar compromiso' : 'Agregar compromiso'}
