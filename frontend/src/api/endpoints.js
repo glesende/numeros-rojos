@@ -51,6 +51,7 @@ export const deactivateMarket = () => client.post('/admin/markets/deactivate');
 // Elections (public)
 export const getElections = () => client.get('/elections');
 export const getElectionByToken = (token) => client.get(`/elections/token/${token}`);
+export const getElectionBySlug = (slug) => client.get(`/elections/slug/${slug}`);
 export const getElectionListLogoUrl = (id) => `${client.defaults.baseURL}/elections/lists/${id}/logo`;
 export const getElectionCandidatePhotoUrl = (id) => `${client.defaults.baseURL}/elections/candidates/${id}/photo`;
 export const getElectionCandidateCvUrl = (id) => `${client.defaults.baseURL}/elections/candidates/${id}/cv`;

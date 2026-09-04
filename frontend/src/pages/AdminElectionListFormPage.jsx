@@ -43,6 +43,7 @@ export default function AdminElectionListFormPage() {
   const [listError, setListError] = useState('');
   const [listSuccess, setListSuccess] = useState('');
   const [linkCopied, setLinkCopied] = useState(false);
+  const [publicLinkCopied, setPublicLinkCopied] = useState(false);
 
   // Candidate form
   const [candForm, setCandForm] = useState(emptyCandidateForm);
@@ -281,7 +282,7 @@ export default function AdminElectionListFormPage() {
   const proposals = list?.proposals || [];
 
   const handleCopyValidationLink = async () => {
-    const url = `${window.location.origin}/elecciones/${list.token}`;
+    const url = `${window.location.origin}/elecciones/privado/${list.token}`;
     try {
       await navigator.clipboard.writeText(url);
     } catch {
@@ -289,6 +290,17 @@ export default function AdminElectionListFormPage() {
     }
     setLinkCopied(true);
     setTimeout(() => setLinkCopied(false), 1500);
+  };
+
+  const handleCopyPublicLink = async () => {
+    const url = `${window.location.origin}/elecciones/${list.slug}`;
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      window.prompt('Copiá el enlace:', url);
+    }
+    setPublicLinkCopied(true);
+    setTimeout(() => setPublicLinkCopied(false), 1500);
   };
 
   return (
@@ -301,13 +313,25 @@ export default function AdminElectionListFormPage() {
       </h1>
 
       {isEdit && list && (
-        <div className="mb-6 flex flex-wrap items-center gap-2 text-xs text-gray-500">
+        <div className="mb-2 flex flex-wrap items-center gap-2 text-xs text-gray-500">
           <span>Link de validación (accesible aunque la sección esté desactivada):</span>
           <code className="bg-gray-100 rounded px-2 py-1 text-gray-700 break-all">
-            {`${window.location.origin}/elecciones/${list.token}`}
+            {`${window.location.origin}/elecciones/privado/${list.token}`}
           </code>
           <button type="button" onClick={handleCopyValidationLink} className="text-rojo font-medium hover:underline shrink-0">
             {linkCopied ? '¡Copiado!' : 'Copiar'}
+          </button>
+        </div>
+      )}
+
+      {isEdit && list && (
+        <div className="mb-6 flex flex-wrap items-center gap-2 text-xs text-gray-500">
+          <span>Link público (funciona solo si la sección Elecciones está activada):</span>
+          <code className="bg-gray-100 rounded px-2 py-1 text-gray-700 break-all">
+            {`${window.location.origin}/elecciones/${list.slug}`}
+          </code>
+          <button type="button" onClick={handleCopyPublicLink} className="text-rojo font-medium hover:underline shrink-0">
+            {publicLinkCopied ? '¡Copiado!' : 'Copiar'}
           </button>
         </div>
       )}

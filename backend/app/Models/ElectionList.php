@@ -10,6 +10,7 @@ class ElectionList extends Model
 
     protected $fillable = [
         'token',
+        'slug',
         'name',
         'source_url',
         'logo_path',

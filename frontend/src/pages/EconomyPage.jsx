@@ -1,15 +1,16 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getEconomyRecords } from '../api/endpoints';
 import { useFilters } from '../hooks/useFilters';
+import { useInfiniteList } from '../hooks/useInfiniteList';
 import { usePageMeta } from '../hooks/usePageMeta';
 import EconomyFilters from '../components/economy/EconomyFilters';
 import EconomyTable from '../components/economy/EconomyTable';
-import Pagination from '../components/common/Pagination';
+import EconomyTotalsCard from '../components/economy/EconomyTotalsCard';
 import Loader from '../components/common/Loader';
 import ErrorMessage from '../components/common/ErrorMessage';
 
-const ECONOMY_FILTER_KEYS = ['type', 'currency', 'carried_out', 'official', 'date_from', 'date_to', 'search'];
+const ECONOMY_FILTER_KEYS = ['type', 'currency', 'carried_out', 'overdue', 'date_from', 'date_to', 'search'];
 const ALLOWED_SORT_FIELDS = ['record_date', 'amount'];
 
 export default function EconomyPage() {
@@ -27,14 +28,11 @@ export default function EconomyPage() {
     : 'record_date';
   const initialSortDir = searchParams.get('sort_dir') === 'asc' ? 'asc' : 'desc';
 
-  const { filters, updateFilter, setPage, resetFilters, cleanParams } = useFilters({
+  const { filters, updateFilter, resetFilters, cleanParams } = useFilters({
     ...initialFilters,
     sort_by: initialSortBy,
     sort_dir: initialSortDir,
   });
-  const [data, setData] = useState({ data: [], totals: null, meta: null });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   usePageMeta({
     title: 'Compromisos económicos de Independiente | Números Rojos',
@@ -52,7 +50,7 @@ export default function EconomyPage() {
       if (val !== null && val !== undefined && val !== '') params[key] = val;
     });
     setSearchParams(params, { replace: true });
-  }, [filters.sort_by, filters.sort_dir, filters.type, filters.currency, filters.carried_out, filters.official, filters.date_from, filters.date_to, filters.search]);
+  }, [filters.sort_by, filters.sort_dir, filters.type, filters.currency, filters.carried_out, filters.overdue, filters.date_from, filters.date_to, filters.search]);
 
   const handleSort = useCallback((field) => {
     if (filters.sort_by === field) {
@@ -63,21 +61,12 @@ export default function EconomyPage() {
     }
   }, [filters.sort_by, filters.sort_dir, updateFilter]);
 
-  const fetchData = useCallback(() => {
-    setLoading(true);
-    setError(null);
-    getEconomyRecords(cleanParams())
-      .then((res) => setData(res.data))
-      .catch(() => setError('No se pudieron cargar los datos. Intentá de nuevo.'))
-      .finally(() => setLoading(false));
-  }, [filters]);
+  const { page: _page, per_page: _perPage, ...queryParams } = cleanParams();
+  const { items, totals, loading, loadingMore, hasMore, error, sentinelRef, retry } =
+    useInfiniteList(getEconomyRecords, queryParams, { perPage: 15 });
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  const lastUpdated = data.totals?.last_updated_at
-    ? new Date(data.totals.last_updated_at).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' })
+  const lastUpdated = totals?.last_updated_at
+    ? new Date(totals.last_updated_at).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' })
     : null;
 
   return (
@@ -114,21 +103,28 @@ export default function EconomyPage() {
 
       <EconomyFilters filters={filters} onFilter={updateFilter} onReset={resetFilters} />
 
+      <EconomyTotalsCard totals={totals} />
+
       {loading ? (
         <Loader />
       ) : error ? (
         <div className="card">
-          <ErrorMessage message={error} onRetry={fetchData} />
+          <ErrorMessage message={error} onRetry={retry} />
         </div>
       ) : (
         <div className="card">
           <EconomyTable
-            records={data.data}
+            records={items}
             sortBy={filters.sort_by}
             sortDir={filters.sort_dir}
             onSort={handleSort}
           />
-          <Pagination meta={data.meta} onPageChange={setPage} />
+          {hasMore && <div ref={sentinelRef} className="h-1" />}
+          {loadingMore && (
+            <div className="flex justify-center py-6">
+              <Loader />
+            </div>
+          )}
         </div>
       )}
     </div>

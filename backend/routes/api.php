@@ -26,6 +26,7 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
     $router->get('markets', 'MarketController@index');
     $router->get('elections', 'ElectionController@index');
     $router->get('elections/token/{token}', 'ElectionController@showByToken');
+    $router->get('elections/slug/{slug}', 'ElectionController@showBySlug');
     $router->get('elections/lists/{id}/logo', 'ElectionController@logo');
     $router->get('elections/candidates/{id}/photo', 'ElectionController@candidatePhoto');
     $router->get('elections/candidates/{id}/cv', 'ElectionController@candidateCv');

@@ -172,7 +172,7 @@ export default function ElectionListContent({ list }) {
 
         {tab === 'compromisos' && (
           proposalsWithCommitments.length === 0 ? (
-            <p className="text-sm text-gray-400">No hay compromisos cargados.</p>
+            <p className="text-sm text-gray-400">No hay compromisos detectados.</p>
           ) : (
             <ul className="space-y-4">
               {proposalsWithCommitments.map((p) => (
@@ -187,7 +187,7 @@ export default function ElectionListContent({ list }) {
 
         {tab === 'metas' && (
           proposalsWithGoals.length === 0 ? (
-            <p className="text-sm text-gray-400">No hay metas cargadas.</p>
+            <p className="text-sm text-gray-400">No hay metas detectadas.</p>
           ) : (
             <ul className="space-y-4">
               {proposalsWithGoals.map((p) => (

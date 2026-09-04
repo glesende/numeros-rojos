@@ -47,23 +47,31 @@ const routes = [
     description:
       'Capacidad, sectores y datos del Estadio Libertadores de América del Club Atlético Independiente.',
   },
+  {
+    path: 'derechos',
+    title: 'Derechos sobre jugadores de Independiente | Números Rojos',
+    description:
+      'Derechos económicos del Club Atlético Independiente sobre sus jugadores: porcentajes del pase, cláusulas y fuentes. No incluye derechos de formación.',
+  },
+  {
+    path: 'elecciones',
+    title: 'Elecciones de Independiente | Números Rojos',
+    description:
+      'Las listas que se postulan en las elecciones de Independiente: candidatos, propuestas, compromisos y metas verificables, analizados con el mismo criterio para todas.',
+  },
 ];
 
-const indexHtml = readFileSync(join(distDir, 'index.html'), 'utf-8');
-
-for (const route of routes) {
-  const url = `${baseUrl}/${route.path}`;
-
-  let html = indexHtml
+function renderRouteHtml(indexHtml, { title, description, url }) {
+  return indexHtml
     // og:title
     .replace(
       /(<meta\s+property="og:title"\s+content=")[^"]*(")/,
-      `$1${route.title}$2`
+      `$1${title}$2`
     )
     // og:description
     .replace(
       /(<meta\s+property="og:description"\s+content=")[^"]*(")/,
-      `$1${route.description}$2`
+      `$1${description}$2`
     )
     // og:url
     .replace(
@@ -73,17 +81,17 @@ for (const route of routes) {
     // twitter:title
     .replace(
       /(<meta\s+name="twitter:title"\s+content=")[^"]*(")/,
-      `$1${route.title}$2`
+      `$1${title}$2`
     )
     // twitter:description
     .replace(
       /(<meta\s+name="twitter:description"\s+content=")[^"]*(")/,
-      `$1${route.description}$2`
+      `$1${description}$2`
     )
     // meta description
     .replace(
       /(<meta\s+name="description"\s+content=")[^"]*(")/,
-      `$1${route.description}$2`
+      `$1${description}$2`
     )
     // canonical
     .replace(
@@ -93,14 +101,50 @@ for (const route of routes) {
     // title tag
     .replace(
       /(<title>)[^<]*(<\/title>)/,
-      `$1${route.title}$2`
+      `$1${title}$2`
     );
+}
 
-  const outDir = join(distDir, route.path);
+const indexHtml = readFileSync(join(distDir, 'index.html'), 'utf-8');
+
+function writeRoute(routePath, title, description) {
+  const url = `${baseUrl}/${routePath}`;
+  const html = renderRouteHtml(indexHtml, { title, description, url });
+
+  const outDir = join(distDir, routePath);
   mkdirSync(outDir, { recursive: true });
   writeFileSync(join(outDir, 'index.html'), html, 'utf-8');
 
-  console.log(`✓ dist/${route.path}/index.html generado`);
+  console.log(`✓ dist/${routePath}/index.html generado`);
+}
+
+for (const route of routes) {
+  writeRoute(route.path, route.title, route.description);
 }
 
 console.log(`\nMeta tags SEO generados para ${routes.length} rutas.`);
+
+// Páginas de detalle por lista de elecciones (dinámico, requiere la API disponible en build time).
+const apiUrl = process.env.VITE_API_URL;
+
+if (apiUrl) {
+  try {
+    const res = await fetch(`${apiUrl}/elections`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const { data: lists = [] } = await res.json();
+
+    let count = 0;
+    for (const list of lists) {
+      if (!list.slug) continue;
+      const title = `${list.name} | Elecciones | Números Rojos`;
+      const description = `Candidatos, propuestas, compromisos y metas de ${list.name} para las elecciones de Independiente.`;
+      writeRoute(`elecciones/${list.slug}`, title, description);
+      count++;
+    }
+    console.log(`Meta tags SEO generados para ${count} lista(s) de elecciones.`);
+  } catch (err) {
+    console.warn(`⚠ No se pudieron generar las páginas de detalle de elecciones (${err.message}). Se omite, no corta el build.`);
+  }
+} else {
+  console.warn('⚠ VITE_API_URL no está definida — se omiten las páginas de detalle de elecciones.');
+}

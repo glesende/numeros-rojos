@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Balance;
 use App\Models\Contract;
 use App\Models\EconomyRecord;
+use App\Models\ElectionList;
+use App\Models\Setting;
 use Illuminate\Http\Response;
 
 class SitemapController extends Controller
@@ -26,6 +28,22 @@ class SitemapController extends Controller
         $urls[] = ['loc' => $baseUrl . '/economia',     'priority' => '0.9', 'changefreq' => 'daily'];
         $urls[] = ['loc' => $baseUrl . '/balances',     'priority' => '0.7', 'changefreq' => 'monthly'];
         $urls[] = ['loc' => $baseUrl . '/estadisticas', 'priority' => '0.6', 'changefreq' => 'weekly'];
+        $urls[] = ['loc' => $baseUrl . '/derechos',     'priority' => '0.6', 'changefreq' => 'monthly'];
+        $urls[] = ['loc' => $baseUrl . '/estadio',      'priority' => '0.5', 'changefreq' => 'monthly'];
+
+        if (Setting::get('section_elecciones_enabled', '0') === '1') {
+            $urls[] = ['loc' => $baseUrl . '/elecciones', 'priority' => '0.7', 'changefreq' => 'weekly'];
+
+            $electionLists = ElectionList::select('slug', 'updated_at')->whereNotNull('slug')->orderBy('id')->get();
+            foreach ($electionLists as $list) {
+                $urls[] = [
+                    'loc'        => $baseUrl . '/elecciones/' . $list->slug,
+                    'lastmod'    => $list->updated_at->toAtomString(),
+                    'priority'   => '0.6',
+                    'changefreq' => 'weekly',
+                ];
+            }
+        }
 
         // Páginas dinámicas de contratos
         foreach ($contracts as $contract) {

@@ -31,6 +31,8 @@ import StadiumPage from './pages/StadiumPage';
 import StatsPage from './pages/StatsPage';
 import RightsPage from './pages/RightsPage';
 import ElectionListPage from './pages/ElectionListPage';
+import ElectionsPage from './pages/ElectionsPage';
+import ElectionDetailPage from './pages/ElectionDetailPage';
 import Loader from './components/common/Loader';
 
 function ScrollToTop() {
@@ -67,7 +69,9 @@ export default function App() {
         <Route path="/estadisticas" element={<StatsPage />} />
         <Route path="/estadio" element={<StadiumPage />} />
         <Route path="/derechos" element={<RightsPage />} />
-        <Route path="/elecciones/:token" element={<ElectionListPage />} />
+        <Route path="/elecciones" element={<ElectionsPage />} />
+        <Route path="/elecciones/privado/:token" element={<ElectionListPage />} />
+        <Route path="/elecciones/:slug" element={<ElectionDetailPage />} />
 
         {/* Auth */}
         <Route path="/admin/login" element={<LoginPage />} />

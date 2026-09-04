@@ -7,9 +7,11 @@ use App\Models\ElectionCandidate;
 use App\Models\ElectionCommitment;
 use App\Models\ElectionList;
 use App\Models\ElectionProposal;
+use App\Models\Setting;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ElectionController extends Controller
 {
@@ -38,11 +40,29 @@ class ElectionController extends Controller
         return response()->json(['data' => $this->serializeList($list)]);
     }
 
+    /**
+     * Accessible via a stable public slug — but only while the "Elecciones"
+     * section is enabled, unlike showByToken which is always reachable.
+     */
+    public function showBySlug(string $slug): JsonResponse
+    {
+        if (!$this->isSectionEnabled()) {
+            abort(404);
+        }
+
+        $list = ElectionList::with(['candidates', 'proposals.commitments'])
+            ->where('slug', $slug)
+            ->firstOrFail();
+
+        return response()->json(['data' => $this->serializeList($list)]);
+    }
+
     private function serializeList(ElectionList $list): array
     {
         return [
             'id'         => $list->id,
             'token'      => $list->token,
+            'slug'       => $list->slug,
             'name'       => $list->name,
             'source_url' => $list->source_url,
             'has_logo'   => !empty($list->logo_path),
@@ -137,6 +157,7 @@ class ElectionController extends Controller
 
         $list = ElectionList::create([
             'token'               => $this->generateUniqueToken(),
+            'slug'                => $this->generateUniqueSlug($request->input('name')),
             'name'                => $request->input('name'),
             'source_url'          => $request->input('source_url'),
             'logo_path'           => $logoPath,
@@ -403,5 +424,24 @@ class ElectionController extends Controller
         } while (ElectionList::where('token', $token)->exists());
 
         return $token;
+    }
+
+    private function generateUniqueSlug(string $name): string
+    {
+        $base = Str::slug($name) ?: 'lista';
+        $slug = $base;
+        $suffix = 2;
+
+        while (ElectionList::where('slug', $slug)->exists()) {
+            $slug = $base . '-' . $suffix;
+            $suffix++;
+        }
+
+        return $slug;
+    }
+
+    private function isSectionEnabled(): bool
+    {
+        return Setting::get('section_elecciones_enabled', '0') === '1';
     }
 }

@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { getElectionByToken, getElectionListLogoUrl } from '../api/endpoints';
+import { getElectionBySlug, getElectionListLogoUrl } from '../api/endpoints';
 import { usePageMeta } from '../hooks/usePageMeta';
 import Loader from '../components/common/Loader';
 import ElectionListContent from '../components/ElectionListContent';
 
-export default function ElectionListPage() {
-  const { token } = useParams();
+export default function ElectionDetailPage() {
+  const { slug } = useParams();
   const [list, setList] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -14,16 +14,16 @@ export default function ElectionListPage() {
   useEffect(() => {
     setLoading(true);
     setNotFound(false);
-    getElectionByToken(token)
+    getElectionBySlug(slug)
       .then((res) => setList(res.data.data))
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
-  }, [token]);
+  }, [slug]);
 
   usePageMeta({
     title: list ? `${list.name} | Elecciones | Números Rojos` : 'Elecciones | Números Rojos',
-    description: list ? `Candidatos, propuestas y compromisos de ${list.name}.` : null,
-    path: `/elecciones/privado/${token}`,
+    description: list ? `Candidatos, propuestas, compromisos y metas de ${list.name} para las elecciones de Independiente.` : null,
+    path: `/elecciones/${slug}`,
   });
 
   if (loading) return <Loader />;
@@ -38,20 +38,17 @@ export default function ElectionListPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-4 mb-6">
         {list.has_logo ? (
           <img
             src={getElectionListLogoUrl(list.id)}
             alt={list.name}
-            className="w-14 h-14 rounded-lg object-cover flex-shrink-0"
+            className="w-24 h-24 rounded-lg object-cover flex-shrink-0"
           />
         ) : (
-          <div className="w-14 h-14 rounded-lg bg-gray-100 flex-shrink-0" />
+          <div className="w-24 h-24 rounded-lg bg-gray-100 flex-shrink-0" />
         )}
-        <div>
-          <h1 className="text-xl font-extrabold leading-tight">{list.name}</h1>
-          <p className="text-xs text-gray-400">Vista de validación — enlace privado, no listado públicamente.</p>
-        </div>
+        <h1 className="text-xl font-extrabold leading-tight">{list.name}</h1>
       </div>
 
       <div className="card">

@@ -4,6 +4,7 @@ import { getContracts, getRights, getRumors, getStadium, getElections, sendConta
 import { usePageMeta } from '../hooks/usePageMeta';
 import PlayerMatchesModal from '../components/stats/PlayerMatchesModal';
 import ElectionListModal from '../components/ElectionListModal';
+import ElectionMethodologyModal from '../components/ElectionMethodologyModal';
 import Loader from '../components/common/Loader';
 import MonthlyBarChart from '../components/economy/MonthlyBarChart';
 import BalanceLineChart from '../components/balances/BalanceLineChart';
@@ -390,6 +391,7 @@ export default function HomePage() {
   const [electionLists, setElectionLists] = useState([]);
   const [electionsLoading, setElectionsLoading] = useState(false);
   const [selectedElectionList, setSelectedElectionList] = useState(null);
+  const [showElectionMethodology, setShowElectionMethodology] = useState(false);
   const [selectedContractPlayer, setSelectedContractPlayer] = useState(null);
   const [selectedRumorPlayer, setSelectedRumorPlayer] = useState(null);
   const [recentMoves, setRecentMoves] = useState({ altas: [], bajas: [] });
@@ -521,6 +523,7 @@ export default function HomePage() {
     <PlayerMatchesModal player={selectedContractPlayer} showContract={true} onClose={() => setSelectedContractPlayer(null)} />
     <PlayerMatchesModal player={selectedRumorPlayer} showContract={false} onClose={() => setSelectedRumorPlayer(null)} comparePool={selectedRumorPlayer?.role != null ? rumors.filter((r) => r.role === selectedRumorPlayer.role) : rumors} />
     <ElectionListModal list={selectedElectionList} onClose={() => setSelectedElectionList(null)} />
+    <ElectionMethodologyModal open={showElectionMethodology} onClose={() => setShowElectionMethodology(false)} />
     <div>
       {/* Hero */}
       <section className="bg-rojo text-white py-10 md:py-16">
@@ -656,7 +659,11 @@ export default function HomePage() {
         <div className="card overflow-hidden">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold">Elecciones</h2>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
+              <Link to="/elecciones" className="text-sm text-rojo hover:underline font-medium">
+                Ver todos &rarr;
+              </Link>
+              <div className="flex items-center gap-2">
               <span className="text-xs text-gray-400">Compartir</span>
               <a
                 href={`https://wa.me/?text=${encodeURIComponent('¡Mirá las listas, candidatos y propuestas para las elecciones de Independiente! Todo en Números Rojos 👉 https://www.numerosrojos.net/#elecciones')}`}
@@ -680,9 +687,20 @@ export default function HomePage() {
                   <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                 </svg>
               </a>
+              </div>
             </div>
           </div>
-          <p className="text-sm text-gray-500 -mt-2 mb-4">Las listas que se postulan, sus candidatos y propuestas</p>
+          <p className="text-sm text-gray-500 -mt-2 mb-1">Las listas que se postulan, sus candidatos, propuestas, compromisos y metas</p>
+          <button
+            type="button"
+            onClick={() => setShowElectionMethodology(true)}
+            className="text-xs text-rojo hover:underline font-medium mb-4 inline-flex items-center gap-1"
+          >
+            <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fillRule="evenodd" d="M18 10A8 8 0 112 10a8 8 0 0116 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9zm1-4a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd" />
+            </svg>
+            Metodología
+          </button>
 
           {electionsLoading ? (
             <div className="py-12">

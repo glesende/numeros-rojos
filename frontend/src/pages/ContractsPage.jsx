@@ -1,16 +1,16 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getContracts } from '../api/endpoints';
 import { useFilters } from '../hooks/useFilters';
+import { useInfiniteList } from '../hooks/useInfiniteList';
 import { usePageMeta } from '../hooks/usePageMeta';
 import ContractFilters from '../components/contracts/ContractFilters';
 import ContractTable from '../components/contracts/ContractTable';
-import ContractWidgets from '../components/contracts/ContractWidgets';
-import Pagination from '../components/common/Pagination';
+import ContractTotalsCard from '../components/contracts/ContractTotalsCard';
 import Loader from '../components/common/Loader';
 import ErrorMessage from '../components/common/ErrorMessage';
 
-const CONTRACT_FILTER_KEYS = ['search', 'status', 'validity', 'official', 'loan', 'date_from', 'date_to', 'expire_from', 'expire_to'];
+const CONTRACT_FILTER_KEYS = ['search', 'status', 'validity', 'loan', 'date_from', 'date_to', 'expire_from', 'expire_to'];
 const ALLOWED_SORT_FIELDS = ['expiration_date', 'signing_date', 'estimated_salary'];
 
 export default function ContractsPage() {
@@ -21,20 +21,18 @@ export default function ContractsPage() {
     const val = searchParams.get(key);
     if (val !== null && val !== '') initialFilters[key] = val;
   });
+  if (initialFilters.status === undefined) initialFilters.status = 'vigente';
 
   const initialSortBy = ALLOWED_SORT_FIELDS.includes(searchParams.get('sort_by'))
     ? searchParams.get('sort_by')
     : 'expiration_date';
   const initialSortDir = searchParams.get('sort_dir') === 'asc' ? 'asc' : 'desc';
 
-  const { filters, updateFilter, setPage, resetFilters, cleanParams } = useFilters({
+  const { filters, updateFilter, resetFilters, cleanParams } = useFilters({
     ...initialFilters,
     sort_by: initialSortBy,
     sort_dir: initialSortDir,
   });
-  const [data, setData] = useState({ data: [], totals: null, meta: null });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   usePageMeta({
     title: 'Contratos de jugadores de Independiente | Números Rojos',
@@ -52,7 +50,7 @@ export default function ContractsPage() {
       if (val !== null && val !== undefined && val !== '') params[key] = val;
     });
     setSearchParams(params, { replace: true });
-  }, [filters.sort_by, filters.sort_dir, filters.search, filters.status, filters.validity, filters.official, filters.loan, filters.date_from, filters.date_to, filters.expire_from, filters.expire_to]);
+  }, [filters.sort_by, filters.sort_dir, filters.search, filters.status, filters.validity, filters.loan, filters.date_from, filters.date_to, filters.expire_from, filters.expire_to]);
 
   const handleSort = useCallback((field) => {
     if (filters.sort_by === field) {
@@ -63,21 +61,12 @@ export default function ContractsPage() {
     }
   }, [filters.sort_by, filters.sort_dir, updateFilter]);
 
-  const fetchData = useCallback(() => {
-    setLoading(true);
-    setError(null);
-    getContracts(cleanParams())
-      .then((res) => setData(res.data))
-      .catch(() => setError('No se pudieron cargar los datos. Intentá de nuevo.'))
-      .finally(() => setLoading(false));
-  }, [filters]);
+  const { page: _page, per_page: _perPage, ...queryParams } = cleanParams();
+  const { items, totals, loading, loadingMore, hasMore, error, sentinelRef, retry } =
+    useInfiniteList(getContracts, queryParams, { perPage: 15 });
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  const lastUpdated = data.totals?.last_updated_at
-    ? new Date(data.totals.last_updated_at).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' })
+  const lastUpdated = totals?.last_updated_at
+    ? new Date(totals.last_updated_at).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' })
     : null;
 
   return (
@@ -112,25 +101,30 @@ export default function ContractsPage() {
         </a>
       </div>
 
-      <ContractWidgets stats={data.totals} />
-
       <ContractFilters filters={filters} onFilter={updateFilter} onReset={resetFilters} />
+
+      <ContractTotalsCard totals={totals} />
 
       {loading ? (
         <Loader />
       ) : error ? (
         <div className="card">
-          <ErrorMessage message={error} onRetry={fetchData} />
+          <ErrorMessage message={error} onRetry={retry} />
         </div>
       ) : (
         <div className="card">
           <ContractTable
-            contracts={data.data}
+            contracts={items}
             sortBy={filters.sort_by}
             sortDir={filters.sort_dir}
             onSort={handleSort}
           />
-          <Pagination meta={data.meta} onPageChange={setPage} />
+          {hasMore && <div ref={sentinelRef} className="h-1" />}
+          {loadingMore && (
+            <div className="flex justify-center py-6">
+              <Loader />
+            </div>
+          )}
         </div>
       )}
     </div>
