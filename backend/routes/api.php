@@ -120,6 +120,7 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
         $router->delete('stadium/sectors/{id}', 'StadiumController@destroySector');
 
         // Elections CRUD
+        $router->get('elections', 'ElectionController@adminIndex');
         $router->post('elections/lists', 'ElectionController@storeList');
         $router->post('elections/lists/{id}/update', 'ElectionController@updateList');
         $router->delete('elections/lists/{id}', 'ElectionController@destroyList');

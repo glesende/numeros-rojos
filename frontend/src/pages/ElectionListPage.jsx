@@ -55,7 +55,7 @@ export default function ElectionListPage() {
       </div>
 
       <div className="card">
-        <ElectionListContent list={list} />
+        <ElectionListContent list={list} showNoCommitmentsReason />
       </div>
     </div>
   );

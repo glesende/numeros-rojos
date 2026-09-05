@@ -52,10 +52,4 @@ export const PROMPT_STEPS = [
       { type: 'p', text: 'Esta segunda pasada verifica además: reclasificación compromiso/meta si corresponde, si el compromiso junta más de una acción (separar), si es una categoría genérica en vez de algo puntual, si cada cláusula pasa el test de tangibilidad (frase por frase, no solo el compromiso entero), y si quedó demasiado largo.' },
     ],
   },
-  {
-    title: '5. Justificar las propuestas sin compromisos',
-    blocks: [
-      { type: 'p', text: 'Toda propuesta que termina con 0 filas (ni compromiso ni meta) deja registrado por qué no se pudo extraer nada — nunca se deja el campo vacío en silencio.' },
-    ],
-  },
 ];

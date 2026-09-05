@@ -236,27 +236,26 @@ export default function MonthlyBarChart() {
             Últimos 24 meses · Mes actual · Próximos 24 meses
           </p>
         </div>
-        <div className="flex items-center gap-3 self-start sm:self-auto">
-          <Link to="/economia" className="text-sm text-rojo hover:underline font-medium">
-            Ver todos →
-          </Link>
-          {/* Type toggle */}
-          <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
-            {['egresos', 'ingresos'].map((t) => (
-              <button
-                key={t}
-                onClick={() => setType(t)}
-                className={`px-4 py-1.5 rounded-md text-sm font-semibold transition-all ${
-                  type === t
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                {t.charAt(0).toUpperCase() + t.slice(1)}
-              </button>
-            ))}
-          </div>
-        </div>
+        <Link to="/economia" className="text-sm text-rojo hover:underline font-medium">
+          Ver todos →
+        </Link>
+      </div>
+
+      {/* Type toggle */}
+      <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit mb-4">
+        {['egresos', 'ingresos'].map((t) => (
+          <button
+            key={t}
+            onClick={() => setType(t)}
+            className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${
+              type === t
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            {t.charAt(0).toUpperCase() + t.slice(1)}
+          </button>
+        ))}
       </div>
 
       {loading ? (
@@ -485,26 +484,25 @@ export default function MonthlyBarChart() {
       {/* Overdue evolution chart */}
       {overdueChartData.length > 0 && overdueChartData.some((d) => d[`${overdueType}_usd_display`] > 0 || d[`${overdueType}_eur_display`] > 0 || d[`${overdueType}_ars_display`] > 0) && (
         <div className="mt-6 border-t border-gray-100 pt-5">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
-            <div>
-              <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide">
-                Evolución de atrasos
-              </h3>
-              <p className="text-xs text-gray-400 mt-0.5">Montos adeudados por mes · Últimos 4 años</p>
-            </div>
-            <div className="flex gap-1 bg-gray-100 rounded-lg p-1 self-start sm:self-auto">
-              {['egresos', 'ingresos'].map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setOverdueType(t)}
-                  className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${
-                    overdueType === t ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  {t.charAt(0).toUpperCase() + t.slice(1)}
-                </button>
-              ))}
-            </div>
+          <div className="mb-4">
+            <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide">
+              Evolución de atrasos
+            </h3>
+            <p className="text-xs text-gray-400 mt-0.5">Montos adeudados por mes · Últimos 4 años</p>
+          </div>
+
+          <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit mb-4">
+            {['egresos', 'ingresos'].map((t) => (
+              <button
+                key={t}
+                onClick={() => setOverdueType(t)}
+                className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${
+                  overdueType === t ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {t.charAt(0).toUpperCase() + t.slice(1)}
+              </button>
+            ))}
           </div>
 
           <div className="flex flex-wrap gap-4 mb-3 text-sm">

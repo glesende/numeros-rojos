@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   LineChart,
@@ -62,18 +62,13 @@ export default function BalanceLineChart({ compact = false, showLink = false, se
   const [error, setError] = useState(null);
   const [activeItems, setActiveItems] = useState([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
 
-  // Close dropdown when clicking outside
+  // Lock body scroll while the item selector modal is open
   useEffect(() => {
-    const handler = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
+    if (!dropdownOpen) return;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, [dropdownOpen]);
 
   useEffect(() => {
     setLoading(true);
@@ -104,19 +99,19 @@ export default function BalanceLineChart({ compact = false, showLink = false, se
 
   if (loading) {
     return (
-      <div className="card py-16">
+      <div className={`${compact ? '' : 'card'} py-16`}>
         <Loader />
       </div>
     );
   }
 
   if (error) {
-    return <div className="card py-12 text-center text-gray-400 text-sm">{error}</div>;
+    return <div className={`${compact ? '' : 'card'} py-12 text-center text-gray-400 text-sm`}>{error}</div>;
   }
 
   if (!data || data.exercises.length === 0) {
     return (
-      <div className="card py-12 text-center text-gray-400 text-sm">
+      <div className={`${compact ? '' : 'card'} py-12 text-center text-gray-400 text-sm`}>
         No hay datos de balances disponibles aún.
       </div>
     );
@@ -135,130 +130,133 @@ export default function BalanceLineChart({ compact = false, showLink = false, se
   const allSelected = activeItems.length === data.series.length;
 
   return (
-    <div className="card">
+    <div className={compact ? '' : 'card'}>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <div>
           <h2 className="text-xl font-bold text-gray-900">Evolución de balances</h2>
           <p className="text-sm text-gray-500 mt-0.5">Comparativa por ejercicio</p>
         </div>
-        <div className="flex items-center gap-3">
-          {showLink && (
-            <Link
-              to="/balances"
-              className="text-sm text-rojo hover:underline font-medium whitespace-nowrap"
-            >
-              Ver balances →
-            </Link>
-          )}
+        {showLink && (
+          <Link
+            to="/balances"
+            className="text-sm text-rojo hover:underline font-medium whitespace-nowrap"
+          >
+            Ver balances →
+          </Link>
+        )}
+      </div>
 
-          {/* Item selector dropdown */}
-          {data.series.length > 0 && (
-            <div className="relative" ref={dropdownRef}>
+      {/* Item selector */}
+      {data.series.length > 0 && (
+        <div className="mb-4">
+          <button
+            onClick={() => setDropdownOpen(true)}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            <span className="text-gray-700">
+              Ítems ({activeItems.length}/{data.series.length})
+            </span>
+          </button>
+        </div>
+      )}
+
+      {dropdownOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+          onClick={() => setDropdownOpen(false)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-xl w-full max-w-sm max-h-[80vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-4 border-b border-gray-100">
+              <p className="font-bold text-base text-gray-900">Ítems a mostrar</p>
               <button
-                onClick={() => setDropdownOpen((prev) => !prev)}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                onClick={() => setDropdownOpen(false)}
+                className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                aria-label="Cerrar"
               >
-                <svg
-                  className="w-4 h-4 text-gray-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"
-                  />
-                </svg>
-                <span className="text-gray-700">
-                  Ítems ({activeItems.length}/{data.series.length})
-                </span>
-                <svg
-                  className={`w-4 h-4 text-gray-500 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
-
-              {dropdownOpen && (
-                <div
-                  className="absolute right-0 top-full mt-1 z-50 bg-white border border-gray-200 rounded-xl shadow-lg min-w-[220px] py-2"
-                  onMouseDown={(e) => e.stopPropagation()}
-                >
-                  {/* Select / Deselect all */}
-                  <div className="flex items-center gap-2 px-3 py-1.5 border-b border-gray-100 mb-1">
-                    <button
-                      onClick={selectAll}
-                      disabled={allSelected}
-                      className="text-xs text-rojo hover:underline font-medium disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      Seleccionar todos
-                    </button>
-                    <span className="text-gray-300">|</span>
-                    <button
-                      onClick={deselectAll}
-                      disabled={activeItems.length === 0}
-                      className="text-xs text-gray-500 hover:underline disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      Deseleccionar todos
-                    </button>
-                  </div>
-
-                  {/* Items list */}
-                  <div className="max-h-64 overflow-y-auto">
-                    {data.series.map((serie, idx) => {
-                      const color = LINE_COLORS[idx % LINE_COLORS.length];
-                      const active = activeItems.includes(serie.id);
-                      return (
-                        <div
-                          key={serie.id}
-                          role="checkbox"
-                          aria-checked={active}
-                          tabIndex={0}
-                          className="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 cursor-pointer select-none"
-                          onMouseDown={(e) => e.preventDefault()}
-                          onClick={() => toggleItem(serie.id)}
-                          onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && toggleItem(serie.id)}
-                        >
-                          <div
-                            className="w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors"
-                            style={
-                              active
-                                ? { backgroundColor: color, borderColor: color }
-                                : { borderColor: CHART_THEME.checkboxBorder }
-                            }
-                          >
-                            {active && (
-                              <svg
-                                className="w-2.5 h-2.5 text-white"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={3}
-                                  d="M5 13l4 4L19 7"
-                                />
-                              </svg>
-                            )}
-                          </div>
-                          <span className="text-sm text-gray-700 truncate" title={serie.name}>{serie.short_name || serie.name}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
             </div>
-          )}
+
+            {/* Select / Deselect all */}
+            <div className="flex items-center gap-2 px-4 py-2.5 border-b border-gray-100">
+              <button
+                onClick={selectAll}
+                disabled={allSelected}
+                className="text-xs text-rojo hover:underline font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Seleccionar todos
+              </button>
+              <span className="text-gray-300">|</span>
+              <button
+                onClick={deselectAll}
+                disabled={activeItems.length === 0}
+                className="text-xs text-gray-500 hover:underline disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Deseleccionar todos
+              </button>
+            </div>
+
+            {/* Items list */}
+            <div className="overflow-y-auto py-1">
+              {data.series.map((serie, idx) => {
+                const color = LINE_COLORS[idx % LINE_COLORS.length];
+                const active = activeItems.includes(serie.id);
+                return (
+                  <div
+                    key={serie.id}
+                    role="checkbox"
+                    aria-checked={active}
+                    tabIndex={0}
+                    className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer select-none"
+                    onClick={() => toggleItem(serie.id)}
+                    onKeyDown={(e) => (e.key === ' ' || e.key === 'Enter') && toggleItem(serie.id)}
+                  >
+                    <div
+                      className="w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors"
+                      style={
+                        active
+                          ? { backgroundColor: color, borderColor: color }
+                          : { borderColor: CHART_THEME.checkboxBorder }
+                      }
+                    >
+                      {active && (
+                        <svg
+                          className="w-2.5 h-2.5 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={3}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      )}
+                    </div>
+                    <span className="text-sm text-gray-700 truncate" title={serie.name}>{serie.short_name || serie.name}</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="p-3 border-t border-gray-100">
+              <button
+                onClick={() => setDropdownOpen(false)}
+                className="w-full py-2 text-sm font-medium text-white bg-rojo rounded-lg hover:opacity-90 transition-opacity"
+              >
+                Listo
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       {visibleSeries.length === 0 ? (
         <div className="py-12 text-center text-gray-400 text-sm">

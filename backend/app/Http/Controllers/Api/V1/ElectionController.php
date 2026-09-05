@@ -37,7 +37,7 @@ class ElectionController extends Controller
             ->where('token', $token)
             ->firstOrFail();
 
-        return response()->json(['data' => $this->serializeList($list)]);
+        return response()->json(['data' => $this->serializeList($list, includePrivate: true)]);
     }
 
     /**
@@ -57,15 +57,21 @@ class ElectionController extends Controller
         return response()->json(['data' => $this->serializeList($list)]);
     }
 
-    private function serializeList(ElectionList $list): array
+    /**
+     * $includePrivate expone campos que solo deben viajar en respuestas
+     * autenticadas (admin) o accedidas con el token privado de validación:
+     * el `token` en sí (permitiría acceder al link privado) y
+     * `no_commitments_reason` (nota interna, no pensada para el público).
+     */
+    private function serializeList(ElectionList $list, bool $includePrivate = false): array
     {
         return [
             'id'         => $list->id,
-            'token'      => $list->token,
             'slug'       => $list->slug,
             'name'       => $list->name,
             'source_url' => $list->source_url,
             'has_logo'   => !empty($list->logo_path),
+            ...($includePrivate ? ['token' => $list->token] : []),
             'candidates' => $list->candidates->map(function (ElectionCandidate $candidate) {
                 return [
                     'id'         => $candidate->id,
@@ -77,12 +83,12 @@ class ElectionController extends Controller
                     'order'      => $candidate->order,
                 ];
             }),
-            'proposals' => $list->proposals->map(function (ElectionProposal $proposal) {
+            'proposals' => $list->proposals->map(function (ElectionProposal $proposal) use ($includePrivate) {
                 return [
                     'id'                     => $proposal->id,
                     'title'                  => $proposal->title,
                     'description'            => $proposal->description,
-                    'no_commitments_reason'  => $proposal->no_commitments_reason,
+                    ...($includePrivate ? ['no_commitments_reason' => $proposal->no_commitments_reason] : []),
                     'order'                  => $proposal->order,
                     'commitments' => $proposal->commitments->map(function (ElectionCommitment $commitment) {
                         return [
@@ -137,6 +143,19 @@ class ElectionController extends Controller
     }
 
     // ─── Admin: Lists ───────────────────────────────────────────────────────
+
+    /**
+     * Listado para la administración: incluye `token` y `no_commitments_reason`,
+     * que el índice público no expone.
+     */
+    public function adminIndex(): JsonResponse
+    {
+        $lists = ElectionList::with(['candidates', 'proposals.commitments'])->orderBy('name')->get();
+
+        $data = $lists->map(fn (ElectionList $list) => $this->serializeList($list, includePrivate: true));
+
+        return response()->json(['data' => $data]);
+    }
 
     public function storeList(Request $request): JsonResponse
     {

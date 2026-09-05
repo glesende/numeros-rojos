@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getElections, deleteElectionList, getElectionListLogoUrl } from '../api/endpoints';
+import { getAdminElections, deleteElectionList, getElectionListLogoUrl } from '../api/endpoints';
 import Loader from '../components/common/Loader';
 import SectionEnableToggle from '../components/admin/SectionEnableToggle';
 
@@ -12,7 +12,7 @@ export default function AdminElectionsPage() {
 
   const fetchData = () => {
     setLoading(true);
-    getElections()
+    getAdminElections()
       .then((res) => setLists(res.data.data || []))
       .finally(() => setLoading(false));
   };

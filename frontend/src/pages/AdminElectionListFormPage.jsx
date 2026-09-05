@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
-  getElections,
+  getAdminElections,
   createElectionList,
   updateElectionList,
   createElectionCandidate,
@@ -68,7 +68,7 @@ export default function AdminElectionListFormPage() {
   const fetchData = useCallback(() => {
     if (!isEdit) return;
     setLoading(true);
-    getElections()
+    getAdminElections()
       .then((res) => {
         const found = (res.data.data || []).find((l) => String(l.id) === String(id));
         setList(found || null);

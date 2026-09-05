@@ -55,7 +55,7 @@ function GoalList({ goals }) {
   );
 }
 
-export default function ElectionListContent({ list }) {
+export default function ElectionListContent({ list, showNoCommitmentsReason = false }) {
   const [tab, setTab] = useState('propuestas');
 
   useEffect(() => {
@@ -158,7 +158,7 @@ export default function ElectionListContent({ list }) {
                     <p className="text-sm text-gray-600 mt-0.5">{p.description}</p>
                     {goals.length > 0 && <GoalList goals={goals} />}
                     {commitments.length > 0 && <CommitmentList commitments={commitments} />}
-                    {hasNone && p.no_commitments_reason && (
+                    {showNoCommitmentsReason && hasNone && p.no_commitments_reason && (
                       <p className="mt-2 text-xs text-gray-400 italic">
                         Sin compromisos ni metas: {p.no_commitments_reason}
                       </p>

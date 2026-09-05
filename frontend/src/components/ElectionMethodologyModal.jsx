@@ -12,11 +12,11 @@ const POINTS = [
   },
   {
     title: 'Cómo se calculan compromisos y metas',
-    body: 'Un compromiso es una acción concreta que se puede verificar como cumplida o no, sin una cifra objetivo. Una meta es igual, pero además incluye una cifra o umbral cuantificable (por ejemplo, "30% de socios activos" o "antes de 2027"). Solo se cuentan las propuestas que describen una acción tangible: frases abstractas, sin desarrollo concreto o que solo le ponen nombre a una idea, se descartan.',
+    body: 'Un compromiso es una acción concreta que se puede verificar como cumplida o no, sin una cifra objetivo. Una meta es igual, pero además incluye una cifra o umbral cuantificable. Solo se cuentan las propuestas que describen una acción tangible: frases abstractas, sin desarrollo concreto o que solo le ponen nombre a una idea, se descartan.',
   },
   {
     title: 'Por qué usar IA para este análisis',
-    body: 'Un modelo de lenguaje analiza las propuestas de todas las listas con el mismo criterio, sin fatiga ni preferencia por ninguna agrupación — algo difícil de sostener en un análisis manual de decenas de propuestas por lista.',
+    body: 'Un modelo de lenguaje analiza las propuestas de todas las listas con el mismo criterio, evitando la fatiga cerebral y el sesgo humano — algo imposible de sostener en un análisis manual sobre decenas de propuestas por lista.',
   },
 ];
 
@@ -73,7 +73,7 @@ export default function ElectionMethodologyModal({ open, onClose }) {
           <div>
             <p className="text-sm font-semibold text-gray-900">Detalle técnico</p>
             <p className="text-sm text-gray-600 mt-0.5">
-              El análisis lo hace <strong className="font-semibold text-gray-800">Claude</strong>, el modelo de lenguaje de Anthropic, usado a través de <strong className="font-semibold text-gray-800">Claude Code</strong> — la herramienta con la que se mantiene este sitio. No hay curación manual de qué cuenta como compromiso o meta: el modelo sigue siempre el mismo instructivo (una "skill" versionada en el repositorio del proyecto) y una auditoría de segunda revisión sobre cada resultado antes de publicarlo. Abajo está el texto real de ese instructivo.
+              El análisis se realiza utilizando el modelo <strong className="font-semibold text-gray-800">Claude Sonnet 5</strong>, perteneciente a Anthropic. No hay curación manual de qué cuenta como compromiso o meta: el modelo sigue siempre el mismo instructivo y una auditoría de segunda revisión sobre cada resultado antes de publicarlo. Abajo está el texto real de ese instructivo.
             </p>
           </div>
 

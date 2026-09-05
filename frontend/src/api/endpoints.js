@@ -57,6 +57,7 @@ export const getElectionCandidatePhotoUrl = (id) => `${client.defaults.baseURL}/
 export const getElectionCandidateCvUrl = (id) => `${client.defaults.baseURL}/elections/candidates/${id}/cv`;
 
 // Elections lists (admin)
+export const getAdminElections = () => client.get('/admin/elections');
 export const createElectionList = (formData) => client.post('/admin/elections/lists', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const updateElectionList = (id, formData) => client.post(`/admin/elections/lists/${id}/update`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
 export const deleteElectionList = (id) => client.delete(`/admin/elections/lists/${id}`);
