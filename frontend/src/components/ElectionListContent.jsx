@@ -138,10 +138,10 @@ export default function ElectionListContent({ list, showNoCommitmentsReason = fa
                         <img
                           src={getElectionCandidatePhotoUrl(c.id)}
                           alt={`${c.first_name} ${c.last_name}`}
-                          className={`${photoSize} rounded-full object-cover`}
+                          className={`${photoSize} rounded-xl object-cover`}
                         />
                       ) : (
-                        <div className={`${photoSize} rounded-full bg-gray-200`} />
+                        <div className={`${photoSize} rounded-xl bg-gray-200`} />
                       )}
                       <p className="text-xs font-semibold leading-tight">{c.first_name} {c.last_name}</p>
                       <p className="text-[11px] text-gray-500 leading-tight">{c.position}</p>
