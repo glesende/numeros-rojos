@@ -38,6 +38,7 @@ export default function AdminElectionListFormPage() {
   // List basic form
   const [listName, setListName] = useState('');
   const [listSourceUrl, setListSourceUrl] = useState('');
+  const [listIsActive, setListIsActive] = useState(true);
   const [listLogoFile, setListLogoFile] = useState(null);
   const [listLoading, setListLoading] = useState(false);
   const [listError, setListError] = useState('');
@@ -75,6 +76,7 @@ export default function AdminElectionListFormPage() {
         if (found) {
           setListName(found.name || '');
           setListSourceUrl(found.source_url || '');
+          setListIsActive(found.is_active ?? true);
         }
       })
       .finally(() => setLoading(false));
@@ -100,6 +102,7 @@ export default function AdminElectionListFormPage() {
       const formData = new FormData();
       formData.append('name', listName);
       formData.append('source_url', listSourceUrl);
+      formData.append('is_active', listIsActive ? '1' : '0');
       if (listLogoFile) formData.append('logo', listLogoFile);
 
       if (isEdit) {
@@ -385,6 +388,20 @@ export default function AdminElectionListFormPage() {
                 onChange={(e) => setListLogoFile(e.target.files[0] || null)}
                 className={fileInputClass}
               />
+            </div>
+            <div>
+              <label className="flex items-center gap-2 text-sm font-medium">
+                <input
+                  type="checkbox"
+                  checked={listIsActive}
+                  onChange={(e) => setListIsActive(e.target.checked)}
+                  className="w-4 h-4"
+                />
+                Lista activa (visible en el listado público)
+              </label>
+              <p className="text-xs text-gray-400 mt-1">
+                Desmarcá esto para seguir cargando datos sin que la lista aparezca en el listado público. El link de validación por token sigue funcionando igual.
+              </p>
             </div>
             <button type="submit" disabled={listLoading} className="btn-primary">
               {listLoading ? 'Guardando...' : isEdit ? 'Guardar cambios' : 'Crear lista'}

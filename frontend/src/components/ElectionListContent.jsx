@@ -7,6 +7,22 @@ const TABS = [
   { key: 'metas', label: 'Metas' },
 ];
 
+const CANDIDATE_PHOTO_SIZES = ['w-24 h-24', 'w-20 h-20', 'w-16 h-16', 'w-14 h-14', 'w-12 h-12'];
+
+function groupCandidatesByOrder(candidates) {
+  const groups = [];
+  for (const c of candidates) {
+    const order = c.order ?? 0;
+    const last = groups[groups.length - 1];
+    if (last && last.order === order) {
+      last.items.push(c);
+    } else {
+      groups.push({ order, items: [c] });
+    }
+  }
+  return groups;
+}
+
 function metricLine(c) {
   const value = c.metric_value != null ? `${c.metric_value}${c.metric_unit ? ` ${c.metric_unit}` : ''}` : c.metric_unit;
   return [value, c.deadline].filter(Boolean).join(' · ');
@@ -55,7 +71,7 @@ function GoalList({ goals }) {
   );
 }
 
-export default function ElectionListContent({ list, showNoCommitmentsReason = false }) {
+export default function ElectionListContent({ list, showNoCommitmentsReason = false, onOpenMethodology }) {
   const [tab, setTab] = useState('propuestas');
 
   useEffect(() => {
@@ -89,38 +105,61 @@ export default function ElectionListContent({ list, showNoCommitmentsReason = fa
         </p>
       )}
 
+      {onOpenMethodology && (
+        <button
+          type="button"
+          onClick={onOpenMethodology}
+          className="text-xs text-rojo hover:underline font-medium inline-flex items-center gap-1"
+        >
+          <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fillRule="evenodd" d="M18 10A8 8 0 112 10a8 8 0 0116 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9zm1-4a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd" />
+          </svg>
+          Metodología
+        </button>
+      )}
+
       {/* Candidates */}
       <div>
         <h3 className="text-sm font-bold text-gray-700 mb-3">Candidatos</h3>
         {candidates.length === 0 ? (
           <p className="text-sm text-gray-400">No hay candidatos cargados.</p>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {candidates.map((c) => (
-              <div key={c.id} className="flex flex-col items-center text-center gap-1.5 p-2 rounded-lg bg-gray-50">
-                {c.has_photo ? (
-                  <img
-                    src={getElectionCandidatePhotoUrl(c.id)}
-                    alt={`${c.first_name} ${c.last_name}`}
-                    className="w-14 h-14 rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-14 h-14 rounded-full bg-gray-200" />
-                )}
-                <p className="text-xs font-semibold leading-tight">{c.first_name} {c.last_name}</p>
-                <p className="text-[11px] text-gray-500 leading-tight">{c.position}</p>
-                {c.has_cv && (
-                  <a
-                    href={getElectionCandidateCvUrl(c.id)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[11px] text-rojo hover:underline font-medium"
-                  >
-                    Ver CV
-                  </a>
-                )}
-              </div>
-            ))}
+          <div className="space-y-4">
+            {groupCandidatesByOrder(candidates).map((group, rank) => {
+              const photoSize = CANDIDATE_PHOTO_SIZES[Math.min(rank, CANDIDATE_PHOTO_SIZES.length - 1)];
+              return (
+                <div key={group.order} className="flex flex-wrap justify-center gap-3">
+                  {group.items.map((c) => (
+                    <div
+                      key={c.id}
+                      className="flex flex-col items-center text-center gap-1.5 p-2 rounded-lg bg-gray-50 w-24"
+                    >
+                      {c.has_photo ? (
+                        <img
+                          src={getElectionCandidatePhotoUrl(c.id)}
+                          alt={`${c.first_name} ${c.last_name}`}
+                          className={`${photoSize} rounded-full object-cover`}
+                        />
+                      ) : (
+                        <div className={`${photoSize} rounded-full bg-gray-200`} />
+                      )}
+                      <p className="text-xs font-semibold leading-tight">{c.first_name} {c.last_name}</p>
+                      <p className="text-[11px] text-gray-500 leading-tight">{c.position}</p>
+                      {c.has_cv && (
+                        <a
+                          href={getElectionCandidateCvUrl(c.id)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[11px] text-rojo hover:underline font-medium"
+                        >
+                          Ver CV
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

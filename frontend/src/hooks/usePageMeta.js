@@ -22,6 +22,20 @@ function setCanonical(href) {
   el.href = href;
 }
 
+function setRobots(content) {
+  let el = document.querySelector('meta[name="robots"]');
+  if (content) {
+    if (!el) {
+      el = document.createElement('meta');
+      el.name = 'robots';
+      document.head.appendChild(el);
+    }
+    el.setAttribute('content', content);
+  } else if (el) {
+    el.remove();
+  }
+}
+
 function setStructuredData(data) {
   let script = document.getElementById('page-structured-data');
   if (data) {
@@ -47,8 +61,9 @@ function setStructuredData(data) {
  * @param {string}  options.description    - Meta description de la página
  * @param {string}  options.path           - Path relativo (e.g. "/contratos/5") para canonical y og:url
  * @param {object}  [options.structuredData] - Objeto JSON-LD a inyectar como script (null = no inyectar)
+ * @param {boolean} [options.noindex]       - Si es true, agrega <meta name="robots" content="noindex, nofollow">
  */
-export function usePageMeta({ title, description, path, structuredData } = {}) {
+export function usePageMeta({ title, description, path, structuredData, noindex = false } = {}) {
   const structuredDataJson = structuredData ? JSON.stringify(structuredData) : null;
 
   useEffect(() => {
@@ -71,6 +86,7 @@ export function usePageMeta({ title, description, path, structuredData } = {}) {
     }
 
     setStructuredData(structuredDataJson);
+    setRobots(noindex ? 'noindex, nofollow' : null);
 
     return () => {
       document.title = DEFAULT_TITLE;
@@ -82,6 +98,7 @@ export function usePageMeta({ title, description, path, structuredData } = {}) {
       setMetaContent('meta[name="twitter:description"]', DEFAULT_DESCRIPTION);
       setCanonical(DEFAULT_URL);
       setStructuredData(null);
+      setRobots(null);
     };
-  }, [title, description, path, structuredDataJson]);
+  }, [title, description, path, structuredDataJson, noindex]);
 }

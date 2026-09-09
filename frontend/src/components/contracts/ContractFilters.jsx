@@ -7,7 +7,7 @@ const STATUS_OPTIONS = [
   { value: 'vencido', label: 'Terminados' },
 ];
 
-const DROPDOWN_KEYS = ['search', 'validity', 'loan', 'date_from', 'date_to', 'expire_from', 'expire_to'];
+const DROPDOWN_KEYS = ['validity', 'loan', 'date_from', 'date_to', 'expire_from', 'expire_to'];
 
 export default function ContractFilters({ filters, onFilter, onReset }) {
   const activeCount = DROPDOWN_KEYS.filter(
@@ -23,17 +23,17 @@ export default function ContractFilters({ filters, onFilter, onReset }) {
           onClick: () => onFilter('status', opt.value),
         }))}
       />
+      <div className="mb-3">
+        <label className="block text-xs font-medium text-gray-500 mb-1">Buscar jugador</label>
+        <input
+          type="text"
+          value={filters.search || ''}
+          onChange={(e) => onFilter('search', e.target.value || null)}
+          placeholder="Nombre del jugador"
+          className="input-field"
+        />
+      </div>
       <FilterBar onReset={onReset} activeCount={activeCount}>
-        <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Buscar jugador</label>
-          <input
-            type="text"
-            value={filters.search || ''}
-            onChange={(e) => onFilter('search', e.target.value || null)}
-            placeholder="Nombre del jugador"
-            className="input-field"
-          />
-        </div>
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1">Vigencia</label>
           <select

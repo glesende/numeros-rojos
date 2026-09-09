@@ -15,6 +15,11 @@ class ElectionList extends Model
         'source_url',
         'logo_path',
         'logo_original_name',
+        'is_active',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
     ];
 
     public function candidates()

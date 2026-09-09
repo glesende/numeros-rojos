@@ -26,7 +26,7 @@ export default function AdminElectionsPage() {
   };
 
   const handleCopyLink = async (l) => {
-    const url = `${window.location.origin}/elecciones/${l.token}`;
+    const url = `${window.location.origin}/elecciones/privado/${l.token}`;
     try {
       await navigator.clipboard.writeText(url);
     } catch {
@@ -59,6 +59,7 @@ export default function AdminElectionsPage() {
               <tr className="border-b text-left text-xs text-gray-500 uppercase">
                 <th className="pb-3 pr-4">Logo</th>
                 <th className="pb-3 pr-4">Lista</th>
+                <th className="pb-3 pr-4">Estado</th>
                 <th className="pb-3 pr-4">Candidatos</th>
                 <th className="pb-3 pr-4">Propuestas</th>
                 <th className="pb-3">Acciones</th>
@@ -75,6 +76,15 @@ export default function AdminElectionsPage() {
                     )}
                   </td>
                   <td className="py-2 pr-4 font-medium">{l.name}</td>
+                  <td className="py-2 pr-4">
+                    <span
+                      className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                        l.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                      }`}
+                    >
+                      {l.is_active ? 'Activa' : 'Inactiva'}
+                    </span>
+                  </td>
                   <td className="py-2 pr-4 text-gray-500">{l.candidates?.length ?? 0}</td>
                   <td className="py-2 pr-4 text-gray-500">{l.proposals?.length ?? 0}</td>
                   <td className="py-2 whitespace-nowrap">
@@ -101,7 +111,7 @@ export default function AdminElectionsPage() {
               ))}
               {lists.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="py-6 text-center text-gray-400">
+                  <td colSpan={6} className="py-6 text-center text-gray-400">
                     No hay listas registradas.
                   </td>
                 </tr>

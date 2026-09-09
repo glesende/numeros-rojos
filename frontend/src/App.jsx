@@ -1,39 +1,42 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 import { useAuth } from './context/AuthContext';
 import { usePageTracking } from './hooks/usePageTracking';
 import Layout from './components/layout/Layout';
-import HomePage from './pages/HomePage';
-import EconomyPage from './pages/EconomyPage';
-import EconomyDetailPage from './pages/EconomyDetailPage';
-import ContractsPage from './pages/ContractsPage';
-import ContractDetailPage from './pages/ContractDetailPage';
-import BalancesPage from './pages/BalancesPage';
-import BalanceDetailPage from './pages/BalanceDetailPage';
-import LoginPage from './pages/LoginPage';
-import AdminDashboard from './pages/AdminDashboard';
-import AdminEconomyPage from './pages/AdminEconomyPage';
-import AdminEconomyFormPage from './pages/AdminEconomyFormPage';
-import AdminContractsPage from './pages/AdminContractsPage';
-import AdminContractFormPage from './pages/AdminContractFormPage';
-import AdminRightsPage from './pages/AdminRightsPage';
-import AdminRightFormPage from './pages/AdminRightFormPage';
-import AdminRumorsPage from './pages/AdminRumorsPage';
-import AdminRumorFormPage from './pages/AdminRumorFormPage';
-import AdminMarketsPage from './pages/AdminMarketsPage';
-import AdminBalancesPage from './pages/AdminBalancesPage';
-import AdminBalanceFormPage from './pages/AdminBalanceFormPage';
-import AdminSettings from './pages/AdminSettings';
-import AdminStadiumPage from './pages/AdminStadiumPage';
-import AdminElectionsPage from './pages/AdminElectionsPage';
-import AdminElectionListFormPage from './pages/AdminElectionListFormPage';
-import StadiumPage from './pages/StadiumPage';
-import StatsPage from './pages/StatsPage';
-import RightsPage from './pages/RightsPage';
-import ElectionListPage from './pages/ElectionListPage';
-import ElectionsPage from './pages/ElectionsPage';
-import ElectionDetailPage from './pages/ElectionDetailPage';
 import Loader from './components/common/Loader';
+import ChunkErrorBoundary from './components/common/ChunkErrorBoundary';
+
+const HomePage                    = lazy(() => import('./pages/HomePage'));
+const EconomyPage                 = lazy(() => import('./pages/EconomyPage'));
+const EconomyDetailPage           = lazy(() => import('./pages/EconomyDetailPage'));
+const ContractsPage               = lazy(() => import('./pages/ContractsPage'));
+const ContractDetailPage          = lazy(() => import('./pages/ContractDetailPage'));
+const BalancesPage                = lazy(() => import('./pages/BalancesPage'));
+const BalanceDetailPage           = lazy(() => import('./pages/BalanceDetailPage'));
+const LoginPage                   = lazy(() => import('./pages/LoginPage'));
+const AdminDashboard              = lazy(() => import('./pages/AdminDashboard'));
+const AdminEconomyPage            = lazy(() => import('./pages/AdminEconomyPage'));
+const AdminEconomyFormPage        = lazy(() => import('./pages/AdminEconomyFormPage'));
+const AdminContractsPage          = lazy(() => import('./pages/AdminContractsPage'));
+const AdminContractFormPage       = lazy(() => import('./pages/AdminContractFormPage'));
+const AdminRightsPage             = lazy(() => import('./pages/AdminRightsPage'));
+const AdminRightFormPage          = lazy(() => import('./pages/AdminRightFormPage'));
+const AdminRumorsPage             = lazy(() => import('./pages/AdminRumorsPage'));
+const AdminRumorFormPage          = lazy(() => import('./pages/AdminRumorFormPage'));
+const AdminMarketsPage            = lazy(() => import('./pages/AdminMarketsPage'));
+const AdminBalancesPage           = lazy(() => import('./pages/AdminBalancesPage'));
+const AdminBalanceFormPage        = lazy(() => import('./pages/AdminBalanceFormPage'));
+const AdminSettings               = lazy(() => import('./pages/AdminSettings'));
+const AdminStadiumPage            = lazy(() => import('./pages/AdminStadiumPage'));
+const AdminElectionsPage          = lazy(() => import('./pages/AdminElectionsPage'));
+const AdminElectionListFormPage   = lazy(() => import('./pages/AdminElectionListFormPage'));
+const StadiumPage                 = lazy(() => import('./pages/StadiumPage'));
+const StatsPage                   = lazy(() => import('./pages/StatsPage'));
+const RightsPage                  = lazy(() => import('./pages/RightsPage'));
+const ElectionListPage            = lazy(() => import('./pages/ElectionListPage'));
+const ElectionsPage               = lazy(() => import('./pages/ElectionsPage'));
+const ElectionDetailPage          = lazy(() => import('./pages/ElectionDetailPage'));
+const MyProposalsPage             = lazy(() => import('./pages/MyProposalsPage'));
 
 function ScrollToTop() {
   const { pathname, state } = useLocation();
@@ -57,6 +60,8 @@ export default function App() {
   return (
     <Layout>
       <ScrollToTop />
+      <ChunkErrorBoundary>
+      <Suspense fallback={<Loader />}>
       <Routes>
         {/* Public */}
         <Route path="/" element={<HomePage />} />
@@ -72,6 +77,7 @@ export default function App() {
         <Route path="/elecciones" element={<ElectionsPage />} />
         <Route path="/elecciones/privado/:token" element={<ElectionListPage />} />
         <Route path="/elecciones/:slug" element={<ElectionDetailPage />} />
+        <Route path="/mis-propuestas-2026" element={<MyProposalsPage />} />
 
         {/* Auth */}
         <Route path="/admin/login" element={<LoginPage />} />
@@ -103,6 +109,8 @@ export default function App() {
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </Suspense>
+      </ChunkErrorBoundary>
     </Layout>
   );
 }

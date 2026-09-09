@@ -7,7 +7,7 @@ const TYPE_OPTIONS = [
   { value: 'pago', label: 'Pagos' },
 ];
 
-const DROPDOWN_KEYS = ['search', 'currency', 'carried_out', 'date_from', 'date_to'];
+const DROPDOWN_KEYS = ['currency', 'carried_out', 'date_from', 'date_to'];
 
 export default function EconomyFilters({ filters, onFilter, onReset }) {
   const activeCount = DROPDOWN_KEYS.filter(
@@ -38,17 +38,17 @@ export default function EconomyFilters({ filters, onFilter, onReset }) {
           { label: 'Vencidos', active: overdueActive, onClick: toggleOverdue },
         ]}
       />
+      <div className="mb-3">
+        <label className="block text-xs font-medium text-gray-500 mb-1">Buscar</label>
+        <input
+          type="text"
+          value={filters.search || ''}
+          onChange={(e) => onFilter('search', e.target.value || null)}
+          placeholder="Descripción o entidad"
+          className="input-field"
+        />
+      </div>
       <FilterBar onReset={onReset} activeCount={activeCount}>
-        <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">Buscar</label>
-          <input
-            type="text"
-            value={filters.search || ''}
-            onChange={(e) => onFilter('search', e.target.value || null)}
-            placeholder="Descripción o entidad"
-            className="input-field"
-          />
-        </div>
         <div>
           <label className="block text-xs font-medium text-gray-500 mb-1">Moneda</label>
           <select

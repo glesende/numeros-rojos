@@ -19,7 +19,14 @@ class ElectionController extends Controller
 
     public function index(): JsonResponse
     {
-        $lists = ElectionList::with(['candidates', 'proposals.commitments'])->orderBy('name')->get();
+        if (!$this->isSectionEnabled()) {
+            abort(404);
+        }
+
+        $lists = ElectionList::with(['candidates', 'proposals.commitments'])
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
 
         $data = $lists->map(fn (ElectionList $list) => $this->serializeList($list));
 
@@ -60,8 +67,9 @@ class ElectionController extends Controller
     /**
      * $includePrivate expone campos que solo deben viajar en respuestas
      * autenticadas (admin) o accedidas con el token privado de validación:
-     * el `token` en sí (permitiría acceder al link privado) y
-     * `no_commitments_reason` (nota interna, no pensada para el público).
+     * el `token` en sí (permitiría acceder al link privado), `is_active`
+     * (estado de publicación, solo relevante para quien administra la lista)
+     * y `no_commitments_reason` (nota interna, no pensada para el público).
      */
     private function serializeList(ElectionList $list, bool $includePrivate = false): array
     {
@@ -71,7 +79,7 @@ class ElectionController extends Controller
             'name'       => $list->name,
             'source_url' => $list->source_url,
             'has_logo'   => !empty($list->logo_path),
-            ...($includePrivate ? ['token' => $list->token] : []),
+            ...($includePrivate ? ['token' => $list->token, 'is_active' => $list->is_active] : []),
             'candidates' => $list->candidates->map(function (ElectionCandidate $candidate) {
                 return [
                     'id'         => $candidate->id,
@@ -106,6 +114,10 @@ class ElectionController extends Controller
         ];
     }
 
+    /**
+     * No gatea por isSectionEnabled(): el link de validación por token debe
+     * poder mostrar imágenes aunque la sección todavía esté desactivada.
+     */
     public function logo(int $id)
     {
         $list = ElectionList::findOrFail($id);
@@ -163,6 +175,7 @@ class ElectionController extends Controller
             'name'       => 'required|string|max:255',
             'source_url' => 'nullable|string|max:500',
             'logo'       => 'nullable|file|mimes:jpg,jpeg,png,webp|max:5120',
+            'is_active'  => 'sometimes|boolean',
         ]);
 
         $logoPath         = null;
@@ -181,6 +194,7 @@ class ElectionController extends Controller
             'source_url'          => $request->input('source_url'),
             'logo_path'           => $logoPath,
             'logo_original_name'  => $logoOriginalName,
+            'is_active'           => $request->has('is_active') ? $request->boolean('is_active') : true,
         ]);
 
         return response()->json(['data' => $list], 201);
@@ -194,6 +208,7 @@ class ElectionController extends Controller
             'name'       => 'sometimes|string|max:255',
             'source_url' => 'nullable|string|max:500',
             'logo'       => 'nullable|file|mimes:jpg,jpeg,png,webp|max:5120',
+            'is_active'  => 'sometimes|boolean',
         ]);
 
         if ($request->hasFile('logo') && $request->file('logo')->isValid()) {
@@ -206,6 +221,9 @@ class ElectionController extends Controller
         }
 
         $list->fill($request->only(['name', 'source_url']));
+        if ($request->has('is_active')) {
+            $list->is_active = $request->boolean('is_active');
+        }
         $list->save();
 
         return response()->json(['data' => $list]);

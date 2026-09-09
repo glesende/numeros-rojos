@@ -4,12 +4,14 @@ import { getElectionByToken, getElectionListLogoUrl } from '../api/endpoints';
 import { usePageMeta } from '../hooks/usePageMeta';
 import Loader from '../components/common/Loader';
 import ElectionListContent from '../components/ElectionListContent';
+import ElectionMethodologyModal from '../components/ElectionMethodologyModal';
 
 export default function ElectionListPage() {
   const { token } = useParams();
   const [list, setList] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [showMethodology, setShowMethodology] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -55,8 +57,14 @@ export default function ElectionListPage() {
       </div>
 
       <div className="card">
-        <ElectionListContent list={list} showNoCommitmentsReason />
+        <ElectionListContent
+          list={list}
+          showNoCommitmentsReason
+          onOpenMethodology={() => setShowMethodology(true)}
+        />
       </div>
+
+      <ElectionMethodologyModal open={showMethodology} onClose={() => setShowMethodology(false)} />
     </div>
   );
 }
