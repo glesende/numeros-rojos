@@ -10,8 +10,8 @@ import ContractTotalsCard from '../components/contracts/ContractTotalsCard';
 import Loader from '../components/common/Loader';
 import ErrorMessage from '../components/common/ErrorMessage';
 
-const CONTRACT_FILTER_KEYS = ['search', 'status', 'validity', 'loan', 'date_from', 'date_to', 'expire_from', 'expire_to'];
-const ALLOWED_SORT_FIELDS = ['expiration_date', 'signing_date', 'estimated_salary'];
+const CONTRACT_FILTER_KEYS = ['search', 'status', 'validity', 'loan', 'date_from', 'date_to', 'expire_from', 'expire_to', 'is_academy', 'representative'];
+const ALLOWED_SORT_FIELDS = ['expiration_date', 'signing_date'];
 
 export default function ContractsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -50,7 +50,7 @@ export default function ContractsPage() {
       if (val !== null && val !== undefined && val !== '') params[key] = val;
     });
     setSearchParams(params, { replace: true });
-  }, [filters.sort_by, filters.sort_dir, filters.search, filters.status, filters.validity, filters.loan, filters.date_from, filters.date_to, filters.expire_from, filters.expire_to]);
+  }, [filters.sort_by, filters.sort_dir, filters.search, filters.status, filters.validity, filters.loan, filters.date_from, filters.date_to, filters.expire_from, filters.expire_to, filters.is_academy, filters.representative]);
 
   const handleSort = useCallback((field) => {
     if (filters.sort_by === field) {

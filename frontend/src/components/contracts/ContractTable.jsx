@@ -11,15 +11,6 @@ function formatDate(dateStr) {
   return `${day}-${month}-${year}`;
 }
 
-function formatSalary(amount, currency) {
-  if (!amount) return '-';
-  return new Intl.NumberFormat('es-AR', {
-    style: 'currency',
-    currency: currency || 'USD',
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
-
 function SourcesList({ links }) {
   if (!links?.length) return <span className="text-gray-400 text-xs">—</span>;
   return (
@@ -119,9 +110,6 @@ export default function ContractTable({ contracts, sortBy = 'expiration_date', s
                 <span className="text-gray-500">
                   % Pase: <span className="font-mono font-medium text-gray-700">{c.club_pass_percentage}%</span>
                 </span>
-                <span className="font-mono font-semibold text-gray-800">
-                  {formatSalary(c.estimated_salary, c.currency)}
-                </span>
               </div>
 
               {c.links?.length > 0 && (
@@ -143,7 +131,6 @@ export default function ContractTable({ contracts, sortBy = 'expiration_date', s
               <SortableHeader label="Firma" field="signing_date" sortBy={sortBy} sortDir={sortDir} onSort={onSort} />
               <SortableHeader label="Vencimiento" field="expiration_date" sortBy={sortBy} sortDir={sortDir} onSort={onSort} />
               <th className="pb-3 pr-4 text-xs font-semibold tracking-wide uppercase text-gray-500 text-right">% Pase</th>
-              <SortableHeader label="Salario est." field="estimated_salary" sortBy={sortBy} sortDir={sortDir} onSort={onSort} className="text-right" />
               <th className="pb-3 text-xs font-semibold tracking-wide uppercase text-gray-500">Fuentes</th>
             </tr>
           </thead>
@@ -182,9 +169,6 @@ export default function ContractTable({ contracts, sortBy = 'expiration_date', s
                     )}
                   </td>
                   <td className="py-3 pr-4 text-right font-mono">{c.club_pass_percentage}%</td>
-                  <td className="py-3 pr-4 text-right font-mono whitespace-nowrap">
-                    {formatSalary(c.estimated_salary, c.currency)}
-                  </td>
                   <td className="py-3">
                     <SourcesList links={c.links} />
                   </td>

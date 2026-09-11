@@ -13,6 +13,7 @@ export const deleteEconomyRecord = (id) => client.delete(`/admin/economy/${id}`)
 export const getContracts = (params = {}) => client.get('/contracts', { params });
 export const getContractStats = () => client.get('/contracts/stats');
 export const getContractRecentMoves = () => client.get('/contracts/recent-moves');
+export const getContractRepresentatives = () => client.get('/contracts/representatives');
 export const getContract = (id) => client.get(`/contracts/${id}`);
 export const createContract = (data) => client.post('/admin/contracts', data);
 export const updateContract = (id, data) => client.put(`/admin/contracts/${id}`, data);
@@ -32,6 +33,11 @@ export const getLeagueStats = (params = {}) => client.get('/league/stats', { par
 export const getTeam = (params = {}) => client.get('/team', { params });
 export const getPlayerMatches = (id, year = null) => client.get(`/player/${id}/matches`, { params: year ? { year } : {} });
 export const getPlayer = (id) => client.get(`/player/${id}`);
+
+// Players (admin)
+export const getAdminPlayers = () => client.get('/admin/players');
+export const getPlayerExtra = (id) => client.get(`/admin/players/${id}/extra`);
+export const updatePlayerExtra = (id, data) => client.put(`/admin/players/${id}/extra`, data);
 
 // Rumors
 export const getRumors = (params = {}) => client.get('/rumors', { params });

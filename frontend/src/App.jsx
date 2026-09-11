@@ -20,6 +20,7 @@ const AdminEconomyFormPage        = lazy(() => import('./pages/AdminEconomyFormP
 const AdminContractsPage          = lazy(() => import('./pages/AdminContractsPage'));
 const AdminContractFormPage       = lazy(() => import('./pages/AdminContractFormPage'));
 const AdminRightsPage             = lazy(() => import('./pages/AdminRightsPage'));
+const AdminPlayersPage            = lazy(() => import('./pages/AdminPlayersPage'));
 const AdminRightFormPage          = lazy(() => import('./pages/AdminRightFormPage'));
 const AdminRumorsPage             = lazy(() => import('./pages/AdminRumorsPage'));
 const AdminRumorFormPage          = lazy(() => import('./pages/AdminRumorFormPage'));
@@ -93,6 +94,7 @@ export default function App() {
         <Route path="/admin/derechos" element={<ProtectedRoute><AdminRightsPage /></ProtectedRoute>} />
         <Route path="/admin/derechos/nuevo" element={<ProtectedRoute><AdminRightFormPage /></ProtectedRoute>} />
         <Route path="/admin/derechos/:id/editar" element={<ProtectedRoute><AdminRightFormPage /></ProtectedRoute>} />
+        <Route path="/admin/jugadores" element={<ProtectedRoute><AdminPlayersPage /></ProtectedRoute>} />
         <Route path="/admin/rumores" element={<ProtectedRoute><AdminRumorsPage /></ProtectedRoute>} />
         <Route path="/admin/rumores/nuevo" element={<ProtectedRoute><AdminRumorFormPage /></ProtectedRoute>} />
         <Route path="/admin/rumores/:id/editar" element={<ProtectedRoute><AdminRumorFormPage /></ProtectedRoute>} />

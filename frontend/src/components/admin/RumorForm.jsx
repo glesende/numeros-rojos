@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getMarkets } from '../../api/endpoints';
+import PlayerExtraFields, { emptyPlayerExtra, normalizePlayerExtra } from './PlayerExtraFields';
 
 const emptyForm = {
   market_id: '',
@@ -14,6 +15,7 @@ const normalizeLink = (l) =>
 
 export default function RumorForm({ initial, onSubmit, loading }) {
   const [form, setForm] = useState(emptyForm);
+  const [playerExtra, setPlayerExtra] = useState(emptyPlayerExtra);
   const [linkInput, setLinkInput] = useState('');
   const [markets, setMarkets] = useState([]);
 
@@ -54,11 +56,14 @@ export default function RumorForm({ initial, onSubmit, loading }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit({
-      ...form,
-      market_id: form.market_id ? parseInt(form.market_id, 10) : null,
-      links: form.links.length > 0 ? form.links : null,
-    });
+    onSubmit(
+      {
+        ...form,
+        market_id: form.market_id ? parseInt(form.market_id, 10) : null,
+        links: form.links.length > 0 ? form.links : null,
+      },
+      form.external_id ? normalizePlayerExtra(playerExtra) : null
+    );
   };
 
   return (
@@ -93,6 +98,10 @@ export default function RumorForm({ initial, onSubmit, loading }) {
           placeholder="Ej: 123456"
         />
       </div>
+
+      {form.external_id && (
+        <PlayerExtraFields externalId={form.external_id} value={playerExtra} onChange={setPlayerExtra} />
+      )}
 
       <div>
         <label className="block text-xs font-medium text-gray-500 mb-1">Nombre completo *</label>

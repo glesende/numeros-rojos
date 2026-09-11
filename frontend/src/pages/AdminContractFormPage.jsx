@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { getContract, createContract, updateContract, saveContractAsChange } from '../api/endpoints';
+import { getContract, createContract, updateContract, saveContractAsChange, updatePlayerExtra } from '../api/endpoints';
 import ContractForm from '../components/admin/ContractForm';
 import Loader from '../components/common/Loader';
 
@@ -21,7 +21,7 @@ export default function AdminContractFormPage() {
     }
   }, [id]);
 
-  const handleSubmit = async (data) => {
+  const handleSubmit = async (data, playerExtra) => {
     setSaving(true);
     setError('');
     try {
@@ -29,6 +29,9 @@ export default function AdminContractFormPage() {
         await updateContract(id, data);
       } else {
         await createContract(data);
+      }
+      if (data.external_id && playerExtra) {
+        await updatePlayerExtra(data.external_id, playerExtra);
       }
       navigate('/admin/contratos');
     } catch (err) {
@@ -38,11 +41,14 @@ export default function AdminContractFormPage() {
     }
   };
 
-  const handleSubmitAsChange = async (data) => {
+  const handleSubmitAsChange = async (data, playerExtra) => {
     setSaving(true);
     setError('');
     try {
       await saveContractAsChange(id, data);
+      if (data.external_id && playerExtra) {
+        await updatePlayerExtra(data.external_id, playerExtra);
+      }
       navigate('/admin/contratos');
     } catch (err) {
       setError(err.response?.data?.error || 'Error al guardar como cambio de condiciones');

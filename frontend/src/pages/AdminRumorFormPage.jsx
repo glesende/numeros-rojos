@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { getRumor, createRumor, updateRumor } from '../api/endpoints';
+import { getRumor, createRumor, updateRumor, updatePlayerExtra } from '../api/endpoints';
 import RumorForm from '../components/admin/RumorForm';
 import Loader from '../components/common/Loader';
 
@@ -21,7 +21,7 @@ export default function AdminRumorFormPage() {
     }
   }, [id]);
 
-  const handleSubmit = async (data) => {
+  const handleSubmit = async (data, playerExtra) => {
     setSaving(true);
     setError('');
     try {
@@ -29,6 +29,9 @@ export default function AdminRumorFormPage() {
         await updateRumor(id, data);
       } else {
         await createRumor(data);
+      }
+      if (data.external_id && playerExtra) {
+        await updatePlayerExtra(data.external_id, playerExtra);
       }
       navigate('/admin/rumores');
     } catch (err) {

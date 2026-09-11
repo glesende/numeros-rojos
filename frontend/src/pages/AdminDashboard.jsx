@@ -29,6 +29,10 @@ export default function AdminDashboard() {
           <h2 className="text-lg font-bold mb-1">Derechos</h2>
           <p className="text-sm text-gray-500">Gestionar derechos sobre jugadores</p>
         </Link>
+        <Link to="/admin/jugadores" className="card hover:shadow-md transition-shadow">
+          <h2 className="text-lg font-bold mb-1">Jugadores</h2>
+          <p className="text-sm text-gray-500">Representante y jugadores de inferiores</p>
+        </Link>
         <Link to="/admin/rumores" className="card hover:shadow-md transition-shadow">
           <h2 className="text-lg font-bold mb-1">Rumores del mercado</h2>
           <p className="text-sm text-gray-500">Gestionar posibles refuerzos rumoreados</p>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import PlayerExtraFields, { emptyPlayerExtra, normalizePlayerExtra } from './PlayerExtraFields';
 
 const emptyForm = {
   external_id: '',
@@ -12,6 +13,7 @@ const normalizeLink = (l) =>
 
 export default function RightForm({ initial, onSubmit, loading }) {
   const [form, setForm] = useState(emptyForm);
+  const [playerExtra, setPlayerExtra] = useState(emptyPlayerExtra);
   const [clausulaInput, setClausulaInput] = useState('');
   const [linkInput, setLinkInput] = useState('');
 
@@ -56,11 +58,14 @@ export default function RightForm({ initial, onSubmit, loading }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit({
-      ...form,
-      clauses: form.clauses.length > 0 ? form.clauses : null,
-      links: form.links.length > 0 ? form.links : null,
-    });
+    onSubmit(
+      {
+        ...form,
+        clauses: form.clauses.length > 0 ? form.clauses : null,
+        links: form.links.length > 0 ? form.links : null,
+      },
+      form.external_id ? normalizePlayerExtra(playerExtra) : null
+    );
   };
 
   return (
@@ -74,6 +79,10 @@ export default function RightForm({ initial, onSubmit, loading }) {
           className="input-field"
         />
       </div>
+
+      {form.external_id && (
+        <PlayerExtraFields externalId={form.external_id} value={playerExtra} onChange={setPlayerExtra} />
+      )}
 
       <div>
         <label className="block text-xs font-medium text-gray-500 mb-1">Nombre completo *</label>

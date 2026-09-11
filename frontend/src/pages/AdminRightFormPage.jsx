@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { getRight, createRight, updateRight } from '../api/endpoints';
+import { getRight, createRight, updateRight, updatePlayerExtra } from '../api/endpoints';
 import RightForm from '../components/admin/RightForm';
 import Loader from '../components/common/Loader';
 
@@ -21,7 +21,7 @@ export default function AdminRightFormPage() {
     }
   }, [id]);
 
-  const handleSubmit = async (data) => {
+  const handleSubmit = async (data, playerExtra) => {
     setSaving(true);
     setError('');
     try {
@@ -29,6 +29,9 @@ export default function AdminRightFormPage() {
         await updateRight(id, data);
       } else {
         await createRight(data);
+      }
+      if (data.external_id && playerExtra) {
+        await updatePlayerExtra(data.external_id, playerExtra);
       }
       navigate('/admin/derechos');
     } catch (err) {

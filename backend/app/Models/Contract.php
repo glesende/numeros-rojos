@@ -153,6 +153,30 @@ class Contract extends Model
         return $query->where('currency', $currency);
     }
 
+    public function scopeAcademy($query, ?bool $isAcademy): mixed
+    {
+        if ($isAcademy === null) {
+            return $query;
+        }
+        return $query->whereIn('external_id', function ($q) use ($isAcademy) {
+            $q->select('besoccer_player_id')
+              ->from('player_extras')
+              ->where('is_academy', $isAcademy);
+        });
+    }
+
+    public function scopeRepresentative($query, ?string $representative): mixed
+    {
+        if ($representative === null || $representative === '') {
+            return $query;
+        }
+        return $query->whereIn('external_id', function ($q) use ($representative) {
+            $q->select('besoccer_player_id')
+              ->from('player_extras')
+              ->where('representative', $representative);
+        });
+    }
+
     public function scopeValidity($query, ?string $validity): mixed
     {
         if ($validity === null || $validity === '') {

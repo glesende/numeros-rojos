@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'react';
+import { getContractRepresentatives } from '../../api/endpoints';
 import FilterBar from '../common/FilterBar';
 import QuickFilterPills from '../common/QuickFilterPills';
 
@@ -7,9 +9,17 @@ const STATUS_OPTIONS = [
   { value: 'vencido', label: 'Terminados' },
 ];
 
-const DROPDOWN_KEYS = ['validity', 'loan', 'date_from', 'date_to', 'expire_from', 'expire_to'];
+const DROPDOWN_KEYS = ['validity', 'loan', 'date_from', 'date_to', 'expire_from', 'expire_to', 'is_academy', 'representative'];
 
 export default function ContractFilters({ filters, onFilter, onReset }) {
+  const [representatives, setRepresentatives] = useState([]);
+
+  useEffect(() => {
+    getContractRepresentatives()
+      .then((res) => setRepresentatives(res.data?.data || []))
+      .catch(() => setRepresentatives([]));
+  }, []);
+
   const activeCount = DROPDOWN_KEYS.filter(
     (key) => filters[key] !== null && filters[key] !== undefined && filters[key] !== ''
   ).length;
@@ -94,6 +104,31 @@ export default function ContractFilters({ filters, onFilter, onReset }) {
             onChange={(e) => onFilter('expire_to', e.target.value || null)}
             className="input-field"
           />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Surgido de inferiores</label>
+          <select
+            value={filters.is_academy ?? ''}
+            onChange={(e) => onFilter('is_academy', e.target.value === '' ? null : e.target.value)}
+            className="input-field"
+          >
+            <option value="">Todos</option>
+            <option value="1">Sí</option>
+            <option value="0">No</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 mb-1">Representante</label>
+          <select
+            value={filters.representative || ''}
+            onChange={(e) => onFilter('representative', e.target.value || null)}
+            className="input-field"
+          >
+            <option value="">Todos</option>
+            {representatives.map((rep) => (
+              <option key={rep} value={rep}>{rep}</option>
+            ))}
+          </select>
         </div>
       </FilterBar>
     </>

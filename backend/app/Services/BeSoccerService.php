@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\PlayerExtra;
 use App\Models\Setting;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
@@ -135,6 +136,11 @@ class BeSoccerService
                 }
             }
 
+            $extra = PlayerExtra::firstOrCreate(['besoccer_player_id' => $playerId]);
+            $result['representative']     = $extra->representative;
+            $result['representative_url'] = $extra->representative_url;
+            $result['is_academy']         = $extra->is_academy;
+
             return [
                 'success'    => true,
                 'data'       => $result,
@@ -143,6 +149,11 @@ class BeSoccerService
                 'fetched_at' => Carbon::now()->toIso8601String(),
             ];
         });
+    }
+
+    public function forgetPlayerData(string $playerId): void
+    {
+        Cache::forget("besoccer:player:{$playerId}:full_data");
     }
 
     public function getPlayerByExternalId(string $externalId): array

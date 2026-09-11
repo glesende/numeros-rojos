@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Contract;
+use App\Models\PlayerExtra;
 use App\Services\BeSoccerService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -36,6 +37,7 @@ class ContractController extends Controller
     public function index(Request $request): JsonResponse
     {
         $official = $request->has('official') ? filter_var($request->input('official'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : null;
+        $isAcademy = $request->has('is_academy') ? filter_var($request->input('is_academy'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : null;
 
         $query = Contract::query()
             ->whereNull('parent_id')
@@ -49,7 +51,9 @@ class ContractController extends Controller
             ->validity($request->input('validity'))
             ->status($request->input('status'))
             ->loan($request->input('loan'))
-            ->currency($request->input('currency'));
+            ->currency($request->input('currency'))
+            ->academy($isAcademy)
+            ->representative($request->input('representative'));
 
         $allowedSortFields = ['expiration_date', 'signing_date', 'estimated_salary'];
         $sortBy = in_array($request->input('sort_by'), $allowedSortFields)
@@ -81,7 +85,9 @@ class ContractController extends Controller
             ->validity($request->input('validity'))
             ->status($request->input('status'))
             ->loan($request->input('loan'))
-            ->currency($request->input('currency'));
+            ->currency($request->input('currency'))
+            ->academy($isAcademy)
+            ->representative($request->input('representative'));
 
         $now = Carbon::now();
         $totals = [
@@ -111,6 +117,11 @@ class ContractController extends Controller
                                             ->where('expiration_date', '>=', $now)
                                             ->where('expiration_date', '<=', $now->copy()->addMonths(12))
                                             ->count(),
+            'vencen_18_meses'          => (int) (clone $aggQuery)->whereNull('termination_date')
+                                            ->where('expiration_date', '>=', $now)
+                                            ->where('expiration_date', '<=', $now->copy()->addMonths(18))
+                                            ->count(),
+            'total_surgidos_inferiores' => (int) (clone $aggQuery)->academy(true)->count(),
             'last_updated_at'          => Contract::max('created_at'),
         ];
 
@@ -124,6 +135,17 @@ class ContractController extends Controller
                 'total'        => $contracts->total(),
             ],
         ]);
+    }
+
+    public function representatives(): JsonResponse
+    {
+        $representatives = PlayerExtra::whereNotNull('representative')
+            ->where('representative', '!=', '')
+            ->distinct()
+            ->orderBy('representative')
+            ->pluck('representative');
+
+        return response()->json(['data' => $representatives]);
     }
 
     public function stats(): JsonResponse

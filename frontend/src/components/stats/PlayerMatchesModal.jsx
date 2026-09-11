@@ -281,6 +281,33 @@ function PlayerInfoBlock({ playerData, currentTeam }) {
           )}
         </>
       )}
+
+      {playerData && (playerData.representative || playerData.is_academy) && (
+        <div className="text-xs mt-1.5 space-y-0.5">
+          {playerData.representative && (
+            <p className="text-gray-600">
+              Representante:{' '}
+              {playerData.representative_url ? (
+                <a
+                  href={playerData.representative_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-rojo hover:underline font-medium"
+                >
+                  {playerData.representative}
+                </a>
+              ) : (
+                <span className="font-medium text-gray-800">{playerData.representative}</span>
+              )}
+            </p>
+          )}
+          {playerData.is_academy && (
+            <p className="text-gray-600">
+              <span className="font-medium text-gray-800">Surgido de las inferiores del club</span>
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

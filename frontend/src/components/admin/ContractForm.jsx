@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import PlayerExtraFields, { emptyPlayerExtra, normalizePlayerExtra } from './PlayerExtraFields';
 
 const emptyForm = {
   external_id: '',
@@ -21,6 +22,7 @@ const normalizeLink = (l) =>
 
 export default function ContractForm({ initial, onSubmit, onSubmitAsChange, loading }) {
   const [form, setForm] = useState(emptyForm);
+  const [playerExtra, setPlayerExtra] = useState(emptyPlayerExtra);
   const pendingAction = useRef('save');
   const [clausulaInput, setClausulaInput] = useState('');
   const [linkInput, setLinkInput] = useState('');
@@ -114,10 +116,11 @@ export default function ContractForm({ initial, onSubmit, onSubmitAsChange, load
   const handleSubmit = (e) => {
     e.preventDefault();
     const data = buildFormData();
+    const extra = form.external_id ? normalizePlayerExtra(playerExtra) : null;
     if (pendingAction.current === 'saveAsChange' && onSubmitAsChange) {
-      onSubmitAsChange(data);
+      onSubmitAsChange(data, extra);
     } else {
-      onSubmit(data);
+      onSubmit(data, extra);
     }
   };
 
@@ -132,6 +135,10 @@ export default function ContractForm({ initial, onSubmit, onSubmitAsChange, load
           className="input-field"
         />
       </div>
+
+      {form.external_id && (
+        <PlayerExtraFields externalId={form.external_id} value={playerExtra} onChange={setPlayerExtra} />
+      )}
 
       <div>
         <label className="block text-xs font-medium text-gray-500 mb-1">Nombre completo *</label>

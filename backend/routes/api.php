@@ -18,6 +18,7 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
     $router->get('contracts', 'ContractController@index');
     $router->get('contracts/stats', 'ContractController@stats');
     $router->get('contracts/recent-moves', 'ContractController@recentMoves');
+    $router->get('contracts/representatives', 'ContractController@representatives');
     $router->get('contracts/{id}', 'ContractController@show');
     $router->get('rights', 'RightController@index');
     $router->get('rights/{id}', 'RightController@show');
@@ -82,6 +83,11 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
         $router->post('rights', 'RightController@store');
         $router->put('rights/{id}', 'RightController@update');
         $router->delete('rights/{id}', 'RightController@destroy');
+
+        // Players (extra data hydrated onto BeSoccer squad)
+        $router->get('players', 'PlayerController@adminIndex');
+        $router->get('players/{id}/extra', 'PlayerController@show');
+        $router->put('players/{id}/extra', 'PlayerController@updateExtra');
 
         // Rumors CRUD
         $router->post('rumors', 'RumorController@store');
