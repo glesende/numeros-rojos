@@ -13,6 +13,8 @@ class ElectionList extends Model
         'slug',
         'name',
         'source_url',
+        'twitter_url',
+        'instagram_url',
         'logo_path',
         'logo_original_name',
         'is_active',

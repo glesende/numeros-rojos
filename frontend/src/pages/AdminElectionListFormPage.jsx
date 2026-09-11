@@ -38,6 +38,8 @@ export default function AdminElectionListFormPage() {
   // List basic form
   const [listName, setListName] = useState('');
   const [listSourceUrl, setListSourceUrl] = useState('');
+  const [listTwitterUrl, setListTwitterUrl] = useState('');
+  const [listInstagramUrl, setListInstagramUrl] = useState('');
   const [listIsActive, setListIsActive] = useState(true);
   const [listLogoFile, setListLogoFile] = useState(null);
   const [listLoading, setListLoading] = useState(false);
@@ -76,6 +78,8 @@ export default function AdminElectionListFormPage() {
         if (found) {
           setListName(found.name || '');
           setListSourceUrl(found.source_url || '');
+          setListTwitterUrl(found.twitter_url || '');
+          setListInstagramUrl(found.instagram_url || '');
           setListIsActive(found.is_active ?? true);
         }
       })
@@ -102,6 +106,8 @@ export default function AdminElectionListFormPage() {
       const formData = new FormData();
       formData.append('name', listName);
       formData.append('source_url', listSourceUrl);
+      formData.append('twitter_url', listTwitterUrl);
+      formData.append('instagram_url', listInstagramUrl);
       formData.append('is_active', listIsActive ? '1' : '0');
       if (listLogoFile) formData.append('logo', listLogoFile);
 
@@ -372,6 +378,26 @@ export default function AdminElectionListFormPage() {
               <p className="text-xs text-gray-400 mt-1">
                 Página exacta de donde se extrajeron las propuestas. Queda guardada para poder verificar contra el original.
               </p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Twitter / X</label>
+              <input
+                type="url"
+                value={listTwitterUrl}
+                onChange={(e) => setListTwitterUrl(e.target.value)}
+                className="input-field w-full"
+                placeholder="https://x.com/lalista"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Instagram</label>
+              <input
+                type="url"
+                value={listInstagramUrl}
+                onChange={(e) => setListInstagramUrl(e.target.value)}
+                className="input-field w-full"
+                placeholder="https://instagram.com/lalista"
+              />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Logo</label>

@@ -105,6 +105,34 @@ export default function ElectionListContent({ list, showNoCommitmentsReason = fa
         </p>
       )}
 
+      {list.twitter_url && (
+        <p className="text-xs text-gray-400">
+          Twitter/X:{' '}
+          <a
+            href={list.twitter_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-rojo hover:underline break-all"
+          >
+            {list.twitter_url}
+          </a>
+        </p>
+      )}
+
+      {list.instagram_url && (
+        <p className="text-xs text-gray-400">
+          Instagram:{' '}
+          <a
+            href={list.instagram_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-rojo hover:underline break-all"
+          >
+            {list.instagram_url}
+          </a>
+        </p>
+      )}
+
       {onOpenMethodology && (
         <button
           type="button"

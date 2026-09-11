@@ -47,12 +47,13 @@ function PlayerExtraModal({ player, onClose, onSaved }) {
     setSaving(true);
     setError(null);
     try {
-      await updatePlayerExtra(player.id, {
+      const payload = {
         representative: representative.trim() || null,
         representative_url: representativeUrl.trim() || null,
         is_academy: isAcademy,
-      });
-      onSaved();
+      };
+      await updatePlayerExtra(player.id, payload);
+      onSaved(payload);
     } catch {
       setError('No se pudo guardar. Verificá los datos e intentá de nuevo.');
     } finally {
@@ -210,24 +211,29 @@ export default function AdminPlayersPage() {
                   <th className="pb-3 pr-4">Jugador</th>
                   <th className="pb-3 pr-4">Secciones</th>
                   <th className="pb-3 pr-4">Representante</th>
-                  <th className="pb-3 pr-4 text-center">Inferiores</th>
-                  <th className="pb-3">Acciones</th>
+                  <th className="pb-3 text-center">Inferiores</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredSquad.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-6 text-center text-gray-400">
+                    <td colSpan={4} className="py-6 text-center text-gray-400">
                       No se encontraron jugadores.
                     </td>
                   </tr>
-                ) : filteredSquad.map((player) => (
+                ) : filteredSquad.map((player, index) => (
                   <tr
                     key={player.id}
-                    className={`border-b border-gray-100 ${!player.reviewed ? 'bg-amber-50' : ''}`}
+                    className={`border-b border-gray-100 ${
+                      !player.reviewed ? 'bg-amber-50' : index % 2 === 1 ? 'bg-gray-50' : ''
+                    }`}
                   >
                     <td className="py-2 pr-4 font-medium whitespace-nowrap">
-                      <span className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setEditingPlayer(player)}
+                        className="flex items-center gap-1.5 hover:underline text-left"
+                      >
                         {!player.reviewed && (
                           <span
                             className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0"
@@ -235,7 +241,7 @@ export default function AdminPlayersPage() {
                           />
                         )}
                         {player.nick}
-                      </span>
+                      </button>
                     </td>
                     <td className="py-2 pr-4">
                       <SectionBadges sections={player.sections} />
@@ -258,20 +264,12 @@ export default function AdminPlayersPage() {
                         <span className="text-gray-400">-</span>
                       )}
                     </td>
-                    <td className="py-2 pr-4 text-center">
+                    <td className="py-2 text-center">
                       {player.is_academy ? (
                         <span className="text-green-600" aria-label="Sí">✓</span>
                       ) : (
                         <span className="text-gray-300" aria-label="No">-</span>
                       )}
-                    </td>
-                    <td className="py-2 whitespace-nowrap">
-                      <button
-                        onClick={() => setEditingPlayer(player)}
-                        className="text-blue-600 text-xs hover:underline"
-                      >
-                        Editar
-                      </button>
                     </td>
                   </tr>
                 ))}
@@ -285,9 +283,11 @@ export default function AdminPlayersPage() {
         <PlayerExtraModal
           player={editingPlayer}
           onClose={() => setEditingPlayer(null)}
-          onSaved={() => {
+          onSaved={(payload) => {
+            setSquad((prev) =>
+              prev.map((p) => (p.id === editingPlayer.id ? { ...p, ...payload, reviewed: true } : p))
+            );
             setEditingPlayer(null);
-            fetchData();
           }}
         />
       )}

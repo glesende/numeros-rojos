@@ -76,9 +76,11 @@ class ElectionController extends Controller
         return [
             'id'         => $list->id,
             'slug'       => $list->slug,
-            'name'       => $list->name,
-            'source_url' => $list->source_url,
-            'has_logo'   => !empty($list->logo_path),
+            'name'          => $list->name,
+            'source_url'    => $list->source_url,
+            'twitter_url'   => $list->twitter_url,
+            'instagram_url' => $list->instagram_url,
+            'has_logo'      => !empty($list->logo_path),
             ...($includePrivate ? ['token' => $list->token, 'is_active' => $list->is_active] : []),
             'candidates' => $list->candidates->map(function (ElectionCandidate $candidate) {
                 return [
@@ -172,10 +174,12 @@ class ElectionController extends Controller
     public function storeList(Request $request): JsonResponse
     {
         $this->validate($request, [
-            'name'       => 'required|string|max:255',
-            'source_url' => 'nullable|string|max:500',
-            'logo'       => 'nullable|file|mimes:jpg,jpeg,png,webp|max:5120',
-            'is_active'  => 'sometimes|boolean',
+            'name'           => 'required|string|max:255',
+            'source_url'     => 'nullable|string|max:500',
+            'twitter_url'    => 'nullable|string|max:500',
+            'instagram_url'  => 'nullable|string|max:500',
+            'logo'           => 'nullable|file|mimes:jpg,jpeg,png,webp|max:5120',
+            'is_active'      => 'sometimes|boolean',
         ]);
 
         $logoPath         = null;
@@ -192,6 +196,8 @@ class ElectionController extends Controller
             'slug'                => $this->generateUniqueSlug($request->input('name')),
             'name'                => $request->input('name'),
             'source_url'          => $request->input('source_url'),
+            'twitter_url'         => $request->input('twitter_url'),
+            'instagram_url'       => $request->input('instagram_url'),
             'logo_path'           => $logoPath,
             'logo_original_name'  => $logoOriginalName,
             'is_active'           => $request->has('is_active') ? $request->boolean('is_active') : true,
@@ -205,10 +211,12 @@ class ElectionController extends Controller
         $list = ElectionList::findOrFail($id);
 
         $this->validate($request, [
-            'name'       => 'sometimes|string|max:255',
-            'source_url' => 'nullable|string|max:500',
-            'logo'       => 'nullable|file|mimes:jpg,jpeg,png,webp|max:5120',
-            'is_active'  => 'sometimes|boolean',
+            'name'           => 'sometimes|string|max:255',
+            'source_url'     => 'nullable|string|max:500',
+            'twitter_url'    => 'nullable|string|max:500',
+            'instagram_url'  => 'nullable|string|max:500',
+            'logo'           => 'nullable|file|mimes:jpg,jpeg,png,webp|max:5120',
+            'is_active'      => 'sometimes|boolean',
         ]);
 
         if ($request->hasFile('logo') && $request->file('logo')->isValid()) {
@@ -220,7 +228,7 @@ class ElectionController extends Controller
             $list->logo_path          = $this->storeFile($logo, 'elections/logos');
         }
 
-        $list->fill($request->only(['name', 'source_url']));
+        $list->fill($request->only(['name', 'source_url', 'twitter_url', 'instagram_url']));
         if ($request->has('is_active')) {
             $list->is_active = $request->boolean('is_active');
         }
