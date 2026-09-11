@@ -38,8 +38,8 @@ export default function AdminElectionListFormPage() {
   // List basic form
   const [listName, setListName] = useState('');
   const [listSourceUrl, setListSourceUrl] = useState('');
-  const [listTwitterUrl, setListTwitterUrl] = useState('');
-  const [listInstagramUrl, setListInstagramUrl] = useState('');
+  const [listTwitterUser, setListTwitterUser] = useState('');
+  const [listInstagramUser, setListInstagramUser] = useState('');
   const [listIsActive, setListIsActive] = useState(true);
   const [listLogoFile, setListLogoFile] = useState(null);
   const [listLoading, setListLoading] = useState(false);
@@ -78,8 +78,8 @@ export default function AdminElectionListFormPage() {
         if (found) {
           setListName(found.name || '');
           setListSourceUrl(found.source_url || '');
-          setListTwitterUrl(found.twitter_url || '');
-          setListInstagramUrl(found.instagram_url || '');
+          setListTwitterUser(found.twitter_user || '');
+          setListInstagramUser(found.instagram_user || '');
           setListIsActive(found.is_active ?? true);
         }
       })
@@ -106,8 +106,8 @@ export default function AdminElectionListFormPage() {
       const formData = new FormData();
       formData.append('name', listName);
       formData.append('source_url', listSourceUrl);
-      formData.append('twitter_url', listTwitterUrl);
-      formData.append('instagram_url', listInstagramUrl);
+      formData.append('twitter_user', listTwitterUser);
+      formData.append('instagram_user', listInstagramUser);
       formData.append('is_active', listIsActive ? '1' : '0');
       if (listLogoFile) formData.append('logo', listLogoFile);
 
@@ -380,23 +380,23 @@ export default function AdminElectionListFormPage() {
               </p>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Twitter / X</label>
+              <label className="block text-sm font-medium mb-1">Usuario de Twitter / X</label>
               <input
-                type="url"
-                value={listTwitterUrl}
-                onChange={(e) => setListTwitterUrl(e.target.value)}
+                type="text"
+                value={listTwitterUser}
+                onChange={(e) => setListTwitterUser(e.target.value)}
                 className="input-field w-full"
-                placeholder="https://x.com/lalista"
+                placeholder="usuario (sin @)"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Instagram</label>
+              <label className="block text-sm font-medium mb-1">Usuario de Instagram</label>
               <input
-                type="url"
-                value={listInstagramUrl}
-                onChange={(e) => setListInstagramUrl(e.target.value)}
+                type="text"
+                value={listInstagramUser}
+                onChange={(e) => setListInstagramUser(e.target.value)}
                 className="input-field w-full"
-                placeholder="https://instagram.com/lalista"
+                placeholder="usuario (sin @)"
               />
             </div>
             <div>

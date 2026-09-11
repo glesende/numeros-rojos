@@ -35,7 +35,7 @@ function SectionBadges({ sections }) {
   );
 }
 
-function PlayerExtraModal({ player, onClose, onSaved }) {
+function PlayerExtraModal({ player, existingRepresentatives, onClose, onSaved }) {
   const [representative, setRepresentative] = useState(player.representative || '');
   const [representativeUrl, setRepresentativeUrl] = useState(player.representative_url || '');
   const [isAcademy, setIsAcademy] = useState(!!player.is_academy);
@@ -79,9 +79,15 @@ function PlayerExtraModal({ player, onClose, onSaved }) {
               type="text"
               value={representative}
               onChange={(e) => setRepresentative(e.target.value)}
-              placeholder="Nombre del representante"
+              placeholder="Elegí uno existente o escribí uno nuevo"
               className="input-field w-full"
+              list="representative-options"
             />
+            <datalist id="representative-options">
+              {existingRepresentatives.map((name) => (
+                <option key={name} value={name} />
+              ))}
+            </datalist>
           </div>
 
           <div>
@@ -139,6 +145,10 @@ export default function AdminPlayersPage() {
   };
 
   useEffect(fetchData, []);
+
+  const existingRepresentatives = [...new Set(
+    squad.map((p) => (p.representative || '').trim()).filter(Boolean)
+  )].sort((a, b) => a.localeCompare(b));
 
   const pendingCount = squad.filter((p) => !p.reviewed).length;
   const sectionCounts = Object.keys(SECTION_META).reduce((acc, key) => {
@@ -282,6 +292,7 @@ export default function AdminPlayersPage() {
       {editingPlayer && (
         <PlayerExtraModal
           player={editingPlayer}
+          existingRepresentatives={existingRepresentatives}
           onClose={() => setEditingPlayer(null)}
           onSaved={(payload) => {
             setSquad((prev) =>

@@ -105,7 +105,7 @@ export default function ElectionListContent({ list, showNoCommitmentsReason = fa
         </p>
       )}
 
-      {list.twitter_url && (
+      {list.twitter_user && (
         <p className="text-xs text-gray-400">
           Twitter/X:{' '}
           <a
@@ -114,12 +114,12 @@ export default function ElectionListContent({ list, showNoCommitmentsReason = fa
             rel="noopener noreferrer"
             className="text-rojo hover:underline break-all"
           >
-            {list.twitter_url}
+            @{list.twitter_user}
           </a>
         </p>
       )}
 
-      {list.instagram_url && (
+      {list.instagram_user && (
         <p className="text-xs text-gray-400">
           Instagram:{' '}
           <a
@@ -128,7 +128,7 @@ export default function ElectionListContent({ list, showNoCommitmentsReason = fa
             rel="noopener noreferrer"
             className="text-rojo hover:underline break-all"
           >
-            {list.instagram_url}
+            @{list.instagram_user}
           </a>
         </p>
       )}
