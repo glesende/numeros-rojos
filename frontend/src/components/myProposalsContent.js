@@ -56,14 +56,18 @@ export const PROPOSALS = [
 export const HIRING_PROTOCOL_EXAMPLES = [
   {
     title: 'Política de renovación de contratos',
-    body: 'Los futbolistas son el patrimonio más importante del club — no es ningún secreto. Un futbolista que termina su contrato y se va en libertad de acción puede generar un perjuicio económico muy grande para la institución. A la vez, los jugadores son personas y deben ser respetados en su condición humana. Por eso, el club ofrecerá, en los casos que considere corresponder, una renovación contractual a los futbolistas cuando les resten al menos 9 meses de contrato. Si esa renovación no es aceptada, el club se reserva el derecho de dejar al futbolista fuera de cualquier convocatoria del plantel profesional. Y si, superado ese plazo de 9 meses, el club aún no ofreció la renovación, no tomará ninguna acción al respecto y respetará la decisión del jugador de irse en libertad de acción.',
+    body: 'Los pases de futbolístas profesionales son el patrimonio más importante del club. Un jugador que decide irse en libertad de acción al terminar su contrato puede generar un perjuicio económico muy grande para la institución. A la vez, reconocemos y respetamos completamente la condición humana de los futbolístas. Por esto, el club ofrecerá, en los casos que considere, una renovación contractual cuando resten al menos 9 meses para finalizar el contrato. Si esa renovación no es aceptada, el club se reserva el derecho de dejar al jugador fuera de cualquier convocatoria del plantel profesional. Si superado ese plazo de 9 meses, el club aún no ofreció la renovación, no tomará ninguna acción al respecto y respetará la decisión del jugador.',
   },
   {
     title: 'Lista de exclusión',
-    body: 'Todo jugador, representante o club que atente de forma directa contra el patrimonio de Independiente pasará a integrar una lista de exclusión, que impedirá mantener con esa persona o entidad cualquier tipo de negociación futura. En el caso de los representantes, si aún tuvieran jugadores representados en el club, esos jugadores deberán cambiar de representación o buscar un nuevo equipo en el siguiente mercado de pases. Entre las decenas de miles de futbolistas profesionales que hay en el mundo, la enorme mayoría daría cualquier cosa por vestir la camiseta de Independiente: no podemos permitirnos seguir sosteniendo vínculos con quienes ya atentaron contra la institución.',
+    body: 'Todo jugador, representante o club que atente de forma directa contra el patrimonio de Independiente pasará a integrar una lista de exclusión, que impedirá mantener con esa persona o entidad cualquier tipo de negociación futura. En el caso de las agencias de representación, si aún tuvieran jugadores representados en el club, estos deberán cambiar de agencia o buscar un nuevo equipo en el siguiente mercado de pases. Entre las decenas de miles de futbolistas profesionales que hay en el mundo, la enorme mayoría daría cualquier cosa por vestir la camiseta de Independiente: no podemos permitirnos seguir sosteniendo vínculos con quienes ya atentaron contra la institución.',
   },
   {
     title: 'Política de comunicación de datos',
     body: 'Salvo las condiciones salariales, que por cuestiones legales no pueden compartirse, toda otra información relacionada con la contratación de futbolistas —montos, cláusulas, duración de los contratos, intermediarios intervinientes, comisiones, etc.— será de conocimiento público para los socios, en todos los casos.',
+  },
+  {
+    title: 'Cláusula de fidelidad nacional',
+    body: 'En cualquier proceso de venta de un futbolísta que el club realice al exterior se añadirá una cláusula, en la cual, el club comprador deberá abonar un monto fijo a Independiente si en el futuro traspasa (mediante venta o prestamo) al jugador a River Plate, Boca Juniors o Racing Club.',
   },
 ];

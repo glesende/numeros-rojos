@@ -156,6 +156,8 @@ export default function AdminPlayersPage() {
     return acc;
   }, {});
   const noSectionCount = squad.filter((p) => hasNoSection(p.sections)).length;
+  const contratosActivosCount = squad.filter((p) => p.sections?.contratos && p.contract_vigente).length;
+  const contratosInactivosCount = squad.filter((p) => p.sections?.contratos && !p.contract_vigente).length;
 
   const filteredSquad = squad
     .filter((p) => (p.nick || '').toLowerCase().includes(search.trim().toLowerCase()))
@@ -163,6 +165,8 @@ export default function AdminPlayersPage() {
     .filter((p) => {
       if (sectionFilter === 'all') return true;
       if (sectionFilter === 'none') return hasNoSection(p.sections);
+      if (sectionFilter === 'contratos_activos') return !!p.sections?.contratos && !!p.contract_vigente;
+      if (sectionFilter === 'contratos_inactivos') return !!p.sections?.contratos && !p.contract_vigente;
       return !!p.sections?.[sectionFilter];
     });
 
@@ -195,11 +199,27 @@ export default function AdminPlayersPage() {
           <QuickFilterPills
             options={[
               { label: `Todas las secciones (${squad.length})`, active: sectionFilter === 'all', onClick: () => setSectionFilter('all') },
-              ...Object.entries(SECTION_META).map(([key, meta]) => ({
-                label: `${meta.label} (${sectionCounts[key]})`,
-                active: sectionFilter === key,
-                onClick: () => setSectionFilter(key),
-              })),
+              ...Object.entries(SECTION_META).flatMap(([key, meta]) => {
+                if (key === 'contratos') {
+                  return [
+                    {
+                      label: `Contratos Activos (${contratosActivosCount})`,
+                      active: sectionFilter === 'contratos_activos',
+                      onClick: () => setSectionFilter('contratos_activos'),
+                    },
+                    {
+                      label: `Contratos Inactivos (${contratosInactivosCount})`,
+                      active: sectionFilter === 'contratos_inactivos',
+                      onClick: () => setSectionFilter('contratos_inactivos'),
+                    },
+                  ];
+                }
+                return [{
+                  label: `${meta.label} (${sectionCounts[key]})`,
+                  active: sectionFilter === key,
+                  onClick: () => setSectionFilter(key),
+                }];
+              }),
               { label: `Ninguna (${noSectionCount})`, active: sectionFilter === 'none', onClick: () => setSectionFilter('none') },
             ]}
           />

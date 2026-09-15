@@ -11,6 +11,7 @@ use App\Models\Setting;
 use App\Services\BeSoccerService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 class PlayerController extends Controller
 {
@@ -48,6 +49,22 @@ class PlayerController extends Controller
         $rumorSet     = array_flip(Rumor::whereIn('external_id', $allIds)->distinct()->pluck('external_id')->all());
         $rightSet     = array_flip(Right::whereIn('external_id', $allIds)->distinct()->pluck('external_id')->all());
 
+        // "Vigente" mirrors the definition used in the Contratos admin section: the
+        // player's current (non-historical) contract hasn't expired or been terminated.
+        $now = Carbon::now();
+        $vigenteSet = array_flip(
+            Contract::whereNull('parent_id')
+                ->whereIn('external_id', $allIds)
+                ->where('expiration_date', '>=', $now)
+                ->where(function ($q) use ($now) {
+                    $q->whereNull('termination_date')
+                      ->orWhere('termination_date', '>=', $now);
+                })
+                ->distinct()
+                ->pluck('external_id')
+                ->all()
+        );
+
         $buildSections = fn (string $id) => [
             'plantel'   => isset($squadSet[$id]),
             'contratos' => isset($contractSet[$id]),
@@ -55,7 +72,7 @@ class PlayerController extends Controller
             'derechos'  => isset($rightSet[$id]),
         ];
 
-        $players = array_map(function ($player) use ($allExtras, $buildSections) {
+        $players = array_map(function ($player) use ($allExtras, $buildSections, $vigenteSet) {
             $id = (string) ($player['id'] ?? '');
             $extra = $allExtras->get($id);
             $player['representative']     = $extra->representative ?? null;
@@ -63,6 +80,7 @@ class PlayerController extends Controller
             $player['is_academy']         = $extra->is_academy ?? false;
             $player['reviewed']           = $extra->reviewed ?? false;
             $player['sections']           = $buildSections($id);
+            $player['contract_vigente']   = isset($vigenteSet[$id]);
             return $player;
         }, $squad);
 
@@ -86,6 +104,7 @@ class PlayerController extends Controller
                 'is_academy'          => $extra->is_academy,
                 'reviewed'            => $extra->reviewed,
                 'sections'            => $buildSections($extra->besoccer_player_id),
+                'contract_vigente'    => isset($vigenteSet[$extra->besoccer_player_id]),
             ];
         }
 
