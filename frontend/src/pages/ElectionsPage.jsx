@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getElections, getElectionListLogoUrl } from '../api/endpoints';
+import { getElections, getElectionListLogoUrl, getElectionCandidatePhotoUrl } from '../api/endpoints';
 import { usePageMeta } from '../hooks/usePageMeta';
 import Loader from '../components/common/Loader';
 import ElectionMethodologyModal from '../components/ElectionMethodologyModal';
@@ -85,21 +85,37 @@ export default function ElectionsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          {electionLists.map((l) => (
-            <Link
-              key={l.id}
-              to={`/elecciones/${l.slug}`}
-              className="flex flex-col items-center text-center gap-2 p-4 rounded-xl border border-gray-100 hover:border-rojo/40 hover:shadow-sm transition-all bg-white"
-            >
-              {l.has_logo ? (
-                <img src={getElectionListLogoUrl(l.id)} alt={l.name} className="w-24 h-24 rounded-lg object-cover" />
-              ) : (
-                <div className="w-24 h-24 rounded-lg bg-gray-100" />
-              )}
-              <p className="text-sm font-semibold leading-tight">{l.name}</p>
-              <p className="text-xs text-gray-400">{(l.candidates || []).length} candidatos</p>
-            </Link>
-          ))}
+          {electionLists.map((l) => {
+            const topCandidate = (l.candidates || [])[0];
+            return (
+              <Link
+                key={l.id}
+                to={`/elecciones/${l.slug}`}
+                className="flex flex-col items-center text-center gap-2 p-4 rounded-xl border border-gray-100 hover:border-rojo/40 hover:shadow-sm transition-all bg-white"
+              >
+                <div className="flex items-center justify-center gap-2">
+                  {topCandidate?.has_photo ? (
+                    <img
+                      src={getElectionCandidatePhotoUrl(topCandidate.id)}
+                      alt={`${topCandidate.first_name} ${topCandidate.last_name}`}
+                      className="w-20 h-20 rounded-xl object-cover"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 rounded-xl bg-gray-200" />
+                  )}
+                  {l.has_logo ? (
+                    <img src={getElectionListLogoUrl(l.id)} alt={l.name} className="w-20 h-20 rounded-lg object-cover" />
+                  ) : (
+                    <div className="w-20 h-20 rounded-lg bg-gray-100" />
+                  )}
+                </div>
+                {topCandidate && (
+                  <p className="text-sm font-semibold leading-tight">{topCandidate.first_name} {topCandidate.last_name}</p>
+                )}
+                <p className="text-xs text-gray-400">{l.name}</p>
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>

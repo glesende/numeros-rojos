@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { getContracts, getRights, getRumors, getStadium, getElections, sendContact, getContractRecentMoves, getElectionListLogoUrl } from '../api/endpoints';
+import { getContracts, getRights, getRumors, getStadium, getElections, sendContact, getContractRecentMoves, getElectionListLogoUrl, getElectionCandidatePhotoUrl } from '../api/endpoints';
 import { usePageMeta } from '../hooks/usePageMeta';
 import PlayerMatchesModal from '../components/stats/PlayerMatchesModal';
 import ElectionListModal from '../components/ElectionListModal';
@@ -691,21 +691,37 @@ export default function HomePage() {
               onMouseLeave={eleccionesCarousel.onMouseLeave}
               onMouseMove={eleccionesCarousel.onMouseMove}
             >
-              {electionLists.map((l) => (
-                <button
-                  key={l.id}
-                  onClick={() => setSelectedElectionList(l)}
-                  className="flex-shrink-0 w-40 snap-start flex flex-col items-center text-center gap-2 p-4 rounded-xl border border-gray-100 hover:border-rojo/40 hover:shadow-sm transition-all bg-white"
-                >
-                  {l.has_logo ? (
-                    <img src={getElectionListLogoUrl(l.id)} alt={l.name} className="w-16 h-16 rounded-lg object-cover" />
-                  ) : (
-                    <div className="w-16 h-16 rounded-lg bg-gray-100" />
-                  )}
-                  <p className="text-sm font-semibold leading-tight">{l.name}</p>
-                  <p className="text-xs text-gray-400">{(l.candidates || []).length} candidatos</p>
-                </button>
-              ))}
+              {electionLists.map((l) => {
+                const topCandidate = (l.candidates || [])[0];
+                return (
+                  <button
+                    key={l.id}
+                    onClick={() => setSelectedElectionList(l)}
+                    className="flex-shrink-0 w-40 snap-start flex flex-col items-center text-center gap-2 p-4 rounded-xl border border-gray-100 hover:border-rojo/40 hover:shadow-sm transition-all bg-white"
+                  >
+                    <div className="flex items-center justify-center gap-1.5">
+                      {topCandidate?.has_photo ? (
+                        <img
+                          src={getElectionCandidatePhotoUrl(topCandidate.id)}
+                          alt={`${topCandidate.first_name} ${topCandidate.last_name}`}
+                          className="w-14 h-14 rounded-xl object-cover"
+                        />
+                      ) : (
+                        <div className="w-14 h-14 rounded-xl bg-gray-200" />
+                      )}
+                      {l.has_logo ? (
+                        <img src={getElectionListLogoUrl(l.id)} alt={l.name} className="w-14 h-14 rounded-lg object-cover" />
+                      ) : (
+                        <div className="w-14 h-14 rounded-lg bg-gray-100" />
+                      )}
+                    </div>
+                    {topCandidate && (
+                      <p className="text-sm font-semibold leading-tight">{topCandidate.first_name} {topCandidate.last_name}</p>
+                    )}
+                    <p className="text-xs text-gray-400">{l.name}</p>
+                  </button>
+                );
+              })}
             </div>
           )}
 

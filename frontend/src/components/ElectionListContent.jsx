@@ -91,60 +91,62 @@ export default function ElectionListContent({ list, showNoCommitmentsReason = fa
 
   return (
     <div className="space-y-6">
-      {list.source_url && (
-        <p className="text-xs text-gray-400">
-          Fuente:{' '}
-          <a
-            href={list.source_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-rojo hover:underline break-all"
-          >
-            {list.source_url}
-          </a>
-        </p>
-      )}
+      <div className="space-y-1">
+        {list.source_url && (
+          <p className="text-xs text-gray-400">
+            Fuente:{' '}
+            <a
+              href={list.source_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-rojo hover:underline break-all"
+            >
+              {list.source_url}
+            </a>
+          </p>
+        )}
 
-      {list.twitter_user && (
-        <p className="text-xs text-gray-400">
-          Twitter/X:{' '}
-          <a
-            href={list.twitter_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-rojo hover:underline break-all"
-          >
-            @{list.twitter_user}
-          </a>
-        </p>
-      )}
+        {list.twitter_user && (
+          <p className="text-xs text-gray-400">
+            Twitter/X:{' '}
+            <a
+              href={list.twitter_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-rojo hover:underline break-all"
+            >
+              @{list.twitter_user}
+            </a>
+          </p>
+        )}
 
-      {list.instagram_user && (
-        <p className="text-xs text-gray-400">
-          Instagram:{' '}
-          <a
-            href={list.instagram_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-rojo hover:underline break-all"
-          >
-            @{list.instagram_user}
-          </a>
-        </p>
-      )}
+        {list.instagram_user && (
+          <p className="text-xs text-gray-400">
+            Instagram:{' '}
+            <a
+              href={list.instagram_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-rojo hover:underline break-all"
+            >
+              @{list.instagram_user}
+            </a>
+          </p>
+        )}
 
-      {onOpenMethodology && (
-        <button
-          type="button"
-          onClick={onOpenMethodology}
-          className="text-xs text-rojo hover:underline font-medium inline-flex items-center gap-1"
-        >
-          <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path fillRule="evenodd" d="M18 10A8 8 0 112 10a8 8 0 0116 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9zm1-4a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd" />
-          </svg>
-          Metodología
-        </button>
-      )}
+        {onOpenMethodology && (
+          <button
+            type="button"
+            onClick={onOpenMethodology}
+            className="text-xs text-rojo hover:underline font-medium inline-flex items-center gap-1"
+          >
+            <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fillRule="evenodd" d="M18 10A8 8 0 112 10a8 8 0 0116 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9zm1-4a1 1 0 100 2 1 1 0 000-2z" clipRule="evenodd" />
+            </svg>
+            Metodología
+          </button>
+        )}
+      </div>
 
       {/* Candidates */}
       <div>

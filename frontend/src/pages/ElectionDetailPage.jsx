@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { getElectionBySlug, getElectionListLogoUrl } from '../api/endpoints';
 import { usePageMeta } from '../hooks/usePageMeta';
 import Loader from '../components/common/Loader';
@@ -38,6 +38,10 @@ export default function ElectionDetailPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
+      <Link to="/elecciones" className="text-rojo text-sm hover:underline mb-4 inline-block">
+        &larr; Volver a elecciones
+      </Link>
+
       <div className="flex items-center gap-4 mb-6">
         {list.has_logo ? (
           <img
