@@ -214,8 +214,15 @@ PROMPT;
     }
 
     /**
-     * Detect whether a PDF has a readable text layer.
-     * Returns false for scanned (image-only) PDFs.
+     * Detect whether a PDF has a usable, readable text layer.
+     * Returns false for scanned (image-only) PDFs AND for PDFs whose text
+     * layer is present but unreadable — some certified/signed exports (e.g.
+     * official Argentine balance filings) embed a subsetted font with a
+     * scrambled glyph-to-character mapping to block copy/paste. pdftotext
+     * still extracts plenty of characters in that case, but they decode to
+     * a consistent substitution cipher instead of real words or digits, so
+     * a length check alone misclassifies these as "has text layer" and
+     * feeds garbage to the model instead of falling back to page images.
      */
     private function pdfHasTextLayer(string $filePath): bool
     {
@@ -235,9 +242,23 @@ PROMPT;
         $text = implode('', $output);
         // Strip form-feed characters (page breaks with no content)
         $text = str_replace("\f", '', $text);
+        $text = trim($text);
 
-        // If more than 200 meaningful characters, it has a text layer
-        return mb_strlen(trim($text)) > 200;
+        // If fewer than 200 meaningful characters, treat as scanned
+        if (mb_strlen($text) <= 200) {
+            return false;
+        }
+
+        // Guard against scrambled-font PDFs: real financial statements in
+        // Spanish will contain at least one of these common headings in
+        // plain, unscrambled form. If none appear despite there being
+        // plenty of extracted characters, the text layer is unreadable.
+        $hasRecognizableWords = (bool) preg_match(
+            '/\b(ACTIVO|PASIVO|PATRIMONIO|BALANCE|ESTADO\s+DE|RECURSOS|GASTOS)\b/ui',
+            $text
+        );
+
+        return $hasRecognizableWords;
     }
 
     /**
