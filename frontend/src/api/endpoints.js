@@ -9,6 +9,11 @@ export const createEconomyRecord = (data) => client.post('/admin/economy', data)
 export const updateEconomyRecord = (id, data) => client.put(`/admin/economy/${id}`, data);
 export const deleteEconomyRecord = (id) => client.delete(`/admin/economy/${id}`);
 
+// BCRA
+export const getBcraDebts = (params = {}) => client.get('/bcra/debts', { params });
+export const getBcraDebtRecords = (params = {}) => client.get('/bcra/debts/records', { params });
+export const getBcraRejectedChecks = () => client.get('/bcra/checks');
+
 // Contracts
 export const getContracts = (params = {}) => client.get('/contracts', { params });
 export const getContractStats = () => client.get('/contracts/stats');

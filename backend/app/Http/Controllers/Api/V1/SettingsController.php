@@ -17,12 +17,14 @@ class SettingsController extends Controller
         'section_estadio_enabled',
         'section_rumores_enabled',
         'section_elecciones_enabled',
+        'section_bcra_enabled',
     ];
 
     // Sections that default to disabled when no setting exists in DB
     private const SECTION_KEYS_DEFAULT_OFF = [
         'section_rumores_enabled',
         'section_elecciones_enabled',
+        'section_bcra_enabled',
     ];
 
     private const CHART_SCALE_KEYS = [
@@ -71,6 +73,8 @@ class SettingsController extends Controller
             'section_estadio_enabled'    => 'sometimes|boolean',
             'section_rumores_enabled'    => 'sometimes|boolean',
             'section_elecciones_enabled' => 'sometimes|boolean',
+            'section_bcra_enabled'       => 'sometimes|boolean',
+            'bcra_cuit'                    => 'sometimes|nullable|string|max:20',
             'balance_chart_default_items'   => 'sometimes|nullable|string',
             'balance_chart_filter_items'    => 'sometimes|nullable|string',
             'balance_chart_label_overrides' => 'sometimes|nullable|string',
@@ -84,7 +88,7 @@ class SettingsController extends Controller
             'twitter_api_key',
             'section_economia_enabled', 'section_contratos_enabled', 'section_derechos_enabled',
             'section_balances_enabled', 'section_estadio_enabled', 'section_rumores_enabled',
-            'section_elecciones_enabled',
+            'section_elecciones_enabled', 'section_bcra_enabled', 'bcra_cuit',
             'balance_chart_default_items', 'balance_chart_filter_items', 'balance_chart_label_overrides',
             'chart_scale_usd', 'chart_scale_eur', 'chart_scale_ars',
         ];

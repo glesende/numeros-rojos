@@ -9,6 +9,7 @@ import ChunkErrorBoundary from './components/common/ChunkErrorBoundary';
 const HomePage                    = lazy(() => import('./pages/HomePage'));
 const EconomyPage                 = lazy(() => import('./pages/EconomyPage'));
 const EconomyDetailPage           = lazy(() => import('./pages/EconomyDetailPage'));
+const BcraDebtsPage               = lazy(() => import('./pages/BcraDebtsPage'));
 const ContractsPage               = lazy(() => import('./pages/ContractsPage'));
 const ContractDetailPage          = lazy(() => import('./pages/ContractDetailPage'));
 const BalancesPage                = lazy(() => import('./pages/BalancesPage'));
@@ -68,6 +69,7 @@ export default function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/economia" element={<EconomyPage />} />
         <Route path="/economia/:id" element={<EconomyDetailPage />} />
+        <Route path="/deudas-bancarias" element={<BcraDebtsPage />} />
         <Route path="/contratos" element={<ContractsPage />} />
         <Route path="/contratos/:id" element={<ContractDetailPage />} />
         <Route path="/balances" element={<BalancesPage />} />

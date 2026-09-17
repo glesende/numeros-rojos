@@ -37,6 +37,12 @@ export default function AdminSettings() {
   const [openaiSuccess, setOpenaiSuccess] = useState('');
   const [openaiLoading, setOpenaiLoading] = useState(false);
 
+  const [bcraEnabled, setBcraEnabled] = useState(false);
+  const [bcraCuit, setBcraCuit] = useState('');
+  const [bcraError, setBcraError] = useState('');
+  const [bcraSuccess, setBcraSuccess] = useState('');
+  const [bcraLoading, setBcraLoading] = useState(false);
+
   const [chartScaleUsd, setChartScaleUsd] = useState('');
   const [chartScaleEur, setChartScaleEur] = useState('');
   const [chartScaleArs, setChartScaleArs] = useState('');
@@ -68,6 +74,8 @@ export default function AdminSettings() {
         setBesoccerTeamId(data.besoccer_team_id || '');
         setOpenaiApiKey(data.openai_api_key || '');
         setOpenaiModel(data.openai_model || 'gpt-4o');
+        setBcraEnabled(data.section_bcra_enabled === '1');
+        setBcraCuit(data.bcra_cuit || '');
         setChartScaleUsd(data.chart_scale_usd ?? '');
         setChartScaleEur(data.chart_scale_eur ?? '');
         setChartScaleArs(data.chart_scale_ars ?? '');
@@ -135,6 +143,24 @@ export default function AdminSettings() {
       setServiceError(err.response?.data?.error || 'Error al guardar la configuración');
     } finally {
       setServiceLoading(false);
+    }
+  };
+
+  const handleBcraSubmit = async (e) => {
+    e.preventDefault();
+    setBcraError('');
+    setBcraSuccess('');
+    setBcraLoading(true);
+    try {
+      await updateSettings({
+        section_bcra_enabled: bcraEnabled,
+        bcra_cuit: bcraCuit,
+      });
+      setBcraSuccess('Configuración guardada correctamente');
+    } catch (err) {
+      setBcraError(err.response?.data?.error || 'Error al guardar la configuración');
+    } finally {
+      setBcraLoading(false);
     }
   };
 
@@ -346,6 +372,75 @@ export default function AdminSettings() {
               className="btn-primary w-full"
             >
               {openaiLoading ? 'Guardando...' : 'Guardar configuración OpenAI'}
+            </button>
+          </form>
+        )}
+      </div>
+
+      {/* BCRA configuration */}
+      <div className="card mb-6">
+        <h2 className="text-lg font-bold mb-1">Banco Central</h2>
+        <p className="text-sm text-gray-500 mb-4">
+          Habilitá la sección "Deudas bancarias" y configurá el CUIT del club para sincronizar su deuda contra el BCRA.
+        </p>
+
+        {!settingsLoaded ? (
+          <p className="text-sm text-gray-500">Cargando...</p>
+        ) : (
+          <form onSubmit={handleBcraSubmit} className="space-y-4">
+            {bcraError && <ErrorMessage message={bcraError} />}
+            {bcraSuccess && (
+              <div className="p-3 bg-green-50 text-green-700 rounded-lg text-sm">
+                {bcraSuccess}
+              </div>
+            )}
+
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="font-semibold text-sm text-gray-800">Sección habilitada</p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {bcraEnabled
+                    ? 'Se muestra en la landing y en el menú de navegación.'
+                    : 'Está oculta en la landing y en el menú de navegación.'}
+                </p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                <input
+                  type="checkbox"
+                  className="sr-only peer"
+                  checked={bcraEnabled}
+                  onChange={(e) => setBcraEnabled(e.target.checked)}
+                />
+                <div className={`w-11 h-6 rounded-full peer transition-colors ${
+                  bcraEnabled ? 'bg-rojo' : 'bg-gray-300'
+                } peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-rojo/30 after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all ${
+                  bcraEnabled ? 'after:translate-x-5' : ''
+                }`} />
+              </label>
+            </div>
+
+            {bcraEnabled && (
+              <div>
+                <label className="block text-sm font-medium mb-1">CUIT del club</label>
+                <input
+                  type="text"
+                  value={bcraCuit}
+                  onChange={(e) => setBcraCuit(e.target.value)}
+                  className="input-field w-full"
+                  placeholder="Ej: 30500000000"
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  Se usa para consultar la deuda del club en la Central de Deudores del BCRA.
+                </p>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={bcraLoading}
+              className="btn-primary w-full"
+            >
+              {bcraLoading ? 'Guardando...' : 'Guardar configuración'}
             </button>
           </form>
         )}
