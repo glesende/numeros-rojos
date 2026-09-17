@@ -130,32 +130,18 @@ class BcraController extends Controller
             ->orderByDesc('rejection_date')
             ->get();
 
-        $rows      = [];
-        $totalUsd  = 0.0;
-        foreach ($checks as $check) {
-            $quote = $this->quoteAsOf($check->rejection_date);
-
-            // Skip checks we can't dollarize yet (no quote available at or before that date).
-            if (!$quote) {
-                continue;
-            }
-
-            $amountUsd = round($check->amount / $quote->rate, 2);
-            $totalUsd += $amountUsd;
-
-            $rows[] = [
-                'rejection_date'   => $check->rejection_date->toDateString(),
-                'amount_ars'       => $check->amount,
-                'amount_usd'       => $amountUsd,
-                'pending'          => $check->payment_date === null,
-                'under_review'     => $check->under_review,
-                'legal_proceeding' => $check->legal_proceeding,
-            ];
-        }
+        $rows = $checks->map(fn (RejectedCheck $check) => [
+            'rejection_date'   => $check->rejection_date->toDateString(),
+            'amount_ars'       => $check->amount,
+            'pending'          => $check->payment_date === null,
+            'under_review'     => $check->under_review,
+            'legal_proceeding' => $check->legal_proceeding,
+        ]);
 
         return response()->json([
-            'count'     => count($rows),
-            'total_usd' => round($totalUsd, 2),
+            'count'     => $rows->count(),
+            // Only pending checks (not yet regularized) count towards the total.
+            'total_ars' => $checks->whereNull('payment_date')->sum('amount'),
             'rows'      => $rows,
         ]);
     }

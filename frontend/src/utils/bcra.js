@@ -30,6 +30,11 @@ export function formatUsd(value) {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(value);
 }
 
+export function formatArs(value) {
+  if (value === null || value === undefined) return '-';
+  return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(value);
+}
+
 function formatCompactNumber(value) {
   const abs = Math.abs(value);
   if (abs >= 1_000_000_000) return (value / 1_000_000_000).toFixed(1) + 'B';

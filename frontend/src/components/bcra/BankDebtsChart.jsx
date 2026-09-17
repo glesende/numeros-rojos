@@ -13,6 +13,7 @@ import { getBcraDebts, getBcraRejectedChecks } from '../../api/endpoints';
 import Loader from '../common/Loader';
 import { CHART_THEME, LINE_COLORS } from '../../constants/chartColors';
 import {
+  formatArs,
   formatArsCompact,
   formatPeriodLabel,
   formatUsd,
@@ -204,20 +205,15 @@ export default function BankDebtsChart() {
           <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-3">
             Cheques sin fondo
           </h3>
-          <p className="text-sm text-gray-500 mb-3">
-            {checks.count} {checks.count === 1 ? 'cheque rechazado' : 'cheques rechazados'} · Total{' '}
-            {formatUsd(checks.total_usd)}
-          </p>
 
           <div className="block md:hidden space-y-3">
             {checks.rows.map((row, i) => (
               <div key={`${row.rejection_date}-${i}`} className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <span className="text-xs text-gray-500">{formatCheckDate(row.rejection_date)}</span>
-                  <div className="text-right font-mono font-semibold text-sm leading-tight">
-                    <div>{formatArsCompact(row.amount_ars)}</div>
-                    <div className="text-xs text-gray-400 font-normal">{formatUsdCompact(row.amount_usd)}</div>
-                  </div>
+                  <span className="font-mono font-semibold text-sm whitespace-nowrap">
+                    {formatArsCompact(row.amount_ars)}
+                  </span>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
                   {row.pending ? (
@@ -247,9 +243,8 @@ export default function BankDebtsChart() {
                 {checks.rows.map((row, i) => (
                   <tr key={`${row.rejection_date}-${i}`} className="border-b border-gray-50 hover:bg-gray-50">
                     <td className="py-2 pr-4 whitespace-nowrap">{formatCheckDate(row.rejection_date)}</td>
-                    <td className="py-2 pr-4 text-right font-mono whitespace-nowrap leading-tight text-xs">
-                      <div>{formatArsCompact(row.amount_ars)}</div>
-                      <div className="text-gray-400">{formatUsdCompact(row.amount_usd)}</div>
+                    <td className="py-2 pr-4 text-right font-mono whitespace-nowrap text-xs">
+                      {formatArsCompact(row.amount_ars)}
                     </td>
                     <td className="py-2 pr-4 text-xs">
                       {row.pending ? (
@@ -265,6 +260,11 @@ export default function BankDebtsChart() {
               </tbody>
             </table>
           </div>
+
+          <p className="text-sm font-bold text-gray-800 mt-4">
+            {checks.count} {checks.count === 1 ? 'cheque rechazado' : 'cheques rechazados'} · Total{' '}
+            {formatArs(checks.total_ars)}
+          </p>
         </div>
       )}
     </div>
