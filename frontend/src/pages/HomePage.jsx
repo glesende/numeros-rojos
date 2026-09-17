@@ -7,6 +7,7 @@ import ElectionListModal from '../components/ElectionListModal';
 import ElectionMethodologyModal from '../components/ElectionMethodologyModal';
 import Loader from '../components/common/Loader';
 import MonthlyBarChart from '../components/economy/MonthlyBarChart';
+import BankDebtsChart from '../components/bcra/BankDebtsChart';
 import BalanceLineChart from '../components/balances/BalanceLineChart';
 import StatsWidget from '../components/stats/StatsWidget';
 import useSectionSettings from '../hooks/useSectionSettings';
@@ -758,6 +759,13 @@ export default function HomePage() {
       {sections.section_economia_enabled !== false && (
         <section id="compromisos-economicos" className="max-w-6xl mx-auto px-4 py-4">
           <MonthlyBarChart />
+        </section>
+      )}
+
+      {/* Bank debts (BCRA) chart */}
+      {sections.section_bcra_enabled === true && (
+        <section id="deudas-bancarias" className="max-w-6xl mx-auto px-4 py-4">
+          <BankDebtsChart />
         </section>
       )}
 

@@ -41,6 +41,11 @@ $router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use 
     // Section visibility (public)
     $router->get('settings/sections', 'SettingsController@sections');
 
+    // BCRA (public)
+    $router->get('bcra/debts', 'BcraController@debts');
+    $router->get('bcra/debts/records', 'BcraController@records');
+    $router->get('bcra/checks', 'BcraController@rejectedChecks');
+
     // Stadium (public)
     $router->get('stadium', 'StadiumController@index');
 
