@@ -1,13 +1,20 @@
 <?php
 
-require_once __DIR__ . '/../vendor/autoload.php';
+use Illuminate\Foundation\Application;
+use Illuminate\Http\Request;
 
-(new Laravel\Lumen\Bootstrap\LoadEnvironmentVariables(
-    dirname(__DIR__)
-))->bootstrap();
+define('LARAVEL_START', microtime(true));
 
-date_default_timezone_set(env('APP_TIMEZONE', 'America/Argentina/Buenos_Aires'));
+// Determine if the application is in maintenance mode...
+if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
+    require $maintenance;
+}
 
-$app = require __DIR__ . '/../bootstrap/app.php';
+// Register the Composer autoloader...
+require __DIR__.'/../vendor/autoload.php';
 
-$app->run();
+// Bootstrap Laravel and handle the request...
+/** @var Application $app */
+$app = require_once __DIR__.'/../bootstrap/app.php';
+
+$app->handleRequest(Request::capture());

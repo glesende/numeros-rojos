@@ -1,8 +1,8 @@
 <?php
 
-/** @var \Laravel\Lumen\Routing\Router $router */
+use Illuminate\Support\Facades\Route;
 
-$router->get('/', function () {
+Route::get('/', function () {
     return response()->json([
         'name'    => 'Números Rojos API',
         'version' => '1.0.0',

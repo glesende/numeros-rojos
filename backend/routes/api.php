@@ -1,154 +1,154 @@
 <?php
 
-/** @var \Laravel\Lumen\Routing\Router $router */
+use Illuminate\Support\Facades\Route;
 
 // Sitemap (público, sin versión)
-$router->get('api/sitemap.xml', ['uses' => 'Api\V1\SitemapController@index']);
+Route::get('api/sitemap.xml', ['uses' => 'Api\V1\SitemapController@index']);
 
-$router->group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () use ($router) {
+Route::group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () {
 
     // Auth
-    $router->post('auth/login', 'AuthController@login');
+    Route::post('auth/login', 'AuthController@login');
 
     // Public endpoints
-    $router->get('economy', 'EconomyRecordController@index');
-    $router->get('economy/monthly-summary', 'EconomyRecordController@monthlySummary');
-    $router->get('economy/overdue-evolution', 'EconomyRecordController@overdueEvolution');
-    $router->get('economy/{id}', 'EconomyRecordController@show');
-    $router->get('contracts', 'ContractController@index');
-    $router->get('contracts/stats', 'ContractController@stats');
-    $router->get('contracts/recent-moves', 'ContractController@recentMoves');
-    $router->get('contracts/representatives', 'ContractController@representatives');
-    $router->get('contracts/{id}', 'ContractController@show');
-    $router->get('rights', 'RightController@index');
-    $router->get('rights/{id}', 'RightController@show');
-    $router->get('rumors', 'RumorController@index');
-    $router->get('rumors/{id}', 'RumorController@show');
-    $router->get('markets', 'MarketController@index');
-    $router->get('elections', 'ElectionController@index');
-    $router->get('elections/token/{token}', 'ElectionController@showByToken');
-    $router->get('elections/slug/{slug}', 'ElectionController@showBySlug');
-    $router->get('elections/lists/{id}/logo', 'ElectionController@logo');
-    $router->get('elections/candidates/{id}/photo', 'ElectionController@candidatePhoto');
-    $router->get('elections/candidates/{id}/cv', 'ElectionController@candidateCv');
+    Route::get('economy', 'EconomyRecordController@index');
+    Route::get('economy/monthly-summary', 'EconomyRecordController@monthlySummary');
+    Route::get('economy/overdue-evolution', 'EconomyRecordController@overdueEvolution');
+    Route::get('economy/{id}', 'EconomyRecordController@show');
+    Route::get('contracts', 'ContractController@index');
+    Route::get('contracts/stats', 'ContractController@stats');
+    Route::get('contracts/recent-moves', 'ContractController@recentMoves');
+    Route::get('contracts/representatives', 'ContractController@representatives');
+    Route::get('contracts/{id}', 'ContractController@show');
+    Route::get('rights', 'RightController@index');
+    Route::get('rights/{id}', 'RightController@show');
+    Route::get('rumors', 'RumorController@index');
+    Route::get('rumors/{id}', 'RumorController@show');
+    Route::get('markets', 'MarketController@index');
+    Route::get('elections', 'ElectionController@index');
+    Route::get('elections/token/{token}', 'ElectionController@showByToken');
+    Route::get('elections/slug/{slug}', 'ElectionController@showBySlug');
+    Route::get('elections/lists/{id}/logo', 'ElectionController@logo');
+    Route::get('elections/candidates/{id}/photo', 'ElectionController@candidatePhoto');
+    Route::get('elections/candidates/{id}/cv', 'ElectionController@candidateCv');
 
     // Balances (public)
-    $router->get('balances', 'BalanceController@index');
-    $router->get('balances/evolution', 'BalanceController@evolution');
-    $router->get('balances/{id}', 'BalanceController@show');
-    $router->get('balances/{id}/download', 'BalanceController@download');
+    Route::get('balances', 'BalanceController@index');
+    Route::get('balances/evolution', 'BalanceController@evolution');
+    Route::get('balances/{id}', 'BalanceController@show');
+    Route::get('balances/{id}/download', 'BalanceController@download');
 
     // Section visibility (public)
-    $router->get('settings/sections', 'SettingsController@sections');
+    Route::get('settings/sections', 'SettingsController@sections');
 
     // BCRA (public)
-    $router->get('bcra/debts', 'BcraController@debts');
-    $router->get('bcra/debts/records', 'BcraController@records');
-    $router->get('bcra/checks', 'BcraController@rejectedChecks');
+    Route::get('bcra/debts', 'BcraController@debts');
+    Route::get('bcra/debts/records', 'BcraController@records');
+    Route::get('bcra/checks', 'BcraController@rejectedChecks');
 
     // Stadium (public)
-    $router->get('stadium', 'StadiumController@index');
+    Route::get('stadium', 'StadiumController@index');
 
     // Contact
-    $router->post('contact', 'ContactController@send');
+    Route::post('contact', 'ContactController@send');
 
     // Stats (BeSoccer proxy)
-    $router->get('player/{id}/stats', 'StatsController@playerStats');
-    $router->get('player/{id}/matches', 'StatsController@playerMatches');
-    $router->get('player/{id}', 'StatsController@playerData');
-    $router->get('league/stats', 'StatsController@leagueStats');
-    $router->get('team', 'StatsController@team');
+    Route::get('player/{id}/stats', 'StatsController@playerStats');
+    Route::get('player/{id}/matches', 'StatsController@playerMatches');
+    Route::get('player/{id}', 'StatsController@playerData');
+    Route::get('league/stats', 'StatsController@leagueStats');
+    Route::get('team', 'StatsController@team');
 
     // Refresh no necesita jwt.auth: acepta tokens expirados por diseño
-    $router->post('admin/auth/refresh', ['uses' => 'Api\V1\AuthController@refresh']);
+    Route::post('admin/auth/refresh', ['uses' => 'Api\V1\AuthController@refresh']);
 
     // Admin (protected)
-    $router->group(['middleware' => 'jwt.auth', 'prefix' => 'admin'], function () use ($router) {
+    Route::group(['middleware' => 'jwt.auth', 'prefix' => 'admin'], function () {
         // Auth
-        $router->get('me', 'AuthController@me');
-        $router->post('auth/logout', 'AuthController@logout');
-        $router->post('auth/change-password', 'AuthController@changePassword');
+        Route::get('me', 'AuthController@me');
+        Route::post('auth/logout', 'AuthController@logout');
+        Route::post('auth/change-password', 'AuthController@changePassword');
 
         // Settings
-        $router->get('settings', 'SettingsController@index');
-        $router->put('settings', 'SettingsController@update');
+        Route::get('settings', 'SettingsController@index');
+        Route::put('settings', 'SettingsController@update');
 
         // Economy CRUD
-        $router->post('economy', 'EconomyRecordController@store');
-        $router->put('economy/{id}', 'EconomyRecordController@update');
-        $router->delete('economy/{id}', 'EconomyRecordController@destroy');
+        Route::post('economy', 'EconomyRecordController@store');
+        Route::put('economy/{id}', 'EconomyRecordController@update');
+        Route::delete('economy/{id}', 'EconomyRecordController@destroy');
 
         // Contracts CRUD
-        $router->post('contracts', 'ContractController@store');
-        $router->put('contracts/{id}', 'ContractController@update');
-        $router->delete('contracts/{id}', 'ContractController@destroy');
-        $router->post('contracts/{id}/save-as-change', 'ContractController@saveAsChange');
+        Route::post('contracts', 'ContractController@store');
+        Route::put('contracts/{id}', 'ContractController@update');
+        Route::delete('contracts/{id}', 'ContractController@destroy');
+        Route::post('contracts/{id}/save-as-change', 'ContractController@saveAsChange');
 
         // Rights CRUD
-        $router->post('rights', 'RightController@store');
-        $router->put('rights/{id}', 'RightController@update');
-        $router->delete('rights/{id}', 'RightController@destroy');
+        Route::post('rights', 'RightController@store');
+        Route::put('rights/{id}', 'RightController@update');
+        Route::delete('rights/{id}', 'RightController@destroy');
 
         // Players (extra data hydrated onto BeSoccer squad)
-        $router->get('players', 'PlayerController@adminIndex');
-        $router->get('players/{id}/extra', 'PlayerController@show');
-        $router->put('players/{id}/extra', 'PlayerController@updateExtra');
+        Route::get('players', 'PlayerController@adminIndex');
+        Route::get('players/{id}/extra', 'PlayerController@show');
+        Route::put('players/{id}/extra', 'PlayerController@updateExtra');
 
         // Rumors CRUD
-        $router->post('rumors', 'RumorController@store');
-        $router->put('rumors/{id}', 'RumorController@update');
-        $router->delete('rumors/{id}', 'RumorController@destroy');
+        Route::post('rumors', 'RumorController@store');
+        Route::put('rumors/{id}', 'RumorController@update');
+        Route::delete('rumors/{id}', 'RumorController@destroy');
 
         // Markets CRUD
-        $router->post('markets', 'MarketController@store');
-        $router->put('markets/{id}', 'MarketController@update');
-        $router->delete('markets/{id}', 'MarketController@destroy');
-        $router->post('markets/{id}/activate', 'MarketController@activate');
-        $router->post('markets/deactivate', 'MarketController@deactivate');
+        Route::post('markets', 'MarketController@store');
+        Route::put('markets/{id}', 'MarketController@update');
+        Route::delete('markets/{id}', 'MarketController@destroy');
+        Route::post('markets/{id}/activate', 'MarketController@activate');
+        Route::post('markets/deactivate', 'MarketController@deactivate');
 
         // Balances CRUD
-        $router->post('balances', 'BalanceController@store');
-        $router->put('balances/{id}', 'BalanceController@update');
+        Route::post('balances', 'BalanceController@store');
+        Route::put('balances/{id}', 'BalanceController@update');
         // POST route for file uploads (multipart/form-data support)
-        $router->post('balances/{id}/update', 'BalanceController@update');
-        $router->delete('balances/{id}', 'BalanceController@destroy');
-        $router->post('balances/{id}/analyze', 'BalanceController@analyze');
-        $router->post('balances/{id}/apply-analysis', 'BalanceController@applyAnalysis');
+        Route::post('balances/{id}/update', 'BalanceController@update');
+        Route::delete('balances/{id}', 'BalanceController@destroy');
+        Route::post('balances/{id}/analyze', 'BalanceController@analyze');
+        Route::post('balances/{id}/apply-analysis', 'BalanceController@applyAnalysis');
 
         // Balance items (for admin configuration)
-        $router->get('balances/items', 'BalanceController@allBalanceItems');
+        Route::get('balances/items', 'BalanceController@allBalanceItems');
 
         // Balance lines CRUD (manual editing)
-        $router->post('balances/{balanceId}/lines', 'BalanceController@storeLine');
-        $router->post('balances/{balanceId}/lines/reorder', 'BalanceController@reorderLines');
-        $router->put('balances/{balanceId}/lines/{lineId}', 'BalanceController@updateLine');
-        $router->delete('balances/{balanceId}/lines/{lineId}', 'BalanceController@destroyLine');
+        Route::post('balances/{balanceId}/lines', 'BalanceController@storeLine');
+        Route::post('balances/{balanceId}/lines/reorder', 'BalanceController@reorderLines');
+        Route::put('balances/{balanceId}/lines/{lineId}', 'BalanceController@updateLine');
+        Route::delete('balances/{balanceId}/lines/{lineId}', 'BalanceController@destroyLine');
 
         // Stadium CRUD
-        $router->post('stadium/config', 'StadiumController@storeConfig');
-        $router->post('stadium/sectors', 'StadiumController@storeSector');
-        $router->put('stadium/sectors/{id}', 'StadiumController@updateSector');
-        $router->delete('stadium/sectors/{id}', 'StadiumController@destroySector');
+        Route::post('stadium/config', 'StadiumController@storeConfig');
+        Route::post('stadium/sectors', 'StadiumController@storeSector');
+        Route::put('stadium/sectors/{id}', 'StadiumController@updateSector');
+        Route::delete('stadium/sectors/{id}', 'StadiumController@destroySector');
 
         // Elections CRUD
-        $router->get('elections', 'ElectionController@adminIndex');
-        $router->post('elections/lists', 'ElectionController@storeList');
-        $router->post('elections/lists/{id}/update', 'ElectionController@updateList');
-        $router->delete('elections/lists/{id}', 'ElectionController@destroyList');
-        $router->post('elections/lists/{listId}/candidates', 'ElectionController@storeCandidate');
-        $router->post('elections/candidates/{id}/update', 'ElectionController@updateCandidate');
-        $router->delete('elections/candidates/{id}', 'ElectionController@destroyCandidate');
-        $router->post('elections/lists/{listId}/proposals', 'ElectionController@storeProposal');
-        $router->put('elections/proposals/{id}', 'ElectionController@updateProposal');
-        $router->delete('elections/proposals/{id}', 'ElectionController@destroyProposal');
-        $router->post('elections/proposals/{proposalId}/commitments', 'ElectionController@storeCommitment');
-        $router->put('elections/commitments/{id}', 'ElectionController@updateCommitment');
-        $router->delete('elections/commitments/{id}', 'ElectionController@destroyCommitment');
+        Route::get('elections', 'ElectionController@adminIndex');
+        Route::post('elections/lists', 'ElectionController@storeList');
+        Route::post('elections/lists/{id}/update', 'ElectionController@updateList');
+        Route::delete('elections/lists/{id}', 'ElectionController@destroyList');
+        Route::post('elections/lists/{listId}/candidates', 'ElectionController@storeCandidate');
+        Route::post('elections/candidates/{id}/update', 'ElectionController@updateCandidate');
+        Route::delete('elections/candidates/{id}', 'ElectionController@destroyCandidate');
+        Route::post('elections/lists/{listId}/proposals', 'ElectionController@storeProposal');
+        Route::put('elections/proposals/{id}', 'ElectionController@updateProposal');
+        Route::delete('elections/proposals/{id}', 'ElectionController@destroyProposal');
+        Route::post('elections/proposals/{proposalId}/commitments', 'ElectionController@storeCommitment');
+        Route::put('elections/commitments/{id}', 'ElectionController@updateCommitment');
+        Route::delete('elections/commitments/{id}', 'ElectionController@destroyCommitment');
 
         // Twitter accounts CRUD
-        $router->get('twitter/accounts', 'TwitterController@index');
-        $router->post('twitter/accounts', 'TwitterController@store');
-        $router->put('twitter/accounts/{id}', 'TwitterController@update');
-        $router->delete('twitter/accounts/{id}', 'TwitterController@destroy');
+        Route::get('twitter/accounts', 'TwitterController@index');
+        Route::post('twitter/accounts', 'TwitterController@store');
+        Route::put('twitter/accounts/{id}', 'TwitterController@update');
+        Route::delete('twitter/accounts/{id}', 'TwitterController@destroy');
     });
 });

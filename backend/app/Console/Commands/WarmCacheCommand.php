@@ -14,13 +14,14 @@ class WarmCacheCommand extends Command
     protected $signature = 'besoccer:warm-cache';
     protected $description = 'Pre-warms BeSoccer API cache after deployment';
 
-    public function __construct(private BeSoccerService $besoccer)
-    {
-        parent::__construct();
-    }
+    private BeSoccerService $besoccer;
 
-    public function handle(): int
+    // El servicio se pide aquí y no en el constructor: su constructor lee la API key de la base
+    // de datos, y Laravel construye todos los comandos al arrancar artisan (también en el build).
+    public function handle(BeSoccerService $besoccer): int
     {
+        $this->besoccer = $besoccer;
+
         if (!$this->besoccer->isEnabled()) {
             $this->warn('BeSoccer service is disabled. Skipping cache warm-up.');
             return 0;

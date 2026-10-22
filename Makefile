@@ -59,7 +59,8 @@ seed: ## Run database seeders
 fresh: ## Fresh migration + seed
 	$(COMPOSE) exec api php artisan migrate:fresh --seed
 
-test: ## Run backend tests
+test: ## Run backend tests (sobre numeros_rojos_testing, nunca la base de desarrollo)
+	@$(COMPOSE) exec -T mysql sh -c "mysql -uroot -p\"\$$MYSQL_ROOT_PASSWORD\" -e \"CREATE DATABASE IF NOT EXISTS numeros_rojos_testing CHARACTER SET utf8mb4; GRANT ALL PRIVILEGES ON numeros_rojos_testing.* TO '\$$MYSQL_USER'@'%';\"" 2>/dev/null
 	$(COMPOSE) exec api php vendor/bin/phpunit
 
 key-generate: ## Generate JWT secret

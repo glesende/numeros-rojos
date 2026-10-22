@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Laravel\Lumen\Routing\Controller as BaseController;
+use Illuminate\Foundation\Validation\ValidatesRequests;
 
-class Controller extends BaseController
+class Controller
 {
-    //
+    use ValidatesRequests;
 }

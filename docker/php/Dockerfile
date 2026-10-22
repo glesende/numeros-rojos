@@ -40,7 +40,7 @@ RUN mkdir -p /var/log/nginx /var/log/php-fpm /run/nginx \
     /var/lib/nginx/tmp/proxy \
     /var/lib/nginx/tmp/scgi \
     /var/lib/nginx/tmp/uwsgi \
-    && chown -R www-data:www-data /var/www/html/storage \
+    && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
     && chown -R www-data:www-data /var/lib/nginx
 
 EXPOSE 80
