@@ -85,8 +85,15 @@ class ShareController extends Controller
     {
         $b = Balance::findOrFail($id);
 
-        $totals = BalanceLine::where('balance_id', $id)->where('is_total', true)->whereNotNull('amount')
-            ->where('level', 1)->orderBy('order')->limit(3)->get();
+        // Totales de nivel 1; si el balance no los trae, los de la jerarquía más alta cargada.
+        $base = BalanceLine::where('balance_id', $id)->where('is_total', true)->whereNotNull('amount');
+        $totals = (clone $base)->where('level', 1)->orderBy('order')->limit(3)->get();
+        if ($totals->isEmpty()) {
+            $minLevel = (clone $base)->min('level');
+            if ($minLevel !== null) {
+                $totals = (clone $base)->where('level', $minLevel)->orderBy('order')->limit(3)->get();
+            }
+        }
         $figures = $totals->map(fn ($l) => [
             'label' => $l->name,
             'value' => self::money((float) $l->amount, $l->currency ?: 'ARS'),
@@ -95,6 +102,9 @@ class ShareController extends Controller
         $desc = "Balance patrimonial del ejercicio {$b->exercise} del Club Atlético Independiente.";
         if ($figures) {
             $desc .= ' ' . implode(' · ', array_map(fn ($f) => "{$f['label']}: {$f['value']}", $figures)) . '.';
+        } else {
+            // Sin totales cargados: texto explícito en lugar de una tarjeta vacía.
+            $desc .= ' Consultá el detalle completo de activos, pasivos y patrimonio neto en Números Rojos.';
         }
 
         return [
@@ -104,7 +114,7 @@ class ShareController extends Controller
             'image'       => [
                 'kicker'  => 'BALANCE OFICIAL',
                 'title'   => "Ejercicio {$b->exercise}",
-                'figures' => $figures,
+                'figures' => $figures ?: [['label' => 'Detalle completo de activos y pasivos en numerosrojos.net', 'value' => 'Balance oficial']],
                 'footer'  => $b->published_at ? 'Publicado el ' . $b->published_at->format('d/m/Y') : '',
             ],
         ];

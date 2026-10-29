@@ -38,6 +38,32 @@ class ShareCardTest extends TestCase
     }
 
     #[Test]
+    public function el_balance_sin_totales_muestra_texto_alternativo_y_la_imagen_no_falla(): void
+    {
+        $b = Balance::create(['exercise' => '2025/2026', 'dollar_reference' => 1000, 'published_at' => '2026-09-01']);
+
+        $html = $this->get("/api/v1/share/balances/{$b->id}")->assertOk()->getContent();
+
+        $this->assertStringContainsString('Consultá el detalle completo de activos, pasivos y patrimonio neto', $html);
+        $this->assertStringNotContainsString(': $', $html);
+        $this->assertContains($this->get("/api/v1/share/balances/{$b->id}/image.png")->getStatusCode(), [200, 302]);
+    }
+
+    #[Test]
+    public function el_balance_sin_nivel_1_usa_los_totales_de_la_jerarquia_mas_alta(): void
+    {
+        $b = Balance::create(['exercise' => '2025/2026', 'dollar_reference' => 1000]);
+        BalanceLine::create([
+            'balance_id' => $b->id, 'name' => 'Total Pasivo', 'normalized_name' => 'total_pasivo', 'level' => 2,
+            'order' => 0, 'amount' => 2000000000, 'currency' => 'ARS', 'is_total' => true, 'path' => 'Total Pasivo',
+        ]);
+
+        $html = $this->get("/api/v1/share/balances/{$b->id}")->assertOk()->getContent();
+
+        $this->assertStringContainsString('Total Pasivo: $2.000 M', $html);
+    }
+
+    #[Test]
     public function el_contrato_escapa_el_nombre_y_muestra_vencimiento(): void
     {
         $c = Contract::create(['club_pass_percentage' => 0, 'full_name' => 'Juan "<b>" Pérez', 'expiration_date' => '2027-06-30', 'estimated_salary' => 120000, 'currency' => 'USD']);
