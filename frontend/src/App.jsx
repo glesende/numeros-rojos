@@ -30,6 +30,7 @@ const AdminBalancesPage           = lazy(() => import('./pages/AdminBalancesPage
 const AdminBalanceFormPage        = lazy(() => import('./pages/AdminBalanceFormPage'));
 const AdminSettings               = lazy(() => import('./pages/AdminSettings'));
 const AdminStadiumPage            = lazy(() => import('./pages/AdminStadiumPage'));
+const AdminUsagePage              = lazy(() => import('./pages/AdminUsagePage'));
 const AdminElectionsPage          = lazy(() => import('./pages/AdminElectionsPage'));
 const AdminElectionListFormPage   = lazy(() => import('./pages/AdminElectionListFormPage'));
 const StadiumPage                 = lazy(() => import('./pages/StadiumPage'));
@@ -104,6 +105,7 @@ export default function App() {
         <Route path="/admin/balances" element={<ProtectedRoute><AdminBalancesPage /></ProtectedRoute>} />
         <Route path="/admin/balances/nuevo" element={<ProtectedRoute><AdminBalanceFormPage /></ProtectedRoute>} />
         <Route path="/admin/balances/:id/editar" element={<ProtectedRoute><AdminBalanceFormPage /></ProtectedRoute>} />
+        <Route path="/admin/uso" element={<ProtectedRoute><AdminUsagePage /></ProtectedRoute>} />
         <Route path="/admin/configuracion" element={<ProtectedRoute><AdminSettings /></ProtectedRoute>} />
         <Route path="/admin/estadio" element={<ProtectedRoute><AdminStadiumPage /></ProtectedRoute>} />
         <Route path="/admin/elecciones" element={<ProtectedRoute><AdminElectionsPage /></ProtectedRoute>} />

@@ -53,6 +53,10 @@ export default function AdminDashboard() {
           <h2 className="text-lg font-bold mb-1">Elecciones</h2>
           <p className="text-sm text-gray-500">Gestionar listas, candidatos y propuestas</p>
         </Link>
+        <Link to="/admin/uso" className="card hover:shadow-md transition-shadow">
+          <h2 className="text-lg font-bold mb-1">Uso del sitio</h2>
+          <p className="text-sm text-gray-500">Visitas, usuarios únicos y retorno por sección</p>
+        </Link>
         <Link to="/admin/configuracion" className="card hover:shadow-md transition-shadow">
           <h2 className="text-lg font-bold mb-1">Configuracion</h2>
           <p className="text-sm text-gray-500">Cambiar contrasena y API Keys</p>
