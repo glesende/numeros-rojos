@@ -17,6 +17,7 @@ import OfficialBadge from '../components/OfficialBadge';
 import SourceLabel from '../components/SourceLabel';
 import PlayerAvatar from '../components/PlayerAvatar';
 import { useDragScroll } from '../hooks/useDragScroll';
+import { trackSectionOnce } from '../utils/analytics';
 
 const RUMOR_ROLE_LABELS = { '1': 'Arqueros', '2': 'Defensores', '3': 'Mediocampistas', '4': 'Delanteros' };
 const RUMOR_ROLE_ORDER = ['1', '2', '3', '4'];
@@ -158,6 +159,20 @@ function ContractCard({ contract, onClick }) {
       )}
     </div>
   );
+}
+
+// Cuenta una visita a una sección embebida en la home cuando el usuario la llega a ver (ver docs/analytics.md)
+function trackWhenVisible(section) {
+  return (el) => {
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) {
+        trackSectionOnce(section);
+        observer.disconnect();
+      }
+    });
+    observer.observe(el);
+  };
 }
 
 // Unified card for Rights and Rumors — both share the same structure
@@ -565,7 +580,7 @@ export default function HomePage() {
 
       {/* Rumores del mercado */}
       {sections.section_rumores_enabled === true && (
-      <section id="rumores" className="max-w-6xl mx-auto px-4 py-4">
+      <section id="rumores" ref={trackWhenVisible('rumores')} className="max-w-6xl mx-auto px-4 py-4">
         <div className="card overflow-hidden">
           <div className="mb-4">
             <h2 className="text-xl font-bold">Rumores del mercado</h2>
