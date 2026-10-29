@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\PageView;
+use App\Models\VisitOrigin;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -42,6 +43,49 @@ class AnalyticsController extends Controller
         PageView::where('id', $row->id)->increment('views');
 
         return response()->json(['ok' => true], 202);
+    }
+
+    /**
+     * Primera visita de la sesión: página de entrada y utm_source/medium/campaign (opcionales). Los utm que no
+     * cumplen el formato simple se ignoran (no se rechaza la visita); sin utm queda como origen directo.
+     */
+    public function origin(Request $request): JsonResponse
+    {
+        $this->validate($request, [
+            'visitor_id'   => ['required', 'string', 'regex:/^[A-Za-z0-9-]{16,64}$/'],
+            'entry_path'   => ['required', 'string', 'regex:/^\/[A-Za-z0-9_\-\/.]{0,118}$/'],
+            'utm_source'   => 'nullable|string|max:200',
+            'utm_medium'   => 'nullable|string|max:200',
+            'utm_campaign' => 'nullable|string|max:200',
+        ]);
+
+        $hash = hash_hmac('sha256', $request->input('visitor_id'), (string) config('app.key'));
+
+        $rateKey = 'analytics:' . substr($hash, 0, 16);
+        Cache::add($rateKey, 0, 60);
+        if (Cache::increment($rateKey) > self::MAX_EVENTS_PER_MINUTE) {
+            return response()->json(['ok' => false], 429);
+        }
+
+        $attrs = [
+            'visitor_hash' => $hash,
+            'visited_on'   => now()->toDateString(),
+            'source'       => $this->utm($request->input('utm_source')),
+            'medium'       => $this->utm($request->input('utm_medium')),
+            'campaign'     => $this->utm($request->input('utm_campaign')),
+            'entry_path'   => $request->input('entry_path'),
+        ];
+        $row = VisitOrigin::firstOrCreate($attrs, ['sessions' => 0]);
+        VisitOrigin::where('id', $row->id)->increment('sessions');
+
+        return response()->json(['ok' => true], 202);
+    }
+
+    private function utm(?string $value): string
+    {
+        $value = strtolower(trim((string) $value));
+
+        return preg_match('/^[a-z0-9_.\-]{1,50}$/', $value) ? $value : '';
     }
 
     /** Admin: visitas, visitantes únicos y % que vuelve por sección en los últimos 7 o 30 días. */
@@ -84,6 +128,8 @@ class AnalyticsController extends Controller
 
         return response()->json(['data' => [
             'days'     => $days,
+            'origins'  => $this->originsSummary($since),
+            'entries'  => $this->entriesSummary($since),
             'since'    => $since,
             'sections' => $sections,
             'site'     => [
@@ -92,5 +138,42 @@ class AnalyticsController extends Controller
                 'views'              => (int) $sections->sum('views'),
             ],
         ]]);
+    }
+
+    /** Por origen (source/campaign): sesiones, visitantes únicos y % que vuelve (2+ días con visitas en la ventana). */
+    private function originsSummary(string $since): array
+    {
+        $returning = DB::table('page_views')->where('viewed_on', '>=', $since)
+            ->groupBy('visitor_hash')->havingRaw('COUNT(DISTINCT viewed_on) >= 2')->pluck('visitor_hash')->flip();
+
+        return DB::table('visit_origins')->where('visited_on', '>=', $since)
+            ->select('source', 'medium', 'campaign', 'visitor_hash', DB::raw('SUM(sessions) as sessions'))
+            ->groupBy('source', 'medium', 'campaign', 'visitor_hash')->get()
+            ->groupBy(fn ($r) => $r->source . "\0" . $r->campaign)
+            ->map(function ($rows) use ($returning) {
+                $unique = $rows->pluck('visitor_hash')->unique();
+                $ret    = $unique->filter(fn ($h) => $returning->has($h))->count();
+
+                return [
+                    'source'             => $rows[0]->source !== '' ? $rows[0]->source : null,
+                    'campaign'           => $rows[0]->campaign !== '' ? $rows[0]->campaign : null,
+                    'mediums'            => $rows->pluck('medium')->filter()->unique()->values()->all(),
+                    'sessions'           => (int) $rows->sum('sessions'),
+                    'unique_visitors'    => $unique->count(),
+                    'returning_visitors' => $ret,
+                    'return_rate'        => round($ret * 100 / $unique->count(), 1),
+                ];
+            })->sortByDesc('unique_visitors')->values()->all();
+    }
+
+    /** Páginas de entrada más frecuentes (primera página de cada sesión). */
+    private function entriesSummary(string $since): array
+    {
+        return DB::table('visit_origins')->where('visited_on', '>=', $since)
+            ->groupBy('entry_path')
+            ->select('entry_path', DB::raw('SUM(sessions) as sessions'), DB::raw('COUNT(DISTINCT visitor_hash) as unique_visitors'))
+            ->orderByDesc('sessions')->limit(15)->get()
+            ->map(fn ($r) => ['entry_path' => $r->entry_path, 'sessions' => (int) $r->sessions, 'unique_visitors' => (int) $r->unique_visitors])
+            ->all();
     }
 }

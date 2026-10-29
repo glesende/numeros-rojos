@@ -51,6 +51,7 @@ Route::group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () {
 
     // Analytics (anónimo, sin datos personales)
     Route::post('analytics/view', 'AnalyticsController@track');
+    Route::post('analytics/origin', 'AnalyticsController@origin');
 
     // Contact
     Route::post('contact', 'ContactController@send');
