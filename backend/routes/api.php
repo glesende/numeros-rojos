@@ -15,6 +15,8 @@ Route::group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () {
     Route::get('economy/monthly-summary', 'EconomyRecordController@monthlySummary');
     Route::get('economy/overdue-evolution', 'EconomyRecordController@overdueEvolution');
     Route::get('economy/{id}', 'EconomyRecordController@show');
+    Route::get('share/{type}/{id}', 'ShareController@page');
+    Route::get('share/{type}/{id}/image.png', 'ShareController@image');
     Route::get('contracts', 'ContractController@index');
     Route::get('contracts/stats', 'ContractController@stats');
     Route::get('contracts/recent-moves', 'ContractController@recentMoves');

@@ -19,6 +19,7 @@ Portal de transparencia del Club Atlético Independiente (Argentina): economía 
   | `bcra:sync-quotes` | lunes 04:00 | cotizaciones USD (`usd_quotes`) |
   Los logs de cada uno van a `storage/logs/bcra-*.log` (volumen `storage-logs`, persiste entre deploys; los de php-fpm y del scheduler, en el volumen `php-logs` → `/var/log/php-fpm/`).
   **Latido:** cada ejecución de un `bcra:sync-*` (programada o manual) queda en la tabla `scheduled_job_runs` (inicio, fin, `status` running/success/failed, `exit_code`; listener `App\Support\RecordScheduledJobRun`). `php artisan bcra:heartbeat failed|stale-days` imprime la métrica que lee el monitoreo de la oficina.
+- Tarjetas para compartir (og:tags + imagen por balance/contrato/lista): ver `docs/compartir.md`.
 - Hay además comandos `voto:*` y `docker/belenios` (prototipo de voto remoto, rama `voto-remoto`, **no está en `main` ni en producción**).
 
 ## Desarrollo local

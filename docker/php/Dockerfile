@@ -7,7 +7,12 @@ RUN apk add --no-cache \
     nginx \
     supervisor \
     poppler-utils \
+    freetype-dev \
+    libpng-dev \
+    ttf-dejavu \
+    && docker-php-ext-configure gd --with-freetype \
     && docker-php-ext-install \
+    gd \
     pdo_mysql \
     mbstring \
     zip \
