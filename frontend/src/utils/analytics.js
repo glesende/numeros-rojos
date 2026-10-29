@@ -58,3 +58,34 @@ export function trackSectionOnce(section) {
   sentThisPage.add(section);
   trackSection(section);
 }
+
+const SESSION_KEY = 'nr_session';
+
+/**
+ * Primera visita de la sesión (sessionStorage): manda la página de entrada y los utm_* del link, si los hay.
+ * Solo se envía el pathname (sin query) y nada de referrer; el backend descarta utm con formato raro.
+ */
+export function trackOrigin(pathname, search = '') {
+  if (pathname.startsWith('/admin')) return;
+  const id = visitorId();
+  if (!id) return;
+  try {
+    if (sessionStorage.getItem(SESSION_KEY)) return;
+    sessionStorage.setItem(SESSION_KEY, '1');
+  } catch {
+    return;
+  }
+  const params = new URLSearchParams(search);
+  fetch(`${API_URL}/analytics/origin`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      visitor_id: id,
+      entry_path: pathname.slice(0, 120),
+      utm_source: params.get('utm_source'),
+      utm_medium: params.get('utm_medium'),
+      utm_campaign: params.get('utm_campaign'),
+    }),
+    keepalive: true,
+  }).catch(() => {});
+}

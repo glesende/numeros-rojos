@@ -85,6 +85,54 @@ export default function AdminUsagePage() {
               </tbody>
             </table>
           </div>
+
+          <h2 className="text-lg font-bold mt-8 mb-2">Origen del tráfico</h2>
+          <div className="card overflow-x-auto">
+            {data.origins.length === 0 ? (
+              <p className="text-sm text-gray-500">Todavía no hay sesiones registradas en esta ventana.</p>
+            ) : (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-gray-500">
+                    <th className="py-2 pr-2">Origen (utm_source)</th>
+                    <th className="py-2 pr-2">Campaña (utm_campaign)</th>
+                    <th className="py-2 pr-2 text-right">Sesiones</th>
+                    <th className="py-2 pr-2 text-right">Únicos</th>
+                    <th className="py-2 text-right">% que vuelve</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.origins.map((o) => (
+                    <tr key={`${o.source}|${o.campaign}`} className="border-t">
+                      <td className="py-2 pr-2 font-medium">
+                        {o.source || 'directo / sin utm'}
+                        {o.mediums.length > 0 && <span className="text-xs text-gray-500"> ({o.mediums.join(', ')})</span>}
+                      </td>
+                      <td className="py-2 pr-2">{o.campaign || '—'}</td>
+                      <td className="py-2 pr-2 text-right">{o.sessions}</td>
+                      <td className="py-2 pr-2 text-right">{o.unique_visitors}</td>
+                      <td className="py-2 text-right">{pct(o.return_rate)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+
+          <h2 className="text-lg font-bold mt-8 mb-2">Páginas de entrada</h2>
+          <div className="card overflow-x-auto">
+            <table className="w-full text-sm">
+              <tbody>
+                {data.entries.map((e) => (
+                  <tr key={e.entry_path} className="border-t first:border-t-0">
+                    <td className="py-2 pr-2 font-mono">{e.entry_path}</td>
+                    <td className="py-2 pr-2 text-right">{e.sessions} sesiones</td>
+                    <td className="py-2 text-right">{e.unique_visitors} únicos</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           <p className="text-xs text-gray-500 mt-3">
             Últimos {data.days} días (desde {data.since}). «Vuelve» = visitante que entró en 2 o más días distintos de la ventana.
             Datos anónimos: no se guarda IP ni datos personales. Se cuentan desde que se activó la medición.

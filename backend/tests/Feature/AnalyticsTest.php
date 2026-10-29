@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\PageView;
+use App\Models\VisitOrigin;
 use Carbon\Carbon;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -89,6 +90,53 @@ class AnalyticsTest extends TestCase
         $this->assertSame(1, $d30['site']['returning_visitors']);
     }
 
+    private function origin(string $visitor, array $extra = []): \Illuminate\Testing\TestResponse
+    {
+        return $this->postJson('/api/v1/analytics/origin', array_merge(['visitor_id' => $visitor, 'entry_path' => '/balances/16'], $extra));
+    }
+
+    #[Test]
+    public function registra_el_origen_utm_y_lo_agrupa_por_source_y_campana_con_retorno(): void
+    {
+        Carbon::setTestNow('2026-10-27 12:00:00');
+        $utm = ['utm_source' => 'X', 'utm_medium' => 'organico', 'utm_campaign' => 'balance2526'];
+        $this->origin(self::VISITOR_A, $utm)->assertStatus(202);
+        $this->origin(self::VISITOR_B, $utm)->assertStatus(202);
+        $this->origin(self::VISITOR_B, ['entry_path' => '/economia'])->assertStatus(202); // directo
+        $this->track('balances', self::VISITOR_A);
+
+        Carbon::setTestNow('2026-10-29 12:00:00');
+        $this->track('balances', self::VISITOR_A); // A vuelve otro día
+
+        $row = VisitOrigin::where('source', 'x')->firstOrFail();
+        $this->assertSame(['id', 'visitor_hash', 'visited_on', 'source', 'medium', 'campaign', 'entry_path', 'sessions', 'created_at', 'updated_at'], array_keys($row->getAttributes()));
+
+        $data    = $this->getJson('/api/v1/admin/analytics/summary?days=7', $this->adminHeaders())->assertOk()->json('data');
+        $origins = collect($data['origins']);
+        $x       = $origins->firstWhere('source', 'x');
+        $this->assertSame('balance2526', $x['campaign']);
+        $this->assertSame(['organico'], $x['mediums']);
+        $this->assertSame(2, $x['unique_visitors']);
+        $this->assertSame(1, $x['returning_visitors']);
+        $this->assertEquals(50.0, $x['return_rate']);
+        $this->assertNull($origins->firstWhere('campaign', null)['source']); // directo
+        $this->assertSame('/balances/16', $data['entries'][0]['entry_path']);
+        $this->assertSame(2, $data['entries'][0]['sessions']);
+    }
+
+    #[Test]
+    public function ignora_utm_invalidos_y_rechaza_paths_raros(): void
+    {
+        $this->origin(self::VISITOR_A, ['utm_source' => '<script>alert(1)</script>', 'utm_campaign' => str_repeat('a', 80)])->assertStatus(202);
+        $row = VisitOrigin::firstOrFail();
+        $this->assertSame('', $row->source);
+        $this->assertSame('', $row->campaign);
+
+        $this->origin(self::VISITOR_A, ['entry_path' => '/a?x=1'])->assertStatus(422);
+        $this->origin(self::VISITOR_A, ['entry_path' => 'http://evil.com'])->assertStatus(422);
+        $this->origin('corto')->assertStatus(422);
+    }
+
     #[Test]
     public function el_comando_prune_borra_lo_viejo(): void
     {
@@ -99,5 +147,17 @@ class AnalyticsTest extends TestCase
         $this->assertSame(0, \Illuminate\Support\Facades\Artisan::call('analytics:prune'));
 
         $this->assertSame(1, PageView::count());
+    }
+
+    #[Test]
+    public function prune_borra_origenes_viejos(): void
+    {
+        $base = ['visitor_hash' => str_repeat('a', 64), 'entry_path' => '/'];
+        VisitOrigin::create($base + ['visited_on' => now()->subDays(120)->toDateString()]);
+        VisitOrigin::create($base + ['visited_on' => now()->toDateString()]);
+
+        \Illuminate\Support\Facades\Artisan::call('analytics:prune');
+
+        $this->assertSame(1, VisitOrigin::count());
     }
 }
