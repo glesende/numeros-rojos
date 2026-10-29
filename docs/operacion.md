@@ -1,16 +1,20 @@
 # Operación en producción (runbook)
 
 Sin secretos: están en `.env.prod` del VPS. Lo ejecuta el ingeniero de la compañía de forma autónoma desde la PC de la oficina (hay clave SSH sin passphrase al VPS, Docker local y `.env.local` con `SERVER=ubuntu@148.113.207.54`, `DEPLOY_PATH=/home/ubuntu/projects/numeros-rojos`). Nada de esto requiere al CEO.
-Verificado en **solo lectura** el 2026-10-29. Los pasos de deploy, rollback y restore **no se ejecutaron**: describen lo que hace el `Makefile` más la mejora propuesta. Marcado **[sin ensayar]**.
+Verificado el 2026-10-29. El deploy seguro y el rollback se ensayaron (tarea #81, abajo); el restore de DB no.
 
 ## Estado actual
 VPS único compartido. Contenedores `numeros-rojos-{api,frontend,mysql,redis}-1` (Up, restart `unless-stopped`), volúmenes `numeros-rojos_mysql-data` y `numeros-rojos_storage-data`. Puertos publicados en el host: api 8085, frontend 3005, mysql 3309, redis 16379. Versión: tag `1.38.0` (Laravel 13.38, PHP 8.4.27).
 
-## Deploy (`make deploy TAG=x.y.z`) **[sin ensayar]**
-1. Desde una copia limpia de `main` (no desde el checkout local, que puede tener trabajo sin commitear): `git fetch --tags; git tag --sort=-v:refname | head -1` → siguiente semver.
-2. **Antes**: volcar la base (ver Backup). Hasta que exista `scripts/backup-db.sh` (backlog), es manual.
-3. `make deploy TAG=x.y.z`. Qué hace realmente: si no estás en `main`, mergea tu rama en `main` y pushea; crea y pushea el tag; en el VPS `git checkout TAG`, **`make prod-down`**, build, up, `migrate --force`, `image prune`, `besoccer:warm-cache`. Consecuencias: **caída durante todo el build** (minutos), **sin tests previos, sin smoke test, sin rollback automático**. Mejora pedida en el backlog (patrón de Parkium: build antes de bajar, smoke test, revertir solo).
-4. Verificar (abajo) y registrar en la tarea el tag y el resultado.
+## Deploy (`make deploy TAG=x.y.z`)
+Precondiciones: copia limpia de `main` (no el checkout local con trabajo sin commitear: el target aborta si hay cambios trackeados sin commitear), Docker andando, `.env.local` con `SERVER` y `DEPLOY_PATH`.
+1. TAG = siguiente semver: `git fetch --tags; git tag --sort=-v:refname | head -1`.
+2. Mirar si trae migraciones: `git diff --stat <último-tag>..main -- backend/database/migrations`. El backup lo hace el propio deploy (paso 4); si hay una migración destructiva, revisá además que el `down()` sea reversible.
+3. `make deploy TAG=x.y.z` (`make -n deploy TAG=x.y.z` muestra qué haría). Orden: mergea/actualiza `main` → **`make test-ci`** (construye la imagen del api, levanta un MySQL efímero con `numeros_rojos_testing`, corre phpunit y luego `npm ci && npm run build` del frontend; ~2-3 min) → **si falla, no se pushea, no se taggea y no se despliega** → push de `main` y del tag anotado → en el VPS `scripts/deploy-remote.sh`.
+4. `scripts/deploy-remote.sh` (en el VPS, `PREV_REF` = commit anterior): `scripts/backup-db.sh` (dump validado; si falla, no se despliega) → **build con el stack viejo sirviendo** → `up -d` (recrea solo lo que cambió) → `migrate --force` → **smoke test** → `image prune` y `besoccer:warm-cache` (no bloqueante). Si el build falla, producción no se toca. Si `up`/migrate/smoke fallan, **vuelve solo** a `PREV_REF`, reconstruye y repite el smoke; sale con error y `make deploy` también.
+5. **Smoke test** (espera hasta `SMOKE_TIMEOUT`=120 s cada chequeo): `https://numerosrojos.net/` 200; `/api/` con `"status":"running"`; `/api/api/v1/contracts/stats` 200 (toca la base); proceso `schedule:work` vivo en el contenedor `api`.
+6. Las migraciones **no** se revierten solas (ver Rollback B/C). El tag queda pusheado aunque el deploy falle: el siguiente intento usa un tag nuevo.
+7. Verificar (abajo) y registrar en la tarea tag y resultado.
 
 ## Verificación
 - `curl -s -o /dev/null -w '%{http_code}\n' https://numerosrojos.net/` → 200
@@ -20,13 +24,22 @@ VPS único compartido. Contenedores `numeros-rojos-{api,frontend,mysql,redis}-1`
 - **Scheduler:** `docker exec numeros-rojos-api-1 sh -c 'ps | grep [s]chedule:work'` (1 proceso) y `docker exec numeros-rojos-api-1 php artisan schedule:list` (3 comandos BCRA). Repetirlo tras cada deploy: el contenedor `api` se recrea.
 - Datos al día: `select max(quote_date) from usd_quotes` (normalmente ≤ ~6 días de atraso).
 
-## Rollback **[sin ensayar]**
-- Solo código: en el VPS, `git fetch --tags && git checkout <TAG_ANTERIOR>` y `make prod-build && make prod-up` (hay caída durante el build). Tag previo: `git tag --sort=-v:refname | head -2`.
-- Con migraciones: antes de volver el código, `docker compose -f docker-compose.prod.yml --env-file .env.prod exec api php artisan migrate:rollback --force` (revierte la última tanda) mientras el código nuevo sigue puesto; si es irreversible o destructiva → restore de la base.
-- **Sin dump no hay vuelta atrás para los datos.**
+## Rollback
+Se ejecuta en el VPS (`ssh $SERVER`, `cd $DEPLOY_PATH`) sin pedir permiso. Un deploy fallido ya se revierte solo (paso 4); esto es para volver atrás una versión que pasó el smoke pero está mal.
+- **A. Solo código:** `scripts/rollback-remote.sh <TAG_ANTERIOR>` (`git tag --sort=-v:refname | head -3`). Checkout, build con el stack actual sirviendo, `up -d` y el mismo smoke; sale con error si no verifica. No usar `make deploy` (crea un tag nuevo).
+- **B. Código + migraciones reversibles:** `scripts/rollback-remote.sh <TAG_ANTERIOR> --migrations`: antes de cambiar el código corre `migrate:rollback --force` (última tanda = la del último deploy) con el código nuevo todavía sirviendo (la imagen vieja no trae esas migraciones). Revisá el `down()`: si borra columnas/tablas con datos, usar C. Si el rollback de migraciones falla, el script aborta sin tocar el código.
+- **C. Migración irreversible o datos dañados:** `docker compose -f docker-compose.prod.yml --env-file .env.prod stop api`; `scripts/restore-db.sh --prod <dump>` (`ls -t ~/backups/numeros-rojos`; el deploy deja un dump justo antes de cada release); luego `scripts/rollback-remote.sh <TAG_ANTERIOR>`. Los datos posteriores al dump se pierden; las tablas nuevas de la release quedan huérfanas (borrarlas a mano antes de re-desplegar). Ver `docs/backups.md`.
 
-## Backup de la base (hoy no existe ninguno)
-Dump manual, solo lectura sobre producción (las credenciales quedan en el servidor):
+### Ensayado (tarea #81, 2026-10-29)
+En un stack aislado en la PC de la oficina (`docker-compose.prod.yml` real, proxy nginx local imitando el del host, datos vacíos migrados). **No se tocó producción en el ensayo.**
+- Deploy exitoso: backup → build → up → migrate → smoke OK. Corte medido con un sondeo de `contracts/stats` cada 1 s: **~3 s de 502** (recreación del api) en vez de minutos.
+- Build roto (error de composer): el build falla, **producción siguió sirviendo 200** durante todo el intento.
+- Falla en runtime (`/api/` lanza excepción): el smoke detectó el fallo, el script volvió solo a la versión anterior y el smoke volvió a pasar (~30 s con `SMOKE_TIMEOUT=20`; ~6 s de 502 en total); salió con código 1.
+- `rollback-remote.sh <tag>` manual: OK, verificado por el smoke.
+- No ensayado: restore de DB real (ver `docs/backups.md`) ni `--migrations` (no hay migraciones reversibles pendientes que probar).
+
+## Backup de la base
+Hay cron diario (`scripts/backup-db.sh`, 03:35 en el VPS) y el deploy hace un dump antes de cada release. Dump manual adicional (las credenciales quedan en el servidor):
 ```
 ssh ubuntu@148.113.207.54 'mkdir -p ~/backups/numeros-rojos && cd ~/projects/numeros-rojos && docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T mysql sh -c "mysqldump -u root -p\$MYSQL_ROOT_PASSWORD --single-transaction --routines \$MYSQL_DATABASE" | gzip > ~/backups/numeros-rojos/pre-<TAG>-$(date +%F-%H%M).sql.gz && gzip -t ~/backups/numeros-rojos/*.gz && ls -la ~/backups/numeros-rojos'
 ```

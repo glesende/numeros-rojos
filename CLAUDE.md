@@ -29,7 +29,7 @@ Portal de transparencia del Club Atlético Independiente (Argentina): economía 
 ## Producción
 Resumen; paso a paso en `docs/operacion.md`.
 - VPS `ubuntu@148.113.207.54` (compartido con otros proyectos), código en `/home/ubuntu/projects/numeros-rojos` (checkout del tag, HEAD detached), secretos en `.env.prod` (sin versionar). nginx del host + certbot: `numerosrojos.net` → `/api` a `localhost:8085`, resto a `localhost:3005`.
-- Deploy: `make deploy TAG=x.y.z` (usa `.env.local`: `SERVER`, `DEPLOY_PATH`). **El target actual es riesgoso** (ver `docs/operacion.md`): hace `prod-down` antes de construir, no corre tests, no hace backup, no verifica ni revierte solo.
+- Deploy: `make deploy TAG=x.y.z` (usa `.env.local`: `SERVER`, `DEPLOY_PATH`). Corre `make test-ci` (aborta si falla), hace backup, construye antes de bajar, smoke test y revierte solo si falla (`scripts/deploy-remote.sh`; rollback manual: `scripts/rollback-remote.sh`). Detalle en `docs/operacion.md`.
 - Verificación: `https://numerosrojos.net/` → 200; `https://numerosrojos.net/api/` → JSON `{"status":"running"}`; `https://numerosrojos.net/api/api/v1/contracts/stats` → 200.
 - Logs: `docker logs numeros-rojos-api-1` casi no muestra nada útil; los reales están en el contenedor (`/var/log/php-fpm/{access,error,scheduler}.log`, `/var/log/nginx/`, `storage/logs/`).
 - **No hay backup de la base de datos** (ni cron ni dumps). Antes de cualquier migración destructiva hay que volcar a mano (ver `docs/operacion.md`).
