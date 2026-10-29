@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { getElectionBySlug, getElectionListLogoUrl } from '../api/endpoints';
 import { usePageMeta } from '../hooks/usePageMeta';
 import Loader from '../components/common/Loader';
+import ShareButtons from '../components/common/ShareButtons';
 import ElectionListContent from '../components/ElectionListContent';
 
 export default function ElectionDetailPage() {
@@ -54,6 +55,13 @@ export default function ElectionDetailPage() {
         )}
         <h1 className="text-xl font-extrabold leading-tight">{list.name}</h1>
       </div>
+
+      <ShareButtons
+        className="mb-4"
+        path={`/elecciones/${slug}`}
+        campaign={`eleccion-${slug.toLowerCase().replace(/[^a-z0-9_.-]/g, '-').slice(0, 30)}`}
+        text={`Propuestas y compromisos de ${list.name} para las elecciones de Independiente.`}
+      />
 
       <div className="card">
         <ElectionListContent list={list} />
