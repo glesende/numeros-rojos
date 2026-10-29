@@ -58,7 +58,8 @@ jobs:
       - name: Umbral mínimo de cobertura
         run: |
           MIN=40
-          LINES=$(grep -m1 -E '^\s*Lines:' coverage.txt | sed -E 's/.*Lines:\s+([0-9.]+)%.*/\1/')
+          LINES=$(sed -E 's/\x1b\[[0-9;]*m//g' coverage.txt | grep -m1 -E '^\s*Lines:' | sed -E 's/.*Lines:\s+([0-9.]+)%.*/\1/')
+          [ -n "$LINES" ] || { echo '::error::No se pudo leer la cobertura de líneas de coverage.txt'; exit 1; }
           echo "Cobertura de líneas: ${LINES}% (mínimo ${MIN}%)"
           awk -v l="$LINES" -v m="$MIN" 'BEGIN { exit !(l+0 >= m) }' || { echo "::error::Cobertura ${LINES}% por debajo del umbral ${MIN}%"; exit 1; }
       - name: Resumen de cobertura
