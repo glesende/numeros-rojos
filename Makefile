@@ -2,7 +2,7 @@ COMPOSE := docker compose
 
 -include .env.local
 
-.PHONY: help up down build restart logs shell-api shell-frontend migrate seed fresh test lint fresh-start db-pull
+.PHONY: help up down build restart logs shell-api shell-frontend migrate seed fresh test test-ci lint fresh-start db-pull
 
 # Colors for output
 GREEN=\033[0;32m
@@ -62,6 +62,25 @@ fresh: ## Fresh migration + seed
 test: ## Run backend tests (sobre numeros_rojos_testing, nunca la base de desarrollo)
 	@$(COMPOSE) exec -T mysql sh -c "mysql -uroot -p\"\$$MYSQL_ROOT_PASSWORD\" -e \"CREATE DATABASE IF NOT EXISTS numeros_rojos_testing CHARACTER SET utf8mb4; GRANT ALL PRIVILEGES ON numeros_rojos_testing.* TO '\$$MYSQL_USER'@'%';\"" 2>/dev/null
 	$(COMPOSE) exec api php vendor/bin/phpunit
+
+CI_IMAGE ?= numeros-rojos-ci-api
+CI_NET := numeros-rojos-ci-$(shell echo $$$$)
+
+test-ci: ## Tests backend (MySQL efímero) + build frontend en contenedores, sin tocar el stack; gate de make deploy
+	docker build -q -f docker/php/Dockerfile -t $(CI_IMAGE) .
+	@set -e; \
+	trap 'docker rm -f $(CI_NET)-mysql >/dev/null 2>&1; docker network rm $(CI_NET) >/dev/null 2>&1' EXIT; \
+	docker network create $(CI_NET) >/dev/null; \
+	docker run -d --name $(CI_NET)-mysql --network $(CI_NET) --network-alias mysql \
+		-e MYSQL_ROOT_PASSWORD=secret -e MYSQL_DATABASE=numeros_rojos -e MYSQL_USER=app -e MYSQL_PASSWORD=secret \
+		-v "$$PWD/docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro" \
+		--health-cmd 'mysqladmin ping -h 127.0.0.1 -uroot -psecret --silent' --health-interval 2s --health-retries 60 mysql:8.0 >/dev/null; \
+	echo "Esperando MySQL de test..."; \
+	until [ "$$(docker inspect -f '{{.State.Health.Status}}' $(CI_NET)-mysql)" = healthy ]; do sleep 2; done; \
+	docker run --rm --network $(CI_NET) -e DB_HOST=mysql -e DB_USERNAME=app -e DB_PASSWORD=secret -e DB_DATABASE=numeros_rojos \
+		-e JWT_SECRET=ci-test-secret-0123456789abcdef0123456789abcdef -e APP_KEY=base64:$$(head -c 32 /dev/zero | base64) \
+		-w /var/www/html --entrypoint php $(CI_IMAGE) vendor/bin/phpunit; \
+	docker run --rm -u "$$(id -u):$$(id -g)" -e HOME=/tmp -v "$$PWD/frontend:/app" -w /app node:20-alpine sh -c 'npm ci --no-audit --no-fund && npm run build'
 
 key-generate: ## Generate JWT secret
 	$(COMPOSE) exec api php artisan jwt:secret
@@ -164,42 +183,30 @@ db-pull: ## Descargar BD de producción a local. Uso: make db-pull [TABLE=tabla]
 	fi
 	@echo "$(GREEN)Base de datos local actualizada$(NC)"
 
-deploy: ## Deploy a producción (usage: make deploy TAG=x.x.x)
+deploy: ## Deploy seguro a producción (usage: make deploy TAG=x.x.x): tests, backup, build antes de bajar, smoke y rollback automático
 	@if [ -z "$(TAG)" ]; then \
 		echo "Error: TAG is required. Use: make deploy TAG=x.x.x"; \
 		exit 1; \
 	fi
-	@echo "Checking current branch..."
+	@if [ -n "$$(git status --porcelain --untracked-files=no)" ]; then \
+		echo "Error: el árbol tiene cambios sin commitear; deploy desde una copia limpia de main."; \
+		exit 1; \
+	fi
 	@CURRENT_BRANCH=$$(git branch --show-current); \
 	if [ "$$CURRENT_BRANCH" != "main" ]; then \
 		echo "Current branch is $$CURRENT_BRANCH, merging with main..."; \
-		git checkout main && \
-		git pull origin main && \
-		git merge $$CURRENT_BRANCH && \
-		git push origin main; \
+		git checkout main && git pull origin main && git merge $$CURRENT_BRANCH || exit 1; \
 	else \
-		echo "Already on main branch"; \
+		git pull --ff-only origin main || exit 1; \
 	fi
+	@echo "Verificando tests y build antes de taggear (make test-ci)..."
+	@$(MAKE) --no-print-directory test-ci || { echo "Error: tests/build fallaron; no se pushea, no se taggea y no se despliega."; exit 1; }
+	@git push origin main
 	@echo "Creating release $(TAG)..."
 	@git tag -a $(TAG) -m "Release version $(TAG)"
 	@git push origin $(TAG)
-	@echo "Release $(TAG) created and pushed successfully!"
-	@echo "🚀 Iniciando deploy del tag $(TAG) a $(SERVER)..."
-	@echo "🔧 Ejecutando deploy en el servidor..."
+	@echo "🚀 Desplegando $(TAG) en $(SERVER) (build antes de bajar, smoke test, rollback automático)..."
 	@ssh $(SERVER) "cd $(DEPLOY_PATH) && \
-		echo '📦 Descargando código del repositorio...' && \
-		git fetch --tags && \
-		git checkout $(TAG) && \
-		echo '🔄 Parando servicios...' && \
-		make prod-down 2>/dev/null || true && \
-		echo '🏗️  Construyendo imágenes...' && \
-		make prod-build && \
-		echo '⚡ Iniciando servicios...' && \
-		make prod-up && \
-		echo '🗄️  Ejecutando migraciones...' && \
-		make prod-migrate && \
-		echo '🧹 Limpiando imágenes antiguas...' && \
-		docker image prune -f && \
-		echo '🔥 Precalentando caché de BeSoccer...' && \
-		docker compose -f docker-compose.prod.yml --env-file .env.prod exec api php artisan besoccer:warm-cache"
-	@echo "✅ Deploy completado exitosamente!"
+		git fetch --tags && PREV_REF=\$$(git rev-parse HEAD) && git checkout $(TAG) && \
+		PREV_REF=\$$PREV_REF scripts/deploy-remote.sh $(TAG)"
+	@echo "✅ Deploy $(TAG) completado y verificado!"
