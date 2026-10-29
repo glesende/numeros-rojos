@@ -55,6 +55,12 @@ jobs:
       - run: composer install --no-interaction --prefer-dist --no-progress
       - name: phpunit con cobertura
         run: vendor/bin/phpunit --coverage-text --coverage-clover=coverage.xml | tee coverage.txt
+      - name: Umbral mínimo de cobertura
+        run: |
+          MIN=40
+          LINES=$(grep -m1 -E '^\s*Lines:' coverage.txt | sed -E 's/.*Lines:\s+([0-9.]+)%.*/\1/')
+          echo "Cobertura de líneas: ${LINES}% (mínimo ${MIN}%)"
+          awk -v l="$LINES" -v m="$MIN" 'BEGIN { exit !(l+0 >= m) }' || { echo "::error::Cobertura ${LINES}% por debajo del umbral ${MIN}%"; exit 1; }
       - name: Resumen de cobertura
         if: always()
         run: |
@@ -82,11 +88,8 @@ jobs:
       - run: npm run build
 
   audit:
-    name: Auditoría de dependencias (informativa)
+    name: Auditoría de dependencias
     runs-on: ubuntu-latest
-    # No bloquea merges: hoy hay hallazgos abiertos (ver docs/ci.md). Pasar a bloqueante
-    # cuando el plan de actualización esté ejecutado.
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
@@ -98,6 +101,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: npm audit (producción)
+      - name: npm audit
         working-directory: frontend
-        run: npm audit --omit=dev
+        run: npm audit
