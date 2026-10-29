@@ -17,7 +17,8 @@ Portal de transparencia del Club Atlético Independiente (Argentina): economía 
   | `bcra:sync-debts` | día 1, 03:00 | deudas bancarias del club |
   | `bcra:sync-checks` | día 1, 03:10 | cheques rechazados |
   | `bcra:sync-quotes` | lunes 04:00 | cotizaciones USD (`usd_quotes`) |
-  Los logs de cada uno van a `storage/logs/bcra-*.log` **dentro del contenedor, fuera de volumen: se pierden en cada deploy**.
+  Los logs de cada uno van a `storage/logs/bcra-*.log` (volumen `storage-logs`, persiste entre deploys; los de php-fpm y del scheduler, en el volumen `php-logs` → `/var/log/php-fpm/`).
+  **Latido:** cada ejecución de un `bcra:sync-*` (programada o manual) queda en la tabla `scheduled_job_runs` (inicio, fin, `status` running/success/failed, `exit_code`; listener `App\Support\RecordScheduledJobRun`). `php artisan bcra:heartbeat failed|stale-days` imprime la métrica que lee el monitoreo de la oficina.
 - Hay además comandos `voto:*` y `docker/belenios` (prototipo de voto remoto, rama `voto-remoto`, **no está en `main` ni en producción**).
 
 ## Desarrollo local
@@ -31,7 +32,7 @@ Resumen; paso a paso en `docs/operacion.md`.
 - VPS `ubuntu@148.113.207.54` (compartido con otros proyectos), código en `/home/ubuntu/projects/numeros-rojos` (checkout del tag, HEAD detached), secretos en `.env.prod` (sin versionar). nginx del host + certbot: `numerosrojos.net` → `/api` a `localhost:8085`, resto a `localhost:3005`.
 - Deploy: `make deploy TAG=x.y.z` (usa `.env.local`: `SERVER`, `DEPLOY_PATH`). Corre `make test-ci` (aborta si falla), hace backup, construye antes de bajar, smoke test y revierte solo si falla (`scripts/deploy-remote.sh`; rollback manual: `scripts/rollback-remote.sh`). Detalle en `docs/operacion.md`.
 - Verificación: `https://numerosrojos.net/` → 200; `https://numerosrojos.net/api/` → JSON `{"status":"running"}`; `https://numerosrojos.net/api/api/v1/contracts/stats` → 200.
-- Logs: `docker logs numeros-rojos-api-1` casi no muestra nada útil; los reales están en el contenedor (`/var/log/php-fpm/{access,error,scheduler}.log`, `/var/log/nginx/`, `storage/logs/`).
+- Logs: `docker logs numeros-rojos-api-1` casi no muestra nada útil; los reales están en el contenedor (`/var/log/php-fpm/{access,error,scheduler}.log` y `storage/logs/`, ambos en volúmenes persistentes desde 2026-10-29; `/var/log/nginx/` no).
 - **No hay backup de la base de datos** (ni cron ni dumps). Antes de cualquier migración destructiva hay que volcar a mano (ver `docs/operacion.md`).
 - Monitoreo: `config/proyectos/numeros-rojos.toml` en la oficina (sitio, API, contenedores, scheduler vivo, antigüedad de cotizaciones).
 

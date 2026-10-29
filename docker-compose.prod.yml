@@ -34,6 +34,9 @@ services:
       - MAIL_FROM_NAME=${MAIL_FROM_NAME:-"Numeros Rojos"}
     volumes:
       - storage-data:/var/www/html/storage/app
+      # Logs persistentes: sobreviven al redeploy (bcra-*.log del scheduler; error/scheduler/access de php-fpm)
+      - storage-logs:/var/www/html/storage/logs
+      - php-logs:/var/log/php-fpm
     depends_on:
       mysql:
         condition: service_healthy
@@ -95,6 +98,8 @@ services:
 volumes:
   mysql-data:
   storage-data:
+  storage-logs:
+  php-logs:
 
 networks:
   numeros-rojos-network:
