@@ -49,8 +49,21 @@ Base chica: ~1,5 MB, ~5.000 filas (casi todo `usd_quotes`). Restore: con `api` p
 No salen por `docker logs` (casi vacío). Dentro del contenedor: `docker exec numeros-rojos-api-1 tail -n 100 /var/log/php-fpm/error.log` (access log de php-fpm y errores de PHP), `/var/log/php-fpm/scheduler.log`, `/var/log/nginx/error.log` (este no persiste), `storage/logs/bcra-*.log`. Desde la tarea #82, `/var/log/php-fpm` y `storage/logs` son volúmenes (`php-logs`, `storage-logs`) y sobreviven al redeploy; supervisor rota a 10 MB x 3. nginx del host: `/var/log/nginx/` en el VPS.
 
 ## Procesos automatizados y cómo saber que funcionan
-Tabla en `CLAUDE.md`. Monitoreo en la oficina: contenedores (≥4), scheduler vivo, días desde la última cotización (alerta > 12). Las sincronizaciones dejan latido en la tabla `scheduled_job_runs` (inicio/fin/estado/exit_code de cada `bcra:sync-*`, también manuales). Consulta: `docker exec numeros-rojos-mysql-1 sh -c 'mysql -uroot -p$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE -e "select command,status,started_at,finished_at from scheduled_job_runs order by id desc limit 10"'`. Métricas de la oficina: `php artisan bcra:heartbeat failed` (alerta > 0) y `stale-days` (alerta > 33; días desde el último éxito de deudas/cheques, 0 si aún no hay ejecuciones registradas). El detalle del error de una corrida fallida está en `storage/logs/bcra-*.log`. Ejecución manual: `docker exec numeros-rojos-api-1 php artisan bcra:sync-quotes` (escribe en la base: backup antes).
+Tabla en `CLAUDE.md`. Monitoreo en la oficina: contenedores (≥4), scheduler vivo, días desde la última cotización (alerta > 12), antigüedad de datos por sección (abajo). Las sincronizaciones dejan latido en la tabla `scheduled_job_runs` (inicio/fin/estado/exit_code de cada `bcra:sync-*`, también manuales). Consulta: `docker exec numeros-rojos-mysql-1 sh -c 'mysql -uroot -p$MYSQL_ROOT_PASSWORD $MYSQL_DATABASE -e "select command,status,started_at,finished_at from scheduled_job_runs order by id desc limit 10"'`. Métricas de la oficina: `php artisan bcra:heartbeat failed` (alerta > 0) y `stale-days` (alerta > 33; días desde el último éxito de deudas/cheques, 0 si aún no hay ejecuciones registradas). El detalle del error de una corrida fallida está en `storage/logs/bcra-*.log`. Ejecución manual: `docker exec numeros-rojos-api-1 php artisan bcra:sync-quotes` (escribe en la base: backup antes).
 Próximas ejecuciones: 2026-11-01 03:00 y 03:10 (deudas, cheques); conviene mirar que corran.
+
+### Datos desactualizados por sección (tarea #90)
+`php artisan data:freshness <sección>` imprime los **días desde el último dato cargado o editado** (`max(updated_at)` de la tabla principal; tabla vacía = 0). Las métricas están en la config de la oficina (`config/proyectos/numeros-rojos.toml`, una por sección, cada 6 h) y alertan por umbral:
+
+| Sección | Tabla | Umbral (alerta si >) | Por qué |
+|---|---|---|---|
+| `balances` | `balances` | 120 d | se publican por ejercicio/semestre; 4 meses sin tocar es raro |
+| `contracts` | `contracts` | 60 d | cambian con altas/bajas/préstamos; dos meses sin ninguno es raro |
+| `economy` | `economy_records` | 45 d | movimientos económicos frecuentes |
+| `market` | `markets` | 180 d | un mercado (ventana de pases) por período; se crea al abrirse |
+| `rumors` | `rumors` | 30 d | rumores del mercado; deben cargarse seguido mientras hay ventana |
+
+Estado al 2026-10-29: balances 44 d, contracts 7 d, economy 9 d, market 152 d, rumors 58 d → **rumores ya está en alerta** (último dato 2026-09-01). Sirve de señal: hay que cargar datos (fuera del alcance de la métrica). Los umbrales son una estimación inicial; ajustarlos en el `.toml` si dan falsas alarmas (en la ventana de pases baja el de rumores). Una edición cualquiera cuenta como dato nuevo; las tablas vacías no alertan. Consulta manual: `docker exec numeros-rojos-api-1 php artisan data:freshness rumors`.
 
 ## Qué requiere al CEO
 Nada del flujo de deploy. Sí: credenciales que solo él tenga (BeSoccer, SMTP) si hay que rotarlas, y decidir rotar el `JWT_SECRET` (cierra la sesión del admin).
