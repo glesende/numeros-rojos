@@ -5,7 +5,7 @@
 Portal de datos abiertos del Club Atletico Independiente (Argentina). Transparencia economica, contractual y deportiva.
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
-![Backend](https://img.shields.io/badge/Backend-Lumen%20PHP%208.2-orange)
+![Backend](https://img.shields.io/badge/Backend-Laravel%2013%20PHP%208.4-orange)
 ![Frontend](https://img.shields.io/badge/Frontend-React%2018%20+%20Vite-blue)
 ![Docker](https://img.shields.io/badge/Infra-Docker-2496ED)
 
@@ -32,13 +32,19 @@ Si tenés dudas durante la adaptación, [abrí un Issue](https://github.com/gles
 
 | Capa       | Tecnologia                     |
 |------------|--------------------------------|
-| Backend    | Lumen (PHP 8.2)               |
+| Backend    | Laravel 13 (PHP 8.4)          |
 | Base datos | MySQL 8.0                      |
 | Cache      | Redis 7                        |
-| Frontend   | React 18 + Vite 5              |
+| Frontend   | React 18 + Vite 6              |
 | Estilos    | TailwindCSS 3.4                |
 | Auth admin | JWT (tymon/jwt-auth)           |
 | Infra      | Docker + docker compose        |
+
+---
+
+## Operación y deploy
+
+El runbook de producción (deploy, rollback, backups, smoke test) está en [docs/operacion.md](docs/operacion.md). Más: [backups](docs/backups.md), [CI](docs/ci.md), [analítica](docs/analytics.md).
 
 ---
 
@@ -46,7 +52,7 @@ Si tenés dudas durante la adaptación, [abrí un Issue](https://github.com/gles
 
 ```
 numeros-rojos/
-├── backend/                  # API Lumen
+├── backend/                  # API Laravel
 │   ├── app/
 │   │   ├── Console/Commands/ # Comandos (export CSV)
 │   │   ├── Http/

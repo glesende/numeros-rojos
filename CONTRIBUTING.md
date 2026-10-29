@@ -20,7 +20,7 @@ Abrí un Issue con la etiqueta `enhancement` describiendo qué problema resuelve
 
 ## Convenciones
 
-### Backend (Lumen / PHP)
+### Backend (Laravel / PHP)
 - PSR-12 para estilo de código
 - Controladores en `app/Http/Controllers/Api/V1/`
 - Lógica de negocio en servicios (`app/Services/`)
