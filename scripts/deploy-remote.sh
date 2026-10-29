@@ -24,7 +24,7 @@ rollback() {
   if [ -z "$PREV_REF" ]; then
     log "Sin PREV_REF: no se puede revertir automáticamente"; return 1
   fi
-  git checkout -q "$PREV_REF" && "${DC[@]}" build && "${DC[@]}" up -d || return 1
+  git checkout -q "$PREV_REF" && "${DC[@]}" build --quiet && "${DC[@]}" up -d || return 1
   if smoke; then log "Reversión OK: producción sirve la versión anterior"; else log "Reversión SIN verificar: revisar a mano"; fi
   log "ATENCIÓN: las migraciones NO se revierten solas (ver docs/operacion.md > Rollback)"
 }
@@ -38,7 +38,7 @@ if ! scripts/backup-db.sh; then
 fi
 
 log "Build de $TAG con el stack actual sirviendo"
-if ! "${DC[@]}" build; then
+if ! "${DC[@]}" build --quiet; then
   log "Build falló: producción no se tocó"
   [ -n "$PREV_REF" ] && git checkout -q "$PREV_REF"
   exit 1

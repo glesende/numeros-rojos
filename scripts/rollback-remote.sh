@@ -27,7 +27,7 @@ main() {
   fi
 
   log "Build de $TARGET con el stack actual sirviendo"
-  git checkout -q "$TARGET" && "${DC[@]}" build || { log "Build falló: producción sigue con el código anterior"; git checkout -q "$FROM_REF"; exit 1; }
+  git checkout -q "$TARGET" && "${DC[@]}" build --quiet || { log "Build falló: producción sigue con el código anterior"; git checkout -q "$FROM_REF"; exit 1; }
   log "Levantando $TARGET"
   "${DC[@]}" up -d || { log "up falló: revisar a mano"; exit 1; }
   if smoke; then log "Rollback a $TARGET completado y verificado"; else log "Rollback a $TARGET SIN verificar: revisar a mano"; exit 1; fi
