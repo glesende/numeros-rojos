@@ -34,6 +34,7 @@ git clone -q "$SRC" "$R" && cd "$R" || exit 1
 git config user.email t@t; git config user.name t
 BASE_REF="$(git rev-parse HEAD)"
 
+printf ".env.prod\n.bluegreen/\n" >> .git/info/exclude
 cat > .env.prod <<EOT
 DB_DATABASE=numeros_rojos
 DB_USERNAME=app
