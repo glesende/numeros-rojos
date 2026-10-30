@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Sondeo continuo del sitio durante un deploy: cuenta respuestas no-200 y qué color sirvió cada una.
 #   scripts/bluegreen-probe.sh <base-url> <archivo-salida> [intervalo=0.2]
-# Corre 3 sondas en paralelo (home, API con base de datos, marca de color) hasta SIGINT/SIGTERM; entonces imprime
+# Error = home/stats distinto de 200, o la marca de color con 000/5xx (404 se tolera: stack único previo). Corre 3 sondas en paralelo (home, API con base de datos, marca de color) hasta SIGINT/SIGTERM; entonces imprime
 # el resumen y sale con 1 si hubo alguna respuesta distinta de 200 (o timeout de 5 s), 0 si no.
 set -uo pipefail
 BASE="${1:?Uso: $0 <base-url> <archivo-salida> [intervalo]}"; OUT="${2:?}"; INT="${3:-0.2}"
@@ -27,10 +27,11 @@ trap 'kill $P1 $P2 $P3 2>/dev/null; wait 2>/dev/null; summary; exit $RC' INT TER
 summary() {
   total=$(wc -l < "$OUT")
   bad=$(awk '$2!="color" && $3!="200"' "$OUT" | wc -l)
-  badc=$(awk '$2=="color" && $3!="200"' "$OUT" | wc -l)
+  # La marca de color da 404 en el stack único previo a la adopción: solo cuentan 000 (corte) y 5xx.
+  badc=$(awk '$2=="color" && ($3=="000" || $3>=500)' "$OUT" | wc -l)
   echo "sondeo: $total muestras, no-200: $((bad + badc)) (home/stats: $bad, color: $badc)"
   awk '$2=="color" && $3=="200"{c[$4]++; if(!($4 in f))f[$4]=$1} END{for(k in c)printf "  color %-6s %d muestras (primera: %s)\n",k,c[k],f[k]}' "$OUT"
-  awk '$2!="color" && $3!="200"{print "  NO-200: " $0}' "$OUT" | head -20
+  awk '($2!="color" && $3!="200") || ($2=="color" && ($3=="000" || $3>=500)){print "  NO-200: " $0}' "$OUT" | head -20
   RC=0; [ $((bad + badc)) -gt 0 ] && RC=1
 }
 RC=0
