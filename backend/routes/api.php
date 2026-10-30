@@ -51,10 +51,6 @@ Route::group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () {
     // Stadium (public)
     Route::get('stadium', 'StadiumController@index');
 
-    // Analytics (anónimo, sin datos personales)
-    Route::post('analytics/view', 'AnalyticsController@track');
-    Route::post('analytics/origin', 'AnalyticsController@origin');
-
     // Contact
     Route::post('contact', 'ContactController@send');
 
@@ -74,9 +70,6 @@ Route::group(['prefix' => 'api/v1', 'namespace' => 'Api\V1'], function () {
         Route::get('me', 'AuthController@me');
         Route::post('auth/logout', 'AuthController@logout');
         Route::post('auth/change-password', 'AuthController@changePassword');
-
-        // Analytics
-        Route::get('analytics/summary', 'AnalyticsController@summary');
 
         // Settings
         Route::get('settings', 'SettingsController@index');

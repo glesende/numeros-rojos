@@ -44,7 +44,7 @@ Si tenés dudas durante la adaptación, [abrí un Issue](https://github.com/gles
 
 ## Operación y deploy
 
-El runbook de producción (deploy, rollback, backups, smoke test) está en [docs/operacion.md](docs/operacion.md). Más: [backups](docs/backups.md), [CI](docs/ci.md), [analítica](docs/analytics.md).
+El runbook de producción (deploy, rollback, backups, smoke test) está en [docs/operacion.md](docs/operacion.md). Más: [backups](docs/backups.md), [CI](docs/ci.md).
 
 ---
 

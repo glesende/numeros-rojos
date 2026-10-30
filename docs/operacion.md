@@ -65,5 +65,8 @@ Próximas ejecuciones: 2026-11-01 03:00 y 03:10 (deudas, cheques); conviene mira
 
 Estado al 2026-10-29: balances 44 d, contracts 7 d, economy 9 d, market 152 d, rumors 58 d → **rumores ya está en alerta** (último dato 2026-09-01). Sirve de señal: hay que cargar datos (fuera del alcance de la métrica). Los umbrales son una estimación inicial; ajustarlos en el `.toml` si dan falsas alarmas (en la ventana de pases baja el de rumores). Una edición cualquiera cuenta como dato nuevo; las tablas vacías no alertan. Consulta manual: `docker exec numeros-rojos-api-1 php artisan data:freshness rumors`.
 
+## Analítica
+Única fuente: Google Analytics 4 (`VITE_GA_MEASUREMENT_ID` en `.env.prod`; `usePageTracking` envía `page_view` con `page_location` completo, así GA toma los `utm_*`). Desde la tarea #120 no hay métricas propias: se eliminaron `/admin/uso`, los endpoints `analytics/*`, los modelos y `analytics:prune`. La migración `2026_10_30_000002_drop_own_analytics_tables` borra `page_views` y `visit_origins`; su `down()` recrea solo la estructura, los datos solo se recuperan del dump que deja el deploy (Rollback C).
+
 ## Qué requiere al CEO
 Nada del flujo de deploy. Sí: credenciales que solo él tenga (BeSoccer, SMTP) si hay que rotarlas, y decidir rotar el `JWT_SECRET` (cierra la sesión del admin).
