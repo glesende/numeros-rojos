@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 const BASE_URL = 'https://www.numerosrojos.net';
 
-// utm_source por canal: permite medir en /admin/uso cuántas visitas de retorno trae cada botón.
+// utm_source por canal: permite ver en Google Analytics cuántas visitas trae cada botón.
 function shareUrl(path, campaign, source) {
   const params = new URLSearchParams({ utm_source: source, utm_medium: 'organico', utm_campaign: campaign });
   return `${BASE_URL}${path}?${params}`;

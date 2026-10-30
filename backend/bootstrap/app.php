@@ -51,8 +51,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('bcra:sync-quotes')
             ->weeklyOn(1, '04:00')
             ->appendOutputTo(storage_path('logs/bcra-quotes.log'));
-
-        $schedule->command('analytics:prune')->dailyAt('04:30');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (Throwable $e, Request $request) {

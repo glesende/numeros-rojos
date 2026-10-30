@@ -141,5 +141,3 @@ export const refreshToken = () => client.post('/admin/auth/refresh');
 export const logout = () => client.post('/admin/auth/logout');
 export const changePassword = (data) => client.post('/admin/auth/change-password', data);
 
-// Analytics (admin)
-export const getAnalyticsSummary = (days = 7) => client.get('/admin/analytics/summary', { params: { days } });

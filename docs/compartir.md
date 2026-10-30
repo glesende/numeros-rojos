@@ -9,7 +9,7 @@ Detalle de **balance** (`/balances/:id`), **contrato** (`/contratos/:id`) y **li
 - URL pública de la imagen: `https://www.numerosrojos.net/api/api/v1/share/<tipo>/<id>/image.png`.
 
 ## Medición
-Cada botón agrega `utm_source=<whatsapp|x|facebook|link|compartir>&utm_medium=organico&utm_campaign=<balance-ID|contrato-ID|eleccion-slug>`; se ve en «Origen del tráfico» de `/admin/uso` (ver `analytics.md`).
+Cada botón agrega `utm_source=<whatsapp|x|facebook|link|compartir>&utm_medium=organico&utm_campaign=<balance-ID|contrato-ID|eleccion-slug>`; se ve en Google Analytics (Adquisición → Adquisición de tráfico, por fuente/medio/campaña).
 
 ## Probar
 `curl -A facebookexternalhit/1.1 https://numerosrojos.net/balances/<id>` debe devolver el HTML con og:image; sin ese UA, la SPA. Validadores: Facebook Sharing Debugger, o pegar el link en WhatsApp.
