@@ -15,4 +15,4 @@ Cada botón agrega `utm_source=<whatsapp|x|facebook|link|compartir>&utm_medium=o
 `curl -A facebookexternalhit/1.1 https://numerosrojos.net/balances/<id>` debe devolver el HTML con og:image; sin ese UA, la SPA. Validadores: Facebook Sharing Debugger, o pegar el link en WhatsApp.
 
 ## Rollback
-Solo código (`scripts/rollback-remote.sh <TAG>`); sin migraciones.
+Solo código (`scripts/switch-color.sh <color-anterior>` o `scripts/rollback-remote.sh <TAG>`); sin migraciones.

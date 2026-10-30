@@ -183,7 +183,7 @@ db-pull: ## Descargar BD de producción a local. Uso: make db-pull [TABLE=tabla]
 	fi
 	@echo "$(GREEN)Base de datos local actualizada$(NC)"
 
-deploy: ## Deploy seguro a producción (usage: make deploy TAG=x.x.x): tests, backup, build antes de bajar, smoke y rollback automático
+deploy: ## Deploy blue/green sin corte (usage: make deploy TAG=x.x.x): tests, backup, build y smoke en el color inactivo, conmutación de nginx
 	@if [ -z "$(TAG)" ]; then \
 		echo "Error: TAG is required. Use: make deploy TAG=x.x.x"; \
 		exit 1; \
@@ -205,8 +205,8 @@ deploy: ## Deploy seguro a producción (usage: make deploy TAG=x.x.x): tests, ba
 	@echo "Creating release $(TAG)..."
 	@git tag -a $(TAG) -m "Release version $(TAG)"
 	@git push origin $(TAG)
-	@echo "🚀 Desplegando $(TAG) en $(SERVER) (build antes de bajar, smoke test, rollback automático)..."
+	@echo "🚀 Desplegando $(TAG) en $(SERVER) (blue/green: build y smoke en el color inactivo, conmutación sin corte)..."
 	@ssh $(SERVER) "cd $(DEPLOY_PATH) && \
 		git fetch --tags && PREV_REF=\$$(git rev-parse HEAD) && git checkout $(TAG) && \
-		PREV_REF=\$$PREV_REF scripts/deploy-remote.sh $(TAG)"
+		PREV_REF=\$$PREV_REF scripts/deploy-bluegreen.sh $(TAG)"
 	@echo "✅ Deploy $(TAG) completado y verificado!"

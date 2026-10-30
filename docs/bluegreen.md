@@ -1,6 +1,6 @@
 # Deploy blue/green sin caída (tarea #142)
 
-**Estado: ensayado en un stack aislado, NO adoptado en producción** (la adopción es la tarea #143). Hoy `make deploy` sigue usando `scripts/deploy-remote.sh` (corte medido ~3 s de 502, ver `docs/operacion.md`).
+**Estado: ADOPTADO en producción el 2026-10-30 (tarea #143).** `make deploy` usa `scripts/deploy-bluegreen.sh`; el rollback de código es `scripts/switch-color.sh`. Resultados de producción en [Adopción en producción](#adopción-en-producción-tarea-143).
 Resultado del ensayo: **0 respuestas no-200** en 8 escenarios (adopción, deploy exitoso, rollback, build roto, smoke fallido, falla post-conmutación, migración destructiva, deploy exitoso posterior). Detalle en [Medición](#medición).
 
 ## Diseño
@@ -72,7 +72,7 @@ Además verificado en cada fase: exactamente un `schedule:work` (en el color act
 - Ensayo con base vacía: el tiempo de `migrate` y de backup (~1,5 MB) en producción es el mismo que hoy.
 - Memoria: el color idle suma ~100 MB (api ~99 MB + frontend ~6 MB); el VPS tiene ~5,8 GB disponibles.
 
-## Plan de migración de producción (para la tarea #143)
+## Plan de migración de producción (ejecutado en la tarea #143)
 
 Lo ejecuta el ingeniero desde la PC de la oficina por SSH; no requiere al CEO. **Ventana:** fuera de 03:00–03:15 del día 1 y lunes 04:00. Toda la migración es **sin corte**; los pasos 1–3 no cambian lo que sirve.
 
@@ -84,7 +84,9 @@ Lo ejecuta el ingeniero desde la PC de la oficina por SSH; no requiere al CEO. *
 **5. Cambiar el flujo de deploy y lo que depende de los nombres.** `make deploy` pasa a invocar `scripts/deploy-bluegreen.sh` (en vez de `deploy-remote.sh`); `scripts/rollback-remote.sh` queda reemplazado por `switch-color.sh` (los scripts viejos ya se niegan a correr si `active` es blue/green). Actualizar el monitoreo de la oficina (`config/proyectos/numeros-rojos.toml`): los contenedores pasan de `numeros-rojos-{api,frontend}-1` a `nr-<color>-{api,frontend}-1` (el color activo puede ser cualquiera de los dos; el chequeo "≥4 contenedores" pasa a ≥4 con colores idle arriba, y el "scheduler vivo" debe mirar `nr-blue-api-1` **o** `nr-green-api-1`). Actualizar `docs/operacion.md`, `CLAUDE.md` (nombres de contenedores, logs: `docker exec nr-<activo>-api-1 …`) y el comando de las métricas `bcra:heartbeat`/`data:freshness`.
 **6. Primer deploy real con el flujo nuevo** (tag siguiente, idealmente con un cambio trivial): sondear desde la oficina con `scripts/bluegreen-probe.sh https://numerosrojos.net /tmp/probe.log 0.5` durante todo el deploy y registrar el resultado (cero no-200 esperado).
 
-**Plan de vuelta atrás total (volver al stack único)**, posible hasta el paso 4 sin pérdida: `docker compose -f docker-compose.prod.yml --env-file .env.prod up -d api frontend` (si ya se retiraron; levantan en 8085/3005 con los volúmenes de siempre), `docker exec numeros-rojos-api-1 supervisorctl start laravel-scheduler` si hace falta, restaurar el sitio de nginx desde el `.bak` (vuelve a `localhost:8085/3005`), `sudo rm /etc/nginx/conf.d/nr-active-color.conf`, `sudo nginx -t && sudo nginx -s reload`, `docker compose -p nr-green -f docker-compose.bluegreen.yml down` (y `nr-blue`), borrar `.bluegreen/`. Antes de bajar green, verificar que el stack único sirve. Los datos no se tocaron en ningún paso (mysql nunca se recrea), así que no hay restore de DB asociado a esta migración; las migraciones de cada release siguen el procedimiento de `docs/operacion.md` (Rollback B/C).
+## Vuelta atrás total
+
+**Plan de vuelta atrás total (volver al stack único)**, posible en cualquier momento sin pérdida de datos (también ya retirado el stack único): `docker compose -f docker-compose.prod.yml --env-file .env.prod up -d api frontend` (si ya se retiraron; levantan en 8085/3005 con los volúmenes de siempre), `docker exec numeros-rojos-api-1 supervisorctl start laravel-scheduler` si hace falta, restaurar el sitio de nginx desde el `.bak` (vuelve a `localhost:8085/3005`), `sudo rm /etc/nginx/conf.d/nr-active-color.conf`, `sudo nginx -t && sudo nginx -s reload`, `docker compose -p nr-green -f docker-compose.bluegreen.yml down` (y `nr-blue`), borrar `.bluegreen/`. Antes de bajar green, verificar que el stack único sirve. Los datos no se tocaron en ningún paso (mysql nunca se recrea), así que no hay restore de DB asociado a esta migración; las migraciones de cada release siguen el procedimiento de `docs/operacion.md` (Rollback B/C).
 
 ## Operación diaria (después de adoptar)
 

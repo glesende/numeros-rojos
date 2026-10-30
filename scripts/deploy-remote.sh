@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# (Stack único; desde #143 producción usa scripts/deploy-bluegreen.sh y este script se niega a correr mientras .bluegreen/active sea blue|green.)
 # Despliegue en el VPS con caída mínima, backup previo, smoke test y reversión automática.
 # Uso (desde ~/projects/numeros-rojos en el VPS, con el tag ya checkouteado):
 #   PREV_REF=<commit/tag anterior> scripts/deploy-remote.sh <TAG>
@@ -12,6 +13,7 @@ PREV_REF="${PREV_REF:-}"
 SMOKE_BASE="${SMOKE_BASE:-https://numerosrojos.net}"
 SMOKE_TIMEOUT="${SMOKE_TIMEOUT:-120}"
 . "$(dirname "$0")/lib-deploy.sh"
+refuse_if_bluegreen || exit 1
 
 migrate() {
   log "Esperando MySQL y migrando"

@@ -5,6 +5,14 @@ DC=(docker compose -f docker-compose.prod.yml --env-file .env.prod)
 
 log() { echo "[deploy $(date -u +%H:%M:%S)] $*"; }
 
+# Producción corre blue/green desde #143: estos scripts del stack único recrearían api/frontend en 8085/3005 y pisarían al color activo.
+# Vuelta atrás a la arquitectura anterior: docs/bluegreen.md > "Vuelta atrás total".
+refuse_if_bluegreen() {
+  case "$(cat "${BG_STATE_DIR:-$PWD/.bluegreen}/active" 2>/dev/null)" in
+    blue|green) log "Producción corre blue/green (activo: $(cat "${BG_STATE_DIR:-$PWD/.bluegreen}/active")): usar scripts/deploy-bluegreen.sh o scripts/switch-color.sh. No se hace nada"; return 1 ;;
+  esac
+}
+
 http_code() { curl -s -o /dev/null -m 10 -w '%{http_code}' "$1" || true; }
 
 # Espera hasta que $1 (URL) devuelva el código $2.

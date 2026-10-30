@@ -30,12 +30,12 @@ Portal de transparencia del Club Atlético Independiente (Argentina): economía 
 
 ## Producción
 Resumen; paso a paso en `docs/operacion.md`.
-- VPS `ubuntu@148.113.207.54` (compartido con otros proyectos), código en `/home/ubuntu/projects/numeros-rojos` (checkout del tag, HEAD detached), secretos en `.env.prod` (sin versionar). nginx del host + certbot: `numerosrojos.net` → `/api` a `localhost:8085`, resto a `localhost:3005`.
-- Deploy: `make deploy TAG=x.y.z` (usa `.env.local`: `SERVER`, `DEPLOY_PATH`). Corre `make test-ci` (aborta si falla), hace backup, construye antes de bajar, smoke test y revierte solo si falla (`scripts/deploy-remote.sh`; rollback manual: `scripts/rollback-remote.sh`). Detalle en `docs/operacion.md`.
-- Deploy blue/green sin caída: ensayado, **no adoptado aún** (tarea #143); diseño, medición y plan de migración en `docs/bluegreen.md`.
+- VPS `ubuntu@148.113.207.54` (compartido con otros proyectos), código en `/home/ubuntu/projects/numeros-rojos` (checkout del tag, HEAD detached), secretos en `.env.prod` (sin versionar). nginx del host + certbot: `numerosrojos.net` → `/api` y resto van a los upstreams `nr_api` / `nr_front` (`/etc/nginx/conf.d/nr-active-color.conf`, generado por `scripts/switch-color.sh`) que apuntan al color activo (blue 8085/3005 o green 8185/3105). Contenedores: `nr-{blue,green}-{api,frontend}-1` y `numeros-rojos-{mysql,redis}-1`.
+- Deploy: `make deploy TAG=x.y.z` (usa `.env.local`: `SERVER`, `DEPLOY_PATH`). Corre `make test-ci` (aborta si falla), hace backup, construye y prueba el color inactivo, y conmuta nginx sin corte (`scripts/deploy-bluegreen.sh`; revierte solo si falla). Rollback instantáneo: `scripts/switch-color.sh <color-anterior>`. Detalle en `docs/operacion.md`.
+- Deploy blue/green sin caída: **adoptado en producción** (tarea #143, 2026-10-30); diseño, medición y vuelta atrás en `docs/bluegreen.md`. Regla de migraciones expand/contract (no drop/rename en la misma release).
 - Verificación: `https://numerosrojos.net/` → 200; `https://numerosrojos.net/api/` → JSON `{"status":"running"}`; `https://numerosrojos.net/api/api/v1/contracts/stats` → 200.
-- Logs: `docker logs numeros-rojos-api-1` casi no muestra nada útil; los reales están en el contenedor (`/var/log/php-fpm/{access,error,scheduler}.log` y `storage/logs/`, ambos en volúmenes persistentes desde 2026-10-29; `/var/log/nginx/` no).
-- **No hay backup de la base de datos** (ni cron ni dumps). Antes de cualquier migración destructiva hay que volcar a mano (ver `docs/operacion.md`).
+- Logs: `docker logs nr-<color-activo>-api-1` casi no muestra nada útil; los reales están en el contenedor (`/var/log/php-fpm/{access,error,scheduler}.log` y `storage/logs/`, ambos en volúmenes persistentes desde 2026-10-29; `/var/log/nginx/` no).
+- Backup de la base: cron diario 03:35 y dump antes de cada deploy (`scripts/backup-db.sh`, `docs/backups.md`).
 - Monitoreo: `config/proyectos/numeros-rojos.toml` en la oficina (sitio, API, contenedores, scheduler vivo, antigüedad de cotizaciones).
 
 ## Convenciones
