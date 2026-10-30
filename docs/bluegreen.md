@@ -37,6 +37,30 @@ Durante la ventana de un deploy **ambas versiones corren contra la misma base** 
 
 **Cómo se detecta:** `scripts/check-migrations-compat.sh <ref-anterior> [HEAD]` mira `up()` de las migraciones nuevas/modificadas y marca `BREAKING` (patrones de arriba, sale con 2) o `AVISO` (NOT NULL sin default). `deploy-bluegreen.sh` lo corre antes del backup y **aborta** ante `BREAKING` salvo `ALLOW_BREAKING_MIGRATION=1` (acepta que la versión vieja pueda fallar mientras conviva: el deploy deja de ser sin corte y no hay rollback instantáneo seguro). Es una heurística de texto: no reemplaza leer la migración. Caso real: corrido sobre el historial reciente marca `2026_10_30_000002_drop_own_analytics_tables` (#120) como BREAKING — correcto: esa es una migración *contract* (la release anterior ya no usaba las tablas, así que era segura; con este chequeo se aprobaría con `ALLOW_BREAKING_MIGRATION=1` tras confirmarlo). Un `down()` reversible sigue siendo requisito; el rollback de datos sigue siendo `docs/operacion.md` > Rollback B/C.
 
+## Adopción en producción (tarea #143)
+
+Ejecutada el 2026-10-30 desde la PC de la oficina por SSH, siguiendo el plan de abajo, con sondeo externo (`bluegreen-probe.sh https://numerosrojos.net`, cada 0,5 s, home + `contracts/stats` + `color.txt`).
+
+| Paso | Resultado |
+|---|---|
+| 0. Deploy de `main` con el flujo anterior (1.42.0) + backup manual (`gzip -t` OK) | OK |
+| 1. `init_state`; `up -d --dry-run` de `docker-compose.data.yml`: sin recrear mysql/redis | OK; mysql `fe890127bcd1…` idéntico antes y después |
+| 2. nginx: backup `~/numerosrojos.net.bak-pre-bluegreen`, include `conf.d/nr-active-color.conf` (blue = 8085/3005), solo se cambiaron los 2 `proxy_pass` del vhost, `nginx -t` + `reload` | OK; home, `/api/`, `contracts/stats` = 200 |
+| 3. Scheduler viejo detenido, `FIRST_COLOR=1 deploy-bluegreen.sh` (green 8185/3105): backup → build → migrate → smoke directo → conmutación → verificación pública | OK; scheduler en green (1 proceso) |
+| 4. `rm -sf api frontend` del stack único (datos intactos) | OK; 8085/3005 libres, mysql mismo id |
+| 5. Flujo: `make deploy` → `deploy-bluegreen.sh`; `rollback-remote.sh` en modo blue/green; guardas en los scripts viejos; monitoreo de la oficina actualizado | ver abajo |
+| 6. Primer deploy real con el flujo nuevo (1.42.2, green → blue) | OK, **0 no-200** |
+| Rollback ensayado en producción (`switch-color.sh green`, 20 s después `switch-color.sh blue`) | OK, **0 no-200**; el scheduler siguió al color activo en cada traspaso (3-7 s) |
+
+Sondeo: migración (pasos 3-4) 998 muestras, **0 errores** (13 respuestas 404 de `/api/color.txt` mientras servía el stack único, que todavía no tenía esa marca: esperado y tolerado); deploy 1.42.2 + rollback + vuelta, 701 muestras, **0 no-200**.
+
+Incidentes del camino (sin impacto en usuarios):
+- `make deploy TAG=1.42.1` se lanzó con el Makefile viejo ya cargado por make (el `git pull` del propio target trajo el nuevo) y ejecutó `deploy-remote.sh` en el VPS: **la guarda `refuse_if_bluegreen` lo frenó antes de tocar nada** (el tag 1.42.1 quedó creado y es equivalente a 1.42.0 + docs). Lección: tras mergear un cambio del Makefile, el primer `make deploy` desde un checkout desactualizado usa la receta vieja; la guarda lo cubre.
+- Alertas ContainerDown (Prometheus) quedaron "pending" ~5 min por los contenedores `numeros-rojos-{api,frontend}-1` retirados del stack único (la regla es genérica, por `container_last_seen`, no por nombre: no hizo falta tocarla). **Al bajar un color a propósito (`--stop-old`) puede saltar esa alerta**; los dos colores corren siempre.
+- `sed -i` sobre `/etc/nginx/sites-enabled/numerosrojos.net`: es un archivo regular (en `sites-available/` hay una copia vieja idéntica al backup); el vhost activo es el de `sites-enabled`. Otros vhosts no se tocaron.
+
+Monitoreo de la oficina (`config/proyectos/numeros-rojos.toml`): contenedores = `docker ps` con `numeros-rojos-`, `nr-blue-`, `nr-green-` (en régimen 6, alerta < 4); scheduler = suma de `schedule:work` en `nr-blue-api-1` + `nr-green-api-1` (debe ser 1, alerta < 1); `bcra:heartbeat` se ejecuta en `nr-<color activo>-api-1` leyendo `.bluegreen/active`.
+
 ## Alternativas descartadas
 
 | Alternativa | Por qué no |
