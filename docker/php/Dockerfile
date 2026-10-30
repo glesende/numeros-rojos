@@ -38,6 +38,8 @@ COPY docker/php/nginx.conf /etc/nginx/nginx.conf
 COPY docker/php/default.conf /etc/nginx/http.d/default.conf
 COPY docker/php/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker/php/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
+COPY docker/php/scheduler-run.sh /usr/local/bin/scheduler-run.sh
+RUN chmod +x /usr/local/bin/scheduler-run.sh
 
 RUN mkdir -p /var/log/nginx /var/log/php-fpm /run/nginx \
     /var/lib/nginx/tmp/client_body \

@@ -16,6 +16,8 @@ Precondiciones: copia limpia de `main` (no el checkout local con trabajo sin com
 6. Las migraciones **no** se revierten solas (ver Rollback B/C). El tag queda pusheado aunque el deploy falle: el siguiente intento usa un tag nuevo.
 7. Verificar (abajo) y registrar en la tarea tag y resultado.
 
+> **Deploy blue/green sin caída:** diseñado y ensayado (0 errores medidos) en la tarea #142, **todavía no adoptado en producción** (tarea #143): ver `docs/bluegreen.md`. Hasta entonces rige este documento.
+
 ## Verificación
 - `curl -s -o /dev/null -w '%{http_code}\n' https://numerosrojos.net/` → 200
 - `curl -s https://numerosrojos.net/api/` → `{"name":"Números Rojos API",…,"status":"running"}`
