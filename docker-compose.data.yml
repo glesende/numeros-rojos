@@ -1,0 +1,46 @@
+# Proyecto "datos" del deploy blue/green (docs/bluegreen.md): mysql + redis y sus volúmenes.
+# Nunca se recrea en un deploy. Es el MISMO proyecto compose que hoy aloja todo (`numeros-rojos`) y define
+# mysql/redis idénticos a docker-compose.prod.yml, para que adoptarlo no recree los contenedores.
+#   docker compose -p numeros-rojos -f docker-compose.data.yml --env-file .env.prod up -d
+services:
+  mysql:
+    image: mysql:8.0
+    ports:
+      - "127.0.0.1:3309:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-secret}
+      MYSQL_DATABASE: ${DB_DATABASE:-numeros_rojos}
+      MYSQL_USER: ${DB_USERNAME:-app}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - numeros-rojos-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "127.0.0.1:16379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - numeros-rojos-network
+    restart: unless-stopped
+
+volumes:
+  mysql-data:
+
+networks:
+  numeros-rojos-network:
+    driver: bridge
+    name: numeros-rojos-network

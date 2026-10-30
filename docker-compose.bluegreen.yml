@@ -1,0 +1,83 @@
+# Una "color" del deploy blue/green (docs/bluegreen.md): api + frontend. Se levanta SIEMPRE vía
+# scripts/lib-bluegreen.sh (`dc <color>`), que fija el proyecto (`nr-blue` / `nr-green`) y COLOR, API_PORT, FRONT_PORT.
+# mysql/redis viven en otro proyecto (docker-compose.data.yml) y se alcanzan por la red compartida `data`.
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    ports:
+      - "127.0.0.1:${API_PORT:?lo fija scripts/lib-bluegreen.sh}:80"
+    environment:
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE:-numeros_rojos}
+      - DB_USERNAME=${DB_USERNAME:-app}
+      - DB_PASSWORD=${DB_PASSWORD:-secret}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=${JWT_SECRET:-changeme-in-production}
+      - BESOCCER_BASE_URL=${BESOCCER_BASE_URL:-https://apiclient.besoccerapps.com/scripts/api}
+      - CACHE_TTL_STANDINGS=${CACHE_TTL_STANDINGS:-3600}
+      - CACHE_TTL_PLAYER_STATS=${CACHE_TTL_PLAYER_STATS:-1800}
+      - CACHE_TTL_LEAGUE_STATS=${CACHE_TTL_LEAGUE_STATS:-3600}
+      - CACHE_TTL_PLAYER_DATA=${CACHE_TTL_PLAYER_DATA:-86400}
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - LOG_CHANNEL=stderr
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - MAIL_MAILER=${MAIL_MAILER:-smtp}
+      - MAIL_HOST=${MAIL_HOST}
+      - MAIL_PORT=${MAIL_PORT}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - MAIL_ENCRYPTION=${MAIL_ENCRYPTION:-tls}
+      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS}
+      - MAIL_FROM_NAME=${MAIL_FROM_NAME:-"Numeros Rojos"}
+      # El scheduler (docker/php/scheduler-run.sh) corre solo si el color activo es este.
+      - COLOR=${COLOR:?lo fija scripts/lib-bluegreen.sh}
+      - BG_ACTIVE_FILE=/bluegreen/active
+    volumes:
+      # Compartidos entre colores (volúmenes del stack actual, externos): subidas y logs de la app.
+      - storage-data:/var/www/html/storage/app
+      - storage-logs:/var/www/html/storage/logs
+      # Logs de supervisor/php-fpm: uno por color (supervisor rota los archivos; dos rotando el mismo se pisan).
+      - php-logs:/var/log/php-fpm
+      # Estado del deploy: color activo (solo lectura) y marca de color servida en /color.txt.
+      - ${BG_STATE_DIR:?lo fija scripts/lib-bluegreen.sh}/active:/bluegreen/active:ro
+      - ${BG_STATE_DIR}/color-${COLOR}.txt:/var/www/html/public/color.txt:ro
+    networks:
+      - default
+      - data
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend/Dockerfile.prod
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+        VITE_GA_MEASUREMENT_ID: ${VITE_GA_MEASUREMENT_ID}
+    ports:
+      - "127.0.0.1:${FRONT_PORT:?lo fija scripts/lib-bluegreen.sh}:80"
+    volumes:
+      - ${BG_STATE_DIR}/color-${COLOR}.txt:/usr/share/nginx/html/color.txt:ro
+    # Solo en la red del color: su `api:` debe resolver al api de SU color, no al del otro.
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  storage-data:
+    external: true
+    name: ${NR_VOL_PREFIX:-numeros-rojos}_storage-data
+  storage-logs:
+    external: true
+    name: ${NR_VOL_PREFIX:-numeros-rojos}_storage-logs
+  php-logs: {}
+
+networks:
+  data:
+    external: true
+    name: ${NR_NETWORK:-numeros-rojos-network}
