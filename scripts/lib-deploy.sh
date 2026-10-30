@@ -46,3 +46,8 @@ smoke() {
   log "FALLO scheduler: no hay proceso schedule:work en el contenedor api"
   return 1
 }
+
+# Con blue/green activo (docs/bluegreen.md) este flujo recrearía el stack único y chocaría con los colores: se corta.
+case "$(cat "${BG_STATE_DIR:-$PWD/.bluegreen}/active" 2>/dev/null)" in
+  blue|green) echo "Producción ya usa blue/green: usá scripts/deploy-bluegreen.sh / scripts/switch-color.sh (docs/bluegreen.md)" >&2; exit 1 ;;
+esac
