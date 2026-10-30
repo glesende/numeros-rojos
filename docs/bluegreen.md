@@ -62,7 +62,7 @@ Ensayo `scripts/bluegreen-rehearsal.sh` (2026-10-30, PC de la oficina, Docker 29
 | G. Migración destructiva (`dropColumn`) → rechazada antes de construir | OK (exit≠0) | 56 | **0** |
 | H. Deploy exitoso después de las fallas | OK | 213 | **0** |
 
-Además verificado en cada fase: exactamente un `schedule:work` (en el color activo); el contenedor mysql nunca cambió de id en todo el ensayo. 0 verificaciones fallidas de 40+. Reproducir: `scripts/bluegreen-rehearsal.sh` (~3 min con caché, ~10 con frío; usa puertos 8085 3005 8185 3105 3309 16379 18090; limpia todo lo suyo, prefijo `nrbg`; resultados en `/tmp/nrbg-rehearsal/results.md`).
+Además verificado en cada fase: exactamente un `schedule:work` (en el color activo); el contenedor mysql nunca cambió de id en todo el ensayo. 0 fallidas de 48 verificaciones. Reproducir: `scripts/bluegreen-rehearsal.sh` (~4 min con caché, más con frío; usa puertos 8085 3005 8185 3105 3309 16379 18090; limpia todo lo suyo, prefijo `nrbg`; resultados en `/tmp/nrbg-rehearsal/results.md`).
 
 **Lo que el ensayo no cubre (riesgos):**
 - Tráfico real concurrente: el sondeo es de ~15 req/s en total, no carga de usuarios. Un request en vuelo al conmutar lo termina el worker viejo de nginx contra el color viejo, que sigue arriba.
