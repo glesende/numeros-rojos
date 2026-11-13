@@ -2,7 +2,7 @@ COMPOSE := docker compose
 
 -include .env.local
 
-.PHONY: help up down build restart logs shell-api shell-frontend migrate seed fresh test test-ci lint fresh-start db-pull
+.PHONY: help up down build restart logs shell-api shell-frontend migrate seed fresh test test-ci lint fresh-start db-pull benchmark-accesos
 
 # Colors for output
 GREEN=\033[0;32m
@@ -65,6 +65,10 @@ test: ## Run backend tests (sobre numeros_rojos_testing, nunca la base de desarr
 
 CI_IMAGE ?= numeros-rojos-ci-api
 CI_NET := numeros-rojos-ci-$(shell echo $$$$)
+
+benchmark-accesos: ## Benchmark local QR vs facial (Chrome headless, cámara sintética): make benchmark-accesos [N=100] [GL=swiftshader|default]
+	@cd frontend && npm ci --no-audit --no-fund && cd ../scripts/benchmark-accesos && npm install --no-audit --no-fund
+	@cd scripts/benchmark-accesos && node run.mjs --n $(or $(N),100) --gl $(or $(GL),swiftshader) --out ../../docs/benchmark-accesos/$(if $(filter default,$(GL)),gpu,software-gl)
 
 test-ci: ## Tests backend (MySQL efímero) + build frontend en contenedores, sin tocar el stack; gate de make deploy
 	docker build -q -f docker/php/Dockerfile -t $(CI_IMAGE) .
