@@ -52,6 +52,12 @@ class PublicEndpointsTest extends TestCase
     }
 
     #[Test]
+    public function el_sitemap_no_incluye_la_poc_oculta_de_accesos(): void
+    {
+        $this->assertStringNotContainsString('estadio-accesos', $this->get('/api/sitemap.xml')->getContent());
+    }
+
+    #[Test]
     public function un_recurso_inexistente_responde_404_con_el_formato_propio(): void
     {
         foreach (['economy', 'contracts', 'rights', 'rumors', 'balances'] as $resource) {
