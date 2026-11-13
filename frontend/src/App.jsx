@@ -39,6 +39,9 @@ const ElectionListPage            = lazy(() => import('./pages/ElectionListPage'
 const ElectionsPage               = lazy(() => import('./pages/ElectionsPage'));
 const ElectionDetailPage          = lazy(() => import('./pages/ElectionDetailPage'));
 const MyProposalsPage             = lazy(() => import('./pages/MyProposalsPage'));
+// PoC oculta (#372): sin enlaces desde ninguna parte; solo se abre por URL directa.
+const StadiumAccessPocPage        = lazy(() => import('./pages/StadiumAccessPocPage'));
+const HIDDEN_POC_PATH = '/estadio-accesos';
 
 function ScrollToTop() {
   const { pathname, state } = useLocation();
@@ -59,6 +62,17 @@ function ProtectedRoute({ children }) {
 
 export default function App() {
   usePageTracking();
+  const { pathname } = useLocation();
+  if (pathname.replace(/\/+$/, '') === HIDDEN_POC_PATH) {
+    // Fuera de Layout: sin menú, footer ni banner de instalación.
+    return (
+      <ChunkErrorBoundary>
+        <Suspense fallback={<Loader />}>
+          <StadiumAccessPocPage />
+        </Suspense>
+      </ChunkErrorBoundary>
+    );
+  }
   return (
     <Layout>
       <ScrollToTop />

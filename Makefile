@@ -80,7 +80,7 @@ test-ci: ## Tests backend (MySQL efímero) + build frontend en contenedores, sin
 	docker run --rm --network $(CI_NET) -e DB_HOST=mysql -e DB_USERNAME=app -e DB_PASSWORD=secret -e DB_DATABASE=numeros_rojos \
 		-e JWT_SECRET=ci-test-secret-0123456789abcdef0123456789abcdef -e APP_KEY=base64:$$(head -c 32 /dev/zero | base64) \
 		-w /var/www/html --entrypoint php $(CI_IMAGE) vendor/bin/phpunit; \
-	docker run --rm -u "$$(id -u):$$(id -g)" -e HOME=/tmp -v "$$PWD/frontend:/app" -w /app node:20-alpine sh -c 'npm ci --no-audit --no-fund && npm run build'
+	docker run --rm -u "$$(id -u):$$(id -g)" -e HOME=/tmp -v "$$PWD/frontend:/app" -w /app node:20-alpine sh -c 'npm ci --no-audit --no-fund && npm test && npm run build'
 
 key-generate: ## Generate JWT secret
 	$(COMPOSE) exec api php artisan jwt:secret
