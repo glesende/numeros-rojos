@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePageMeta } from '../hooks/usePageMeta';
 import QrGenerator from '../components/accessPoc/QrGenerator';
 import ResultsPanel from '../components/accessPoc/ResultsPanel';
+import BenchmarkResults from '../components/accessPoc/BenchmarkResults';
 import ConclusionTable from '../components/accessPoc/ConclusionTable';
 import { METHOD_LABEL, classify, euclidean, meanAbsDiff } from '../lib/accessPoc/stats';
 import {
@@ -330,6 +331,8 @@ export default function StadiumAccessPocPage() {
             Página de prueba interna, no pública. Todo se procesa en este navegador: no se envía ni se guarda ninguna imagen, captura ni vector facial.
           </p>
         </header>
+
+        <BenchmarkResults />
 
         {!consented ? (
           <section className="bg-white border border-amber-300 rounded-lg p-4 space-y-3" aria-labelledby="cons-h">

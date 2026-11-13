@@ -1,0 +1,136 @@
+{
+ "software": {
+  "env": {
+   "date": "2026-11-13",
+   "machine": "11th Gen Intel(R) Core(TM) i7-1165G7 @ 2.80GHz · 8 hilos · 38 GB RAM",
+   "os": "Linux 7.0.0-43-generic",
+   "browser": "Chrome 157.0.8103.50 (headless=new)",
+   "webgl": "WebGL por software (SwiftShader), sin GPU",
+   "node": "v22.22.1",
+   "commit": "ad5f96c",
+   "n": 100,
+   "seed": 373,
+   "camera": "sintética: canvas 1280x720 → captureStream → <video>",
+   "timeout_ms": 5000,
+   "face_threshold": 0.6,
+   "weights": {
+    "qr_js_gzip_kb": 10,
+    "face_js_gzip_kb": 332,
+    "face_models_mb": 6.4
+   }
+  },
+  "summary": [
+   {
+    "method": "qr_jsQR",
+    "engine": "jsQR",
+    "backend": "",
+    "n": 100,
+    "median_ms": 68,
+    "p95_ms": 88.6,
+    "min_ms": 46.9,
+    "max_ms": 110,
+    "mean_ms": 69.3,
+    "accuracy_pct": 100,
+    "false_accept": 0,
+    "false_reject": 0,
+    "timeouts": 0,
+    "compute_median_ms": 9.2,
+    "cpu_s_total": 61.9,
+    "cpu_ms_per_attempt": 619,
+    "wall_s": 37.2,
+    "load_ms": 17,
+    "js_heap_peak_mb": 20,
+    "models_downloaded_mb": 0
+   },
+   {
+    "method": "face",
+    "engine": "face-api tiny+recognition",
+    "backend": "webgl",
+    "n": 100,
+    "median_ms": 851.6,
+    "p95_ms": 902.9,
+    "min_ms": 617.6,
+    "max_ms": 1165.1,
+    "mean_ms": 835,
+    "accuracy_pct": 76,
+    "false_accept": 4,
+    "false_reject": 0,
+    "timeouts": 20,
+    "compute_median_ms": 572.1,
+    "cpu_s_total": 1750.5,
+    "cpu_ms_per_attempt": 17505,
+    "wall_s": 272.6,
+    "load_ms": 1874,
+    "js_heap_peak_mb": 14,
+    "models_downloaded_mb": 6.43
+   }
+  ]
+ },
+ "gpu": {
+  "env": {
+   "date": "2026-11-13",
+   "machine": "11th Gen Intel(R) Core(TM) i7-1165G7 @ 2.80GHz · 8 hilos · 38 GB RAM",
+   "os": "Linux 7.0.0-43-generic",
+   "browser": "Chrome 157.0.8103.50 (headless=new)",
+   "webgl": "GPU del equipo",
+   "node": "v22.22.1",
+   "commit": "ad5f96c",
+   "n": 100,
+   "seed": 373,
+   "camera": "sintética: canvas 1280x720 → captureStream → <video>",
+   "timeout_ms": 5000,
+   "face_threshold": 0.6,
+   "weights": {
+    "qr_js_gzip_kb": 10,
+    "face_js_gzip_kb": 332,
+    "face_models_mb": 6.4
+   }
+  },
+  "summary": [
+   {
+    "method": "qr_jsQR",
+    "engine": "jsQR",
+    "backend": "",
+    "n": 100,
+    "median_ms": 34.3,
+    "p95_ms": 40.5,
+    "min_ms": 17.3,
+    "max_ms": 55.9,
+    "mean_ms": 33.7,
+    "accuracy_pct": 100,
+    "false_accept": 0,
+    "false_reject": 0,
+    "timeouts": 0,
+    "compute_median_ms": 8.8,
+    "cpu_s_total": 11.5,
+    "cpu_ms_per_attempt": 115,
+    "wall_s": 33.1,
+    "load_ms": 21,
+    "js_heap_peak_mb": 25,
+    "models_downloaded_mb": 0
+   },
+   {
+    "method": "face",
+    "engine": "face-api tiny+recognition",
+    "backend": "webgl",
+    "n": 100,
+    "median_ms": 116.5,
+    "p95_ms": 132.6,
+    "min_ms": 78.8,
+    "max_ms": 145.7,
+    "mean_ms": 114,
+    "accuracy_pct": 79,
+    "false_accept": 1,
+    "false_reject": 0,
+    "timeouts": 20,
+    "compute_median_ms": 70,
+    "cpu_s_total": 123,
+    "cpu_ms_per_attempt": 1230,
+    "wall_s": 150.7,
+    "load_ms": 1529,
+    "js_heap_peak_mb": 17,
+    "models_downloaded_mb": 6.43
+   }
+  ]
+ }
+}

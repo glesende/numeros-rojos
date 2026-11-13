@@ -1,0 +1,8 @@
+{
+  "name": "benchmark-accesos",
+  "private": true,
+  "type": "module",
+  "description": "Benchmark local QR vs facial (tarea #373). Ver docs/benchmark-accesos.md",
+  "scripts": { "bench": "node run.mjs" },
+  "dependencies": { "playwright-core": "^1.65.0" }
+}
