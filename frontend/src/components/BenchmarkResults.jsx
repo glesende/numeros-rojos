@@ -1,7 +1,7 @@
-import data from '../../data/accessBenchmark.json';
+import data from '../data/accessBenchmark.json';
 
 // Resultados del benchmark de laboratorio (tarea #373): datos generados por scripts/benchmark-accesos.
-// Se muestran arriba de la PoC interactiva. Son mediciones sintéticas, no de campo.
+// Son mediciones sintéticas, no de campo.
 
 const fmt = (v, d = 0) => (v === null || v === undefined ? '–' : Number(v).toFixed(d).replace('.', ','));
 const pick = (v) => ({ qr: v.summary.find((s) => s.method.startsWith('qr_')), face: v.summary.find((s) => s.method === 'face') });
@@ -34,7 +34,6 @@ export default function BenchmarkResults() {
   const main = gpu || sw; // variante principal: la más favorable al facial (GPU real) para no sesgar la comparación
   const env = (gpu ? data.gpu : data.software).env;
   const times = fmt(main.face.median_ms / main.qr.median_ms, 1);
-  const timesSw = Math.round(sw.face.median_ms / sw.qr.median_ms);
   const cpuTimes = Math.round(main.face.cpu_ms_per_attempt / main.qr.cpu_ms_per_attempt);
   const n = main.qr.n;
   const errs = (s) => s.false_accept + s.false_reject + s.timeouts;
@@ -83,32 +82,8 @@ export default function BenchmarkResults() {
 
       <Bars rows={[{ label: 'Lector QR', median: main.qr.median_ms, p95: main.qr.p95_ms, color: '#1d4ed8' }, { label: 'Reconocimiento facial', median: main.face.median_ms, p95: main.face.p95_ms, color: '#0f766e' }]} />
 
-      <div className="grid sm:grid-cols-2 gap-3 text-sm">
-        <div>
-          <h3 className="font-bold">Lector QR</h3>
-          <ul className="list-disc pl-5 space-y-1 mt-1">
-            <li><strong>+</strong> Rápido y estable: {fmt(main.qr.min_ms)}–{fmt(main.qr.max_ms)} ms.</li>
-            <li><strong>+</strong> Casi sin cómputo ni descarga ({w.qr_js_gzip_kb} KB): corre hasta en equipos modestos.</li>
-            <li><strong>+</strong> Sin datos biométricos: menos riesgo legal.</li>
-            <li><strong>−</strong> Cada hincha debe mostrar el código; puede prestarse (se mitiga con QR rotativos).</li>
-          </ul>
-        </div>
-        <div>
-          <h3 className="font-bold">Reconocimiento facial</h3>
-          <ul className="list-disc pl-5 space-y-1 mt-1">
-            <li><strong>+</strong> Manos libres y difícil de prestar.</li>
-            <li><strong>−</strong> {times} veces más lento y más variable ({fmt(main.face.min_ms)}–{fmt(main.face.max_ms)} ms).</li>
-            <li><strong>−</strong> Pesa {fmt(w.face_models_mb, 1)} MB de modelos y consume mucha más CPU (sin GPU llega a ser {timesSw}× más lento que el QR).</li>
-            <li><strong>−</strong> Dato biométrico: exige consentimiento y análisis legal. Gorra, barbijo y poca luz no se midieron acá y suelen empeorarlo.</li>
-          </ul>
-        </div>
-      </div>
-
-      <p className="text-sm">
-        <strong>Conclusión:</strong> para los accesos, el QR gana en velocidad, eficiencia, costo y privacidad. El facial solo tendría sentido como carril opcional si la prueba en cancha demuestra una ventaja de flujo.
-      </p>
       <p className="text-xs text-gray-500">
-        Método, máquina y datos crudos (CSV): <code>docs/benchmark-accesos.md</code> del repositorio. Reproducible con <code>make benchmark-accesos</code>. Más abajo, la PoC interactiva para medir en tu propio dispositivo.
+        Método, máquina y datos crudos (CSV): <code>docs/benchmark-accesos.md</code> del repositorio. Reproducible con <code>make benchmark-accesos</code>.
       </p>
     </section>
   );

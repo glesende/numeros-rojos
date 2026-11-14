@@ -40,8 +40,8 @@ const ElectionsPage               = lazy(() => import('./pages/ElectionsPage'));
 const ElectionDetailPage          = lazy(() => import('./pages/ElectionDetailPage'));
 const MyProposalsPage             = lazy(() => import('./pages/MyProposalsPage'));
 // PoC oculta (#372): sin enlaces desde ninguna parte; solo se abre por URL directa.
-const StadiumAccessPocPage        = lazy(() => import('./pages/StadiumAccessPocPage'));
-const HIDDEN_POC_PATH = '/estadio-accesos';
+const StadiumAccessPage           = lazy(() => import('./pages/StadiumAccessPage'));
+const HIDDEN_PATH = '/estadio-accesos';
 
 function ScrollToTop() {
   const { pathname, state } = useLocation();
@@ -77,7 +77,7 @@ export default function App() {
         <Route path="/contratos/:id" element={<ContractDetailPage />} />
         <Route path="/balances" element={<BalancesPage />} />
         <Route path="/balances/:id" element={<BalanceDetailPage />} />
-        <Route path={HIDDEN_POC_PATH} element={<StadiumAccessPocPage />} />
+        <Route path={HIDDEN_PATH} element={<StadiumAccessPage />} />
         <Route path="/estadisticas" element={<StatsPage />} />
         <Route path="/estadio" element={<StadiumPage />} />
         <Route path="/derechos" element={<RightsPage />} />

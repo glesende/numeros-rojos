@@ -1,4 +1,4 @@
-// La PoC /estadio-accesos (#372) debe poder abrirse por URL directa pero no estar enlazada ni indexable.
+// La página /estadio-accesos (#372, #379: solo análisis y benchmark) debe poder abrirse por URL directa pero no estar enlazada ni indexable.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
@@ -44,17 +44,26 @@ test('la ruta no figura en robots.txt, manifest ni index.html', () => {
 test('la ruta está declarada una sola vez y fuera de la navegación', () => {
   const app = readFileSync(join(root, 'src/App.jsx'), 'utf8');
   assert.equal(app.split(NEEDLE).length - 1, 1);
-  assert.match(app, /<Route path=\{HIDDEN_POC_PATH\}/, 'la ruta se declara dentro del Layout');
-  assert.match(app, /<Layout>[\s\S]*HIDDEN_POC_PATH[\s\S]*<\/Layout>/, 'la página se renderiza dentro de Layout (navbar y footer)');
+  assert.match(app, /<Route path=\{HIDDEN_PATH\}/, 'la ruta se declara dentro del Layout');
+  assert.match(app, /<Layout>[\s\S]*HIDDEN_PATH[\s\S]*<\/Layout>/, 'la página se renderiza dentro de Layout (navbar y footer)');
   for (const nav of ['src/components/layout/Navbar.jsx', 'src/components/layout/Footer.jsx', 'src/pages/HomePage.jsx', 'src/pages/StadiumPage.jsx']) {
     assert.ok(!readFileSync(join(root, nav), 'utf8').includes(NEEDLE), nav);
   }
 });
 
-test('la página se marca noindex y no persiste datos en el navegador', () => {
-  const page = readFileSync(join(root, 'src/pages/StadiumAccessPocPage.jsx'), 'utf8');
+test('la página se marca noindex y es solo lectura: sin cámara, permisos, storage ni red', () => {
+  const files = ['src/pages/StadiumAccessPage.jsx', 'src/components/AccessSummary.jsx', 'src/components/BenchmarkResults.jsx'];
+  const page = readFileSync(join(root, files[0]), 'utf8');
   assert.match(page, /noindex:\s*true/);
-  const code = ['src/pages/StadiumAccessPocPage.jsx', 'src/lib/accessPoc/engines.js', 'src/components/accessPoc/BenchmarkResults.jsx', 'src/components/accessPoc/QrGenerator.jsx']
-    .map((f) => readFileSync(join(root, f), 'utf8')).join('\n');
+  const code = files.map((f) => readFileSync(join(root, f), 'utf8')).join('\n');
+  assert.ok(!/getUserMedia|mediaDevices|<video|<button|<input|face-api|jsqr|qrcode/i.test(code), 'sin cámara ni controles de prueba');
   assert.ok(!/localStorage|sessionStorage|indexedDB|fetch\(|XMLHttpRequest|sendBeacon|axios/.test(code), 'sin almacenamiento ni red');
+});
+
+test('el sitio no incluye código ni modelos de la PoC (solo el laboratorio del benchmark en bench/)', () => {
+  for (const f of ['public/poc-modelos-facial', 'src/lib/accessPoc', 'src/components/accessPoc', 'src/pages/StadiumAccessPocPage.jsx']) {
+    assert.throws(() => statSync(join(root, f)), f);
+  }
+  const srcCode = walk(join(root, 'src')).filter((f) => /\.jsx?$/.test(f)).map((f) => readFileSync(f, 'utf8')).join('\n');
+  assert.ok(!/@vladmandic\/face-api|from 'jsqr'|from 'qrcode'/.test(srcCode));
 });

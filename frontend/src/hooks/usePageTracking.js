@@ -8,7 +8,7 @@ export function usePageTracking() {
 
   useEffect(() => {
     if (typeof window.gtag !== 'function') return;
-    // La PoC de accesos (#372) es interna: no ensucia la analítica pública.
+    // La página de accesos (#372) es interna: no ensucia la analítica pública.
     if (location.pathname.startsWith('/estadio-accesos')) return;
     window.gtag('event', 'page_view', {
       page_path: location.pathname + location.search,

@@ -149,7 +149,7 @@ if (apiUrl) {
   console.warn('⚠ VITE_API_URL no está definida — se omiten las páginas de detalle de elecciones.');
 }
 
-// PoC oculta de accesos (#372): HTML estático con noindex (no está en `routes`, ni en el sitemap, ni enlazada).
+// Página oculta de accesos (#372): HTML estático con noindex (no está en `routes`, ni en el sitemap, ni enlazada).
 {
   const hiddenHtml = indexHtml.replace('</head>', '    <meta name="robots" content="noindex, nofollow" />\n  </head>');
   mkdirSync(join(distDir, 'estadio-accesos'), { recursive: true });

@@ -5,7 +5,8 @@
 import { createRequire } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
-import { mkdirSync, writeFileSync, readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { gzipSync } from 'node:zlib';
 import os from 'node:os';
 import { execSync } from 'node:child_process';
@@ -20,7 +21,7 @@ const GL = arg('gl', 'swiftshader'); // swiftshader (GL por software, reproducib
 
 const { chromium } = createRequire(import.meta.url)('playwright-core');
 const { createServer } = await import(pathToFileURL(createRequire(join(frontend, 'package.json')).resolve('vite')).href);
-const { percentile, median, summarize } = await import(pathToFileURL(join(frontend, 'src/lib/accessPoc/stats.js')).href);
+const { percentile, median, summarize } = await import(pathToFileURL(join(frontend, 'bench/lib/stats.js')).href);
 
 mkdirSync(OUT, { recursive: true });
 const server = await createServer({ root: frontend, configFile: join(frontend, 'vite.config.js'), server: { port: 5199, host: '127.0.0.1', strictPort: true }, logLevel: 'error' });
@@ -44,7 +45,7 @@ async function run(method, engine) {
   const page = await ctx.newPage();
   const bytes = { models: 0, requests: 0 };
   page.on('response', async (r) => { // peso de modelos descargados (modelos faciales servidos por Vite)
-    if (r.url().includes('/poc-modelos-facial/')) { const b = await r.body().catch(() => null); if (b) bytes.models += b.length; }
+    if (r.url().includes('/bench/modelos/')) { const b = await r.body().catch(() => null); if (b) bytes.models += b.length; }
   });
   page.on('console', (m) => { if (m.type() === 'error') console.error('  [page]', m.text()); });
   await page.goto(`${base}/bench/accesos.html`, { waitUntil: 'domcontentloaded', timeout: 120000 });
@@ -78,18 +79,20 @@ const summary = runs.map((r) => {
   };
 });
 
-// Peso de lo que descarga el usuario (si hay build en frontend/dist): chunk de jsQR y de face-api (gzip).
-const dist = join(frontend, 'dist/assets');
+// Peso de lo que descarga el usuario: build aparte de la página de laboratorio (el sitio ya no incluye estos motores);
+// gzip del chunk de jsQR y del de face-api.
+const { build } = await import(pathToFileURL(createRequire(join(frontend, 'package.json')).resolve('vite')).href);
+const dist = mkdtempSync(join(tmpdir(), 'bench-dist-'));
+await build({ root: frontend, configFile: false, logLevel: 'error', build: { outDir: dist, emptyOutDir: true, rollupOptions: { input: join(frontend, 'bench/accesos.html') } } });
 const weights = {};
-if (existsSync(dist)) {
-  for (const f of readdirSync(dist).filter((x) => x.endsWith('.js'))) {
-    const src = readFileSync(join(dist, f), 'utf8');
-    const gz = gzipSync(src).length;
-    if (/TinyFaceDetector/.test(src) && src.length > 500000) weights.face_js_gzip_kb = Math.round(gz / 1024);
-    else if (/inversionAttempts/.test(src) && src.length < 100000) weights.qr_js_gzip_kb = Math.round(gz / 1024);
-  }
+for (const f of readdirSync(join(dist, 'assets')).filter((x) => x.endsWith('.js'))) {
+  const src = readFileSync(join(dist, 'assets', f), 'utf8');
+  const gz = gzipSync(src).length;
+  if (/TinyFaceDetector/.test(src) && src.length > 500000) weights.face_js_gzip_kb = Math.round(gz / 1024);
+  else if (/inversionAttempts/.test(src) && src.length < 100000) weights.qr_js_gzip_kb = Math.round(gz / 1024);
 }
-const modelsDir = join(frontend, 'public/poc-modelos-facial');
+rmSync(dist, { recursive: true, force: true });
+const modelsDir = join(frontend, 'bench/modelos');
 weights.face_models_mb = Math.round((readdirSync(modelsDir).reduce((s, f) => s + statSync(join(modelsDir, f)).size, 0) / 1048576) * 10) / 10;
 
 const cpus = os.cpus();
