@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const NEEDLE = 'estadio-accesos';
 
-// Únicos archivos que pueden nombrar la ruta: la ruta misma, la página, el hook de analítica (la excluye) y el postbuild (noindex).
+// Únicos archivos que pueden nombrar la ruta: la declaración de la ruta, el hook de analítica (la excluye) y el postbuild (noindex).
 const ALLOWED = new Set([
   'src/App.jsx',
   'src/hooks/usePageTracking.js',
@@ -44,7 +44,8 @@ test('la ruta no figura en robots.txt, manifest ni index.html', () => {
 test('la ruta está declarada una sola vez y fuera de la navegación', () => {
   const app = readFileSync(join(root, 'src/App.jsx'), 'utf8');
   assert.equal(app.split(NEEDLE).length - 1, 1);
-  assert.ok(!/<Route[^>]*estadio-accesos/.test(app), 'no debe ser una <Route> dentro del Layout');
+  assert.match(app, /<Route path=\{HIDDEN_POC_PATH\}/, 'la ruta se declara dentro del Layout');
+  assert.match(app, /<Layout>[\s\S]*HIDDEN_POC_PATH[\s\S]*<\/Layout>/, 'la página se renderiza dentro de Layout (navbar y footer)');
   for (const nav of ['src/components/layout/Navbar.jsx', 'src/components/layout/Footer.jsx', 'src/pages/HomePage.jsx', 'src/pages/StadiumPage.jsx']) {
     assert.ok(!readFileSync(join(root, nav), 'utf8').includes(NEEDLE), nav);
   }
@@ -53,7 +54,7 @@ test('la ruta está declarada una sola vez y fuera de la navegación', () => {
 test('la página se marca noindex y no persiste datos en el navegador', () => {
   const page = readFileSync(join(root, 'src/pages/StadiumAccessPocPage.jsx'), 'utf8');
   assert.match(page, /noindex:\s*true/);
-  const code = ['src/pages/StadiumAccessPocPage.jsx', 'src/lib/accessPoc/engines.js', 'src/components/accessPoc/ResultsPanel.jsx', 'src/components/accessPoc/QrGenerator.jsx']
+  const code = ['src/pages/StadiumAccessPocPage.jsx', 'src/lib/accessPoc/engines.js', 'src/components/accessPoc/BenchmarkResults.jsx', 'src/components/accessPoc/QrGenerator.jsx']
     .map((f) => readFileSync(join(root, f), 'utf8')).join('\n');
   assert.ok(!/localStorage|sessionStorage|indexedDB|fetch\(|XMLHttpRequest|sendBeacon|axios/.test(code), 'sin almacenamiento ni red');
 });
