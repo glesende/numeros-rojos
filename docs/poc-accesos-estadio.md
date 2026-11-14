@@ -7,7 +7,7 @@ Página **oculta** `https://www.numerosrojos.net/estadio-accesos`. Pedido del CE
 2. **Lector QR**: el generador muestra un QR *válido* (se registra en memoria) y permite generar uno *inválido*. Apuntar la cámara a ese QR desde otro dispositivo/impreso. Válido → "acceso OK"; inválido o desconocido → "denegado".
 3. **Reconocimiento facial**: subir una foto de prueba (de quien va a probar; nunca de socios). Se calcula el vector en el navegador; "OK" si la distancia al rostro en cámara es menor al umbral (0,60 por defecto, ajustable).
 4. Elegir el **resultado esperado** del intento (OK / denegado) para calcular aciertos, y lanzar **Un intento** o **Secuencia de N** (20 por defecto; se re-arma sola). Para comparar justo, correr la misma secuencia con los dos métodos.
-5. Ver tabla comparativa (n, mediana, p95, mín, máx, acierto, falsos accesos/rechazos, timeouts) y gráfico; **Exportar CSV**. Los resultados se pierden al recargar la pestaña.
+5. Cada intento muestra su decisión y tiempo en pantalla. Desde #374 la página ya no tiene tabla de resultados, exportación CSV ni tabla de conclusión (pedido del CEO): queda el benchmark publicado (#373) arriba y la PoC interactiva. Nada se acumula ni se guarda.
 
 ## Cómo se mide
 - Reloj: `performance.now()`. **t0** = instante en que algo entra en cámara; **t1** = emisión de "acceso OK/denegado". `total_ms = t1 - t0` (columna principal). `compute_ms` = lo que tardó solo la última pasada de detección + comparación (el resto es esperar a que el código/rostro quede legible).
@@ -25,7 +25,7 @@ Página **oculta** `https://www.numerosrojos.net/estadio-accesos`. Pedido del CE
 ## Cómo se mantiene oculta
 - Sin enlaces: no está en menú, home, `/estadio`, footer, sitemap (`SitemapController`), `robots.txt` ni manifest. No se agregó `Disallow` a propósito: listaría la URL y, además, impediría que el buscador vea el `noindex`.
 - `noindex`: `<meta name="robots" content="noindex, nofollow">` en runtime, HTML estático generado en el postbuild (`dist/estadio-accesos/index.html`) y cabecera `X-Robots-Tag` en `docker/nginx/default.frontend.conf` (también `Cache-Control: no-store` y `Permissions-Policy: camera=(self)`).
-- Renderiza fuera del `Layout` (sin menú ni footer).
+- Desde #374 renderiza dentro del `Layout` (navbar, footer, estilos del sitio), pero la ruta no figura en el menú ni en ningún enlace; la analítica la sigue excluyendo.
 - Tests: `frontend/tests/estadio-accesos-oculta.test.mjs` (ningún archivo la enlaza, no hay storage ni red), `frontend/tests/access-poc-stats.test.mjs` (estadísticas, CSV) y `PublicEndpointsTest` (sitemap). `make test-ci` corre `npm test` antes del build.
 
 ## Código

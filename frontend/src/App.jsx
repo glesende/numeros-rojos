@@ -62,17 +62,6 @@ function ProtectedRoute({ children }) {
 
 export default function App() {
   usePageTracking();
-  const { pathname } = useLocation();
-  if (pathname.replace(/\/+$/, '') === HIDDEN_POC_PATH) {
-    // Fuera de Layout: sin menú, footer ni banner de instalación.
-    return (
-      <ChunkErrorBoundary>
-        <Suspense fallback={<Loader />}>
-          <StadiumAccessPocPage />
-        </Suspense>
-      </ChunkErrorBoundary>
-    );
-  }
   return (
     <Layout>
       <ScrollToTop />
@@ -88,6 +77,7 @@ export default function App() {
         <Route path="/contratos/:id" element={<ContractDetailPage />} />
         <Route path="/balances" element={<BalancesPage />} />
         <Route path="/balances/:id" element={<BalanceDetailPage />} />
+        <Route path={HIDDEN_POC_PATH} element={<StadiumAccessPocPage />} />
         <Route path="/estadisticas" element={<StatsPage />} />
         <Route path="/estadio" element={<StadiumPage />} />
         <Route path="/derechos" element={<RightsPage />} />

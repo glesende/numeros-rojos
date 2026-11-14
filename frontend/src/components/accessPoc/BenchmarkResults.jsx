@@ -50,7 +50,7 @@ export default function BenchmarkResults() {
   ];
 
   return (
-    <section aria-labelledby="bench-h" className="bg-white rounded-lg border border-gray-200 p-4 space-y-4">
+    <section aria-labelledby="bench-h" className="card space-y-4">
       <div>
         <h2 id="bench-h" className="text-xl font-bold">Resultados del benchmark: QR vs reconocimiento facial</h2>
         <p className="text-base mt-2">

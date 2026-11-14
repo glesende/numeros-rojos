@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePageMeta } from '../hooks/usePageMeta';
 import QrGenerator from '../components/accessPoc/QrGenerator';
-import ResultsPanel from '../components/accessPoc/ResultsPanel';
 import BenchmarkResults from '../components/accessPoc/BenchmarkResults';
-import ConclusionTable from '../components/accessPoc/ConclusionTable';
 import { METHOD_LABEL, classify, euclidean, meanAbsDiff } from '../lib/accessPoc/stats';
 import {
   ATTEMPT_TIMEOUT_MS, PRESENCE_DIFF_THRESHOLD, PRESENCE_FRAMES,
@@ -40,7 +38,6 @@ export default function StadiumAccessPocPage() {
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
   const [last, setLast] = useState(null);
-  const [attempts, setAttempts] = useState([]);
   const [validCodes, setValidCodes] = useState([]);
   const [refThumb, setRefThumb] = useState('');
   const [refReady, setRefReady] = useState(false);
@@ -89,7 +86,6 @@ export default function StadiumAccessPocPage() {
       faceThreshold: c.method === 'face' ? c.threshold : null,
       sequence: seqRef.current.active,
     };
-    setAttempts((prev) => [...prev, attempt]);
     setLast(attempt);
     setPhaseBoth('cooldown');
 
@@ -323,11 +319,11 @@ export default function StadiumAccessPocPage() {
   }[phase];
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
-      <div className="max-w-3xl mx-auto p-4 space-y-4">
+    <div>
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-4">
         <header>
-          <h1 className="text-2xl font-bold">PoC accesos al estadio: facial vs QR</h1>
-          <p className="text-sm text-gray-600">
+          <h1 className="text-2xl font-extrabold mb-1">PoC accesos al estadio: facial vs QR</h1>
+          <p className="text-sm text-gray-500">
             Página de prueba interna, no pública. Todo se procesa en este navegador: no se envía ni se guarda ninguna imagen, captura ni vector facial.
           </p>
         </header>
@@ -358,7 +354,7 @@ export default function StadiumAccessPocPage() {
               ))}
             </div>
 
-            <section className="bg-white rounded-lg border border-gray-200 p-4 space-y-3" aria-label="Cámara">
+            <section className="card space-y-3" aria-label="Cámara">
               <div className="relative bg-black rounded overflow-hidden aspect-video">
                 <video ref={videoRef} playsInline muted className="w-full h-full object-contain"
                   style={facing === 'user' ? { transform: 'scaleX(-1)' } : undefined} />
@@ -443,12 +439,12 @@ export default function StadiumAccessPocPage() {
             </section>
 
             {method === 'qr' ? (
-              <section className="bg-white rounded-lg border border-gray-200 p-4 space-y-2" aria-label="Generador de QR de prueba">
+              <section className="card space-y-2" aria-label="Generador de QR de prueba">
                 <h2 className="font-bold">Generador de QR de prueba</h2>
                 <QrGenerator validCodes={validCodes} onAddValid={addValid} />
               </section>
             ) : (
-              <section className="bg-white rounded-lg border border-gray-200 p-4 space-y-2" aria-label="Foto de referencia">
+              <section className="card space-y-2" aria-label="Foto de referencia">
                 <h2 className="font-bold">Foto de referencia (de prueba)</h2>
                 <p className="text-sm text-gray-600">Subí una foto de quien va a probar. No sale del navegador. Solo fotos de prueba, nunca de socios reales.</p>
                 <div className="flex items-center gap-3">
@@ -465,9 +461,6 @@ export default function StadiumAccessPocPage() {
             )}
           </>
         )}
-
-        <ResultsPanel attempts={attempts} onReset={() => { setAttempts([]); setLast(null); }} />
-        <ConclusionTable />
       </div>
     </div>
   );
