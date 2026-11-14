@@ -11,16 +11,16 @@
     "test": "node --test"
   },
   "dependencies": {
-    "@vladmandic/face-api": "^1.7.15",
     "axios": "^1.6.0",
-    "jsqr": "^1.4.0",
-    "qrcode": "^1.5.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^7.18.5",
     "recharts": "^3.8.0"
   },
   "devDependencies": {
+    "@vladmandic/face-api": "^1.7.15",
+    "jsqr": "^1.4.0",
+    "qrcode": "^1.5.4",
     "@types/react": "^18.2.0",
     "@vitejs/plugin-react": "^4.7.0",
     "autoprefixer": "^10.4.16",

@@ -1,6 +1,6 @@
 # Benchmark local QR vs reconocimiento facial (tarea #373)
 
-Resultados publicados en `https://www.numerosrojos.net/estadio-accesos` (oculta, noindex). Esta es la medición de **laboratorio** que los respalda. Complementa la PoC interactiva de `poc-accesos-estadio.md` (#372).
+Resultados publicados en `https://www.numerosrojos.net/estadio-accesos` (oculta, noindex). Esta es la medición de **laboratorio** que los respalda. Ver `poc-accesos-estadio.md` (la PoC interactiva #372 se retiró en #379; queda el laboratorio).
 
 ## Resultado (corrida del 2026-11-13, N = 100 por método)
 
@@ -21,14 +21,14 @@ Variante **sin GPU** (WebGL por software, SwiftShader; peor caso para el facial)
 Conclusión: el QR decide ≥ 3× más rápido (12× sin GPU), sin errores y con ~11× menos CPU; el facial pesa 6,4 MB más y comete falsos accesos y lecturas fallidas.
 
 ## Método
-- **Qué corre**: los mismos motores de la PoC (`frontend/src/lib/accessPoc/engines.js`): jsQR (`BarcodeDetector` no existe en Chrome headless Linux) y face-api (TinyFaceDetector 320 + landmarks tiny + red de reconocimiento, umbral 0,60).
+- **Qué corre**: los motores de `frontend/bench/lib/engines.js`: jsQR (`BarcodeDetector` no existe en Chrome headless Linux) y face-api (TinyFaceDetector 320 + landmarks tiny + red de reconocimiento, umbral 0,60).
 - **Cámara sintética** (sin cámara real): un `<canvas>` 1280×720 → `captureStream()` → `<video>`. Cada intento: se vacía la escena (3 lecturas seguidas sin objetivo), se pinta el objetivo y se corre el detector en cada cuadro (`requestAnimationFrame`) hasta decidir o 5 s (timeout = error, no entra en los tiempos). **t0** = instante en que se pinta el objetivo; **t1** = decisión OK/denegado. Incluye el retardo de cuadro del video, igual para ambos.
 - **Misma secuencia** para ambos: N = 100 intentos (50 deben dar OK, 50 denegado, alternados), semilla 373. Cada intento varía posición, tamaño (340–500 px), brillo (0,75–1,25) y rotación (±5°).
 - **QR**: 10 códigos válidos registrados; los OK usan uno válido, los denegados un código inexistente (generados con `qrcode`).
 - **Facial**: tres rostros recortados de la foto de demostración `sample1.jpg` del paquete `@vladmandic/face-api` (MIT; se lee de `node_modules` al correr, no se copia ni se publica). Referencia = persona A; OK = persona A; denegado = personas B o C. No hay datos de socios. Ninguna imagen ni vector sale del navegador ni se guarda; el CSV solo tiene tiempos y resultados.
 - **Calentamiento**: 3 pasadas sin medir (el facial compila shaders en la primera).
 - **CPU**: suma del `cpuTime` de todos los procesos de Chrome (CDP `SystemInfo.getProcessInfo`) durante la corrida, dividida por N. Incluye el ciclo completo del intento (vaciado de escena y espera), igual para ambos métodos. Memoria: pico de `usedJSHeapSize`. Peso: gzip de los chunks del build de producción + tamaño de los modelos servidos.
-- **Estadísticas**: `percentile`/`median`/`summarize` de `frontend/src/lib/accessPoc/stats.js` (p95 por rango más cercano).
+- **Estadísticas**: `percentile`/`median`/`summarize` de `frontend/bench/lib/stats.js` (p95 por rango más cercano).
 
 ## Entorno de la corrida
 Intel Core i7-1165G7 (8 hilos), 38 GB RAM, Linux 7.0.0-43, Chrome 157.0.8103.50 (`--headless=new`), Node 22.22.1, commit base `ad5f96c`. Variante GPU: GPU integrada del equipo; variante software: `--use-angle=swiftshader`.

@@ -1,11 +1,11 @@
 // Benchmark de laboratorio QR vs facial (tarea #373). Lo maneja scripts/benchmark-accesos/run.mjs.
-// Usa los MISMOS motores que la PoC (src/lib/accessPoc/engines.js) y una cámara sintética:
+// Usa los motores de bench/lib/engines.js y una cámara sintética:
 // un <canvas> 1280x720 -> captureStream() -> <video>. No se usa cámara real ni datos de socios.
 // Imágenes de rostros: fotos de demostración de la librería face-api (MIT), leídas de node_modules en
 // tiempo de ejecución; no se copian ni se publican. Nada sale del navegador.
 import QRCode from 'qrcode';
-import { createQrEngine, loadFaceEngine, describeFace } from '/src/lib/accessPoc/engines.js';
-import { euclidean } from '/src/lib/accessPoc/stats.js';
+import { createQrEngine, loadFaceEngine, describeFace } from '/bench/lib/engines.js';
+import { euclidean } from '/bench/lib/stats.js';
 
 const W = 1280, H = 720, TIMEOUT_MS = 5000, FACE_THRESHOLD = 0.6;
 const canvas = document.createElement('canvas');
